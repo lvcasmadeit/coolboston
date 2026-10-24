@@ -2,7 +2,7 @@
 
 Source: "Canopy Change Assessment: Heat Metrics", HEX Mean Heat Index layer (City of Boston,
 published on MassGIS). 682 hexagons of ~25 ha with July 2019 mean air temperature (°F) at
-6am, 3pm and 7pm. Hexes outside the traverse routes are stored as 0, which we treat as missing.
+6am, 3pm and 7pm; the app uses 3pm only. Hexes outside the traverse routes are stored as 0, which we treat as missing.
 """
 
 from pathlib import Path
@@ -17,13 +17,13 @@ from coolboston.join import area_weighted_mean
 
 HEATWATCH_URL = (
     "https://services.arcgis.com/sFnw0xNflSi8J0uh/arcgis/rest/services/Heat_Metrics/"
-    "FeatureServer/2/query?where=1%3D1&outFields=GRID_ID,Mean_am_T_,Mean_p2_T_,Mean_ev_T_"
+    "FeatureServer/2/query?where=1%3D1&outFields=GRID_ID,Mean_p2_T_"
     "&outSR=4326&f=geojson"
 )
 HEATWATCH_PATH = RAW_DIR / "heatwatch_hex.geojson"
 
-# Source field -> our name. "p2" is the 3pm traverse, "ev" the 7pm one.
-SOURCE_FIELDS = {"Mean_am_T_": "temp_6am", "Mean_p2_T_": "temp_3pm", "Mean_ev_T_": "temp_7pm"}
+# Source field -> our name. "p2" is the 3pm traverse.
+SOURCE_FIELDS = {"Mean_p2_T_": "temp_3pm"}
 TEMP_COLUMNS = tuple(SOURCE_FIELDS.values())
 
 

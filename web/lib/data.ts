@@ -5,8 +5,8 @@ export class HexDataError extends Error {
 }
 
 const TOP_FIELDS = ["version", "hexes"] as const;
-const HEX_FIELDS = ["id", "temp6am", "temp3pm", "temp7pm"] as const satisfies readonly (keyof Hex)[];
-const TEMP_FIELDS = ["temp6am", "temp3pm", "temp7pm"] as const;
+const HEX_FIELDS = ["id", "temp3pm"] as const satisfies readonly (keyof Hex)[];
+const TEMP_FIELDS = ["temp3pm"] as const;
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);

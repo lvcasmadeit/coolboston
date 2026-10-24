@@ -12,11 +12,11 @@ import pandas as pd
 from coolboston.grid import boston_cells
 from coolboston.heatwatch import heatwatch_for_cells
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 OUT_PATH = Path(__file__).resolve().parents[3] / "web" / "data" / "hexes.json"
 
 # Output field -> pipeline column. Order here is the field order in the JSON.
-COLUMNS = {"temp6am": "temp_6am", "temp3pm": "temp_3pm", "temp7pm": "temp_7pm"}
+COLUMNS = {"temp3pm": "temp_3pm"}
 HEX_FIELDS = ("id", *COLUMNS)
 
 

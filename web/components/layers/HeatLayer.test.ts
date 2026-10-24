@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createHeatLayer, SLAB_HEIGHT_M } from "@/components/layers/HeatLayer";
 import type { Hex } from "@/lib/types";
 
-const hex: Hex = { id: "892a3066037ffff", temp6am: 74, temp3pm: 91, temp7pm: 84 };
+const hex: Hex = { id: "892a3066037ffff", temp3pm: 91 };
 const range = { min: 88, max: 94 };
 
 type FillAccessor = (d: Hex) => number[];
