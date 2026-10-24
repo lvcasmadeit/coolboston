@@ -11,7 +11,7 @@ import { useHexes } from "@/components/useHexes";
 import { WhenLayerExists } from "@/components/WhenLayerExists";
 import { formatTemp, valueRange } from "@/lib/heat";
 import { BOSTON_VIEW, BUILDINGS_LAYER_ID, MAP_STYLE } from "@/lib/mapConfig";
-import { useDashboard } from "@/lib/store";
+import { DEFAULT_LAYERS, useDashboard } from "@/lib/store";
 import type { Hex } from "@/lib/types";
 
 function getTooltip({ object }: PickingInfo<Hex>) {
@@ -26,7 +26,7 @@ interface MapViewProps {
 export default function MapView({ token, children }: MapViewProps) {
   const data = useHexes();
   const heatVisible = useDashboard((s) => s.layers.heat?.visible ?? true);
-  const heatOpacity = useDashboard((s) => s.layers.heat?.opacity ?? 0.8);
+  const heatOpacity = useDashboard((s) => s.layers.heat?.opacity ?? DEFAULT_LAYERS.heat.opacity);
 
   const hexes = data.status === "ready" ? data.hexes : null;
   const range = useMemo(() => (hexes ? valueRange(hexes.map((h) => h.temp3pm)) : null), [hexes]);

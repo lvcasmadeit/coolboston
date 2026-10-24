@@ -28,7 +28,7 @@ export interface DashboardState {
 
 // Replaced by the layer registry in Task 27.
 export const DEFAULT_LAYERS: Record<LayerId, LayerState> = {
-  heat: { visible: true, opacity: 0.8 },
+  heat: { visible: true, opacity: 0.5 },
   buildings: { visible: true, opacity: 1 },
 };
 

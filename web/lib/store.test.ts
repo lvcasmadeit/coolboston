@@ -1,11 +1,18 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createDashboardStore } from "@/lib/store";
+import { createDashboardStore, DEFAULT_LAYERS } from "@/lib/store";
 import { MAX_YEAR, MIN_YEAR } from "@/lib/types";
 
 const LAYERS = {
   heat: { visible: true, opacity: 1 },
   canopy: { visible: false, opacity: 0.7 },
 };
+
+describe("default layers", () => {
+  it("shows heat hexes at 50% opacity", () => {
+    expect(DEFAULT_LAYERS.heat).toEqual({ visible: true, opacity: 0.5 });
+    expect(createDashboardStore().getState().layers.heat.opacity).toBe(0.5);
+  });
+});
 
 let store: ReturnType<typeof createDashboardStore>;
 beforeEach(() => {
