@@ -2,16 +2,16 @@ export type RGB = readonly [number, number, number];
 export type RGBA = [number, number, number, number];
 
 /**
- * Sequential amber -> red -> maroon (planui.md 3.2). Starts at mid-amber, not pale yellow, so the
- * coolest hexes still read against the cream basemap at 50% opacity.
+ * Rainbow blue -> cyan -> yellow -> orange -> red (planui.md M3, matching the reference mockup).
+ * Saturated yellow (not pale) so the midpoint still reads on the cream basemap at 50% alpha.
  */
 export const HEAT_RAMP: readonly RGB[] = [
-  [253, 208, 138], // #FDD08A
-  [249, 166, 90], // #F9A65A
-  [238, 117, 67], // #EE7543
-  [216, 69, 47], // #D8452F
-  [168, 32, 44], // #A8202C
-  [110, 15, 37], // #6E0F25
+  [44, 123, 182], // #2C7BB6 blue
+  [65, 182, 196], // #41B6C4 cyan
+  [249, 208, 87], // #F9D057 yellow
+  [253, 141, 60], // #FD8D3C orange
+  [227, 26, 28], // #E31A1C red
+  [165, 0, 38], // #A50026 dark red
 ];
 
 export const TRANSPARENT: RGBA = [0, 0, 0, 0];
