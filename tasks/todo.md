@@ -207,9 +207,10 @@ Notes: a Building / Area toggle floats over the map (store `tool`). In area mode
 **Files likely touched:** `web/components/layers/SelectionLayer.ts`, `web/lib/areaSelect.ts`, `web/lib/areaSelect.test.ts`, `web/components/MapView.tsx`
 
 ### Checkpoint D: After Tasks 14–23
-- [ ] `npm test`, `npm run typecheck`, `npm run lint`, `npm run build` pass
-- [ ] Building and area selection each work and clear
-- [ ] Spike decision recorded in `plan.md`
+- [x] `npm test`, `npm run typecheck`, `npm run lint`, `npm run build` pass
+- [x] Building and area selection each work and clear
+- [x] Spike decision recorded in `plan.md`
+- Result: 86 web tests, 30 pipeline tests, typecheck, lint and build pass; selection checked in headless Chromium with no console errors.
 - [ ] Review with human before proceeding
 
 ---

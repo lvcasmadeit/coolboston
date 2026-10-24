@@ -45,9 +45,9 @@ Every number in the app is an estimate and is labelled as one.
 - [x] Task 23: Area selection on hexes
 
 ### Checkpoint D: After Tasks 14–23
-- [ ] Tests and build pass
-- [ ] A building and an area can each be selected and cleared
-- [ ] Spike decision recorded in this file (Task 21)
+- [x] Tests and build pass
+- [x] A building and an area can each be selected and cleared
+- [x] Spike decision recorded in this file (Task 21)
 - [ ] Review with human before proceeding
 
 ### Phase 5: Impact model and map
