@@ -99,7 +99,7 @@ Standard has no `composite` source, so our own `3d-buildings` fill-extrusion lay
 
 Goal: make the map read like the reference screenshot: a fine grid of heat tiles raised into a translucent slab that swallows low-rise blocks while towers punch through, on a basemap with deep-blue water, white buildings and a closer downtown camera.
 
-Status: **decisions made (section 7); implementing V1–V5.**
+Status: **V1–V5 done; Checkpoint V awaiting review.**
 
 ## 5. What the reference shows vs. what we have
 
@@ -170,24 +170,25 @@ Keep land cream so the app chrome still matches; place labels stay on (the refer
 ## 8. Tasks
 
 ### V1: Draw-order spike [S, do first]
-- [ ] 18 m extruded slab on the current res-9 data; screenshots for both draw orders; pick the setting that tints low-rise and leaves towers untouched. No commit unless it works.
+- [x] 18 m extruded slab on the current res-9 data; screenshots for both draw orders; pick the setting that tints low-rise and leaves towers untouched. No commit unless it works. *Result: `middle` slot with normal depth write; `depthWriteEnabled: false` or `top` lose the tint.*
 
 ### V2: H3 res 10 [S]
-- [ ] `RESOLUTION = 10`; pipeline tests still pass; `hexes.json` regenerated and size noted; `/api/hexes` and the map still load.
+- [x] `RESOLUTION = 10`; pipeline tests still pass; `hexes.json` regenerated and size noted; `/api/hexes` and the map still load.
 
 ### V3: Raised slab [M]
-- [ ] Extruded heat layer with the V1 setting, 18 m, 50% fill alpha; `HeatLayer.test.ts` covers `extruded` and elevation.
-- [ ] Verify: tilted downtown screenshot shows towers above the slab; hover tooltip still works.
+- [x] Extruded heat layer with the V1 setting, 18 m, 50% fill alpha; `HeatLayer.test.ts` covers `extruded` and elevation.
+- [x] Verify: tilted downtown screenshot shows towers above the slab; hover tooltip still works.
 
 ### V4: Basemap and camera [S]
-- [ ] Water, buildings, facades, theme (M4), `BOSTON_VIEW` (M5); `mapConfig.test.ts` updated.
-- [ ] Verify: screenshot next to the reference.
+- [x] Water, buildings, facades, theme (M4), `BOSTON_VIEW` (M5); `mapConfig.test.ts` updated. *Deviations: zoom 15.2, not 14.3 (Standard draws 3D buildings only from zoom 15); `show3dFacades` off (its tiles 404 downtown).*
+- [x] Verify: screenshot next to the reference.
 
 ### V4b: Rainbow ramp [S]
-- [ ] `HEAT_RAMP` → blue → cyan → yellow → orange → red; colors tests still pass; legend follows.
+- [x] `HEAT_RAMP` → blue → cyan → yellow → orange → red; colors tests still pass; legend follows.
 
 ### V5: Docs [S]
-- [ ] PLAN.md and todo.md: grid resolution, slab, Phase 2 `LST_RAMP` note.
+- [x] PLAN.md and todo.md: grid resolution, slab, Phase 2 `LST_RAMP` note.
 
 ### Checkpoint V
-- [ ] All checks pass; side-by-side screenshot with the reference; review with human.
+- [x] All checks pass (41 web tests, 13 pytest, typecheck, lint, build); screenshots at 1440×900 and 1280×720 compared with the reference.
+- [ ] Review with human.
