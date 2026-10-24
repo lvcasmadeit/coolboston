@@ -363,7 +363,7 @@ Notes: `lib/metrics.ts` (`selectionMetrics`) and `components/MetricCards.tsx`, s
 **Dependencies:** Tasks 26, 29
 **Files likely touched:** `web/components/LayersPanel.tsx`, `web/components/TopBar.tsx`, `web/lib/layers.ts`, `web/lib/layers.test.ts`
 
-**Status: paused, not done.** Code is committed (layer registry, Layers tab, view controls in the top bar, 3D buildings toggle, shared `Segmented` control). Unit tests pass (155). Still to do: browser check of each control (keyboard and mouse), and the slider fix (`aria-label` forwarded to the thumb, which has role `slider`). Checkpoint F has not been reached.
+**Status: paused, not done.** Code is committed (layer registry, Layers tab, view controls in the top bar, 3D buildings toggle, shared `Segmented` control). Unit tests pass (155). The opacity slider's `aria-label` is forwarded to its thumb (role `slider`). Still to do: browser check of each control (keyboard and mouse). Checkpoint F has not been reached.
 
 ### Checkpoint F: Core loop complete
 - [ ] Select a building, apply green roof, see the map and metrics change, remove it, see it restore
