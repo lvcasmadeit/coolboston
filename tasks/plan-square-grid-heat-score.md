@@ -51,7 +51,7 @@ Parallelizable work: Task 45 alongside Tasks 42–44, since it is pure and only 
 ## Task List
 
 ### Phase 10: Square grid (module `square-grid`)
-- [ ] Task 39: Square grid in State Plane, clipped to Boston
+- [x] Task 39: Square grid in State Plane, clipped to Boston
 - [ ] Task 40: Surface temperature on tiles, composite raster cached
 - [ ] Task 41: `cells.json` v4 and the web on tiles
 
@@ -106,4 +106,4 @@ Parallelizable work: Task 45 alongside Tasks 42–44, since it is pure and only 
   1. Cache the composite GeoTIFF.
   2. Change mode scales to the max |ΔH|.
   3. The city-wide score shows with no selection.
-- `pyproj` will be imported directly by `grid.py`. It is already installed through geopandas. I plan to declare it in `pyproject.toml` at its installed version, which counts as adding a dependency, so this needs a yes.
+- Resolved: `pyproj` isn't needed as a direct dependency (Task 39 reprojects through geopandas).

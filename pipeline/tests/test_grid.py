@@ -60,3 +60,68 @@ def test_load_boundary_reprojects_and_dissolves(tmp_path):
 
     assert geom.geom_type == "Polygon"
     assert geom.bounds == pytest.approx((-71.06, 42.36, -71.04, 42.37))
+
+
+# --- Square tiles (SPEC-square-grid) ---
+
+import geopandas as gpd  # noqa: E402
+from shapely.geometry import box  # noqa: E402
+
+from coolboston.grid import CELL_SIZE_M, GRID_CRS, square_tiles, tile_coordinates, tile_id  # noqa: E402
+
+
+def to_wgs84(geom):
+    return gpd.GeoSeries([geom], crs=GRID_CRS).to_crs(4326).iloc[0]
+
+
+# 250.5 m x 150 m in State Plane: columns 2299 (0.5 m wide sliver), 2300, 2301, 2302 (50 m);
+# rows 9000 (80 m) and 9001 (70 m).
+RECT = box(229_999.5, 900_020, 230_250, 900_170)
+
+
+def test_tile_ids_are_i_underscore_j():
+    assert tile_id(2300, 9001) == "2300_9001"
+    assert tile_id(-3, 7) == "-3_7"
+
+
+def test_rectangle_gives_expected_tiles_and_clipped_areas():
+    tiles = square_tiles(to_wgs84(RECT))
+
+    areas = dict(zip(tiles.id, tiles.land_area_m2))
+    expected = {
+        "2300_9000": 8000, "2300_9001": 7000,
+        "2301_9000": 8000, "2301_9001": 7000,
+        "2302_9000": 4000, "2302_9001": 3500,
+    }
+    assert sorted(areas) == sorted(expected)  # 0.5 m column (40 and 35 m²) dropped as slivers
+    for k, v in expected.items():
+        assert areas[k] == pytest.approx(v, rel=1e-3)
+    assert list(tiles.id) == sorted(expected, key=lambda t: tuple(map(int, t.split("_"))))
+    assert tiles.crs.to_epsg() == GRID_CRS
+
+
+def test_full_tile_is_100_m_square():
+    tiles = square_tiles(to_wgs84(box(230_000, 900_000, 230_100, 900_100).buffer(-0.01)))
+    assert list(tiles.id) == ["2300_9000"]
+    assert tiles.land_area_m2.iloc[0] == pytest.approx(CELL_SIZE_M**2, rel=1e-3)
+
+
+def test_tile_split_by_water_is_multipart_with_full_land_area():
+    land = MultiPolygon([box(230_000, 900_000, 230_040, 900_100), box(230_060, 900_000, 230_100, 900_100)])
+    tiles = square_tiles(to_wgs84(land.buffer(-0.01)))
+    assert list(tiles.id) == ["2300_9000"]
+    assert tiles.land_area_m2.iloc[0] == pytest.approx(8000, rel=1e-3)
+    (coords,) = tile_coordinates(tiles)
+    assert len(coords) == 2
+
+
+def test_coordinates_are_closed_lnglat_rounded_and_ccw():
+    tiles = square_tiles(to_wgs84(RECT))
+    for polys in tile_coordinates(tiles):
+        for rings in polys:
+            ext = rings[0]
+            assert ext[0] == ext[-1] and len(ext) >= 4
+            for lng, lat in ext:
+                assert -71.2 < lng < -70.9 and 42.2 < lat < 42.5
+                assert round(lng, 6) == lng and round(lat, 6) == lat
+            assert Polygon(ext).exterior.is_ccw

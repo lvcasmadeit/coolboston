@@ -17,8 +17,8 @@ User-visible result: the heat layer is a flat grid of 100 m squares under the 3D
 - Defined in Massachusetts State Plane Mainland, EPSG:26986, in metres. The origin snaps to a multiple of 100 m. Tile `(i, j)` covers `x ∈ [100i, 100i+100)`, `y ∈ [100j, 100j+100)`.
 - Tile id is `"{i}_{j}"`, which is stable and parseable. The 500 m neighbourhood (5 × 5) is `i±2, j±2`, so no geometry lookup is needed.
 - Tiles are kept if they intersect the Boston land boundary (water excluded). Each tile is clipped to the boundary, and `landAreaM2` is the clipped area. Tiles with `landAreaM2 < 100` (1% of a full tile) are dropped as slivers.
-- Geometry is stored as a WGS84 `[lng, lat]` ring of the clipped polygon. Unclipped tiles render as four-corner quadrilaterals, rotated about 0.3° from north because of State Plane grid convergence. That rotation is expected.
-- About 12,000 tiles are expected. The exact count is recorded when the pipeline is first run.
+- Geometry is stored as WGS84 GeoJSON MultiPolygon coordinates of the clipped tile (`coords`), because 276 of 13,562 tiles are split by water and 25 have holes. Unclipped tiles render as four-corner quadrilaterals, rotated about 0.3° from north because of State Plane grid convergence. That rotation is expected.
+- 13,562 tiles (11,168 full); total land 125.09 km² against a 125.10 km² boundary (Task 39).
 
 ### Inputs onto tiles
 
@@ -34,17 +34,17 @@ User-visible result: the heat layer is a flat grid of 100 m squares under the 3D
   "cellSizeM": 100,
   "crs": "EPSG:26986",
   "cells": [
-    { "id": "2361_9015", "landAreaM2": 10000, "ring": [[-71.06, 42.35], ...], "temp3pm": 91.8, "surface": 92.0 }
+    { "id": "2361_9015", "landAreaM2": 10000, "coords": [[[[-71.06, 42.35], ...]]], "temp3pm": 91.8, "surface": 92.0 }
   ]
 }
 ```
 
-- `ring` is closed (first point = last point). Coordinates are rounded to 6 decimals (about 0.1 m).
+- `coords` is GeoJSON MultiPolygon coordinates: rings closed, exteriors counter-clockwise, rounded to 6 decimals (about 0.1 m).
 - The file replaces `hexes.json`. It is served at `GET /api/cells?v=4` (a versioned URL, as Task e9ce538 learned). `/api/hexes` is removed.
 - Validated by `parseCells` in `web/lib/data.ts`, which rejects:
   - missing or unknown keys, and the wrong version;
   - non-finite numbers;
-  - rings with fewer than 4 points or that aren't closed;
+  - rings with fewer than 4 points or that aren't closed, and empty `coords`;
   - `landAreaM2` outside (0, 10000].
 - The size budget is 3 MB raw. If the file is over budget, coordinate precision is reduced before considering vector tiles.
 

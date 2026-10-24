@@ -15,7 +15,7 @@ Standard verification (cited as "standard" below):
 
 ## Phase 10: Square grid
 
-### Task 39: Square grid in State Plane, clipped to Boston [M]
+### Task 39: Square grid in State Plane, clipped to Boston [M] (done)
 
 **Description:** Replace the H3 cell generator in `grid.py` with a 100 m square grid in EPSG:26986.
 - Origin snapped to 100 m, tile id `"{i}_{j}"`.
@@ -25,15 +25,17 @@ Standard verification (cited as "standard" below):
 The output is a GeoDataFrame with `id`, `landAreaM2`, the State Plane polygon and the WGS84 ring.
 
 **Acceptance criteria:**
-- [ ] A synthetic boundary test (for example a 250 m × 150 m rectangle offset from the grid) gives the expected ids, clipped areas and sliver drop.
-- [ ] On the real boundary, it prints the tile count (expected about 12,000), with total land area within 1% of the boundary area.
-- [ ] Rings are closed, in [lng, lat] order, rounded to 6 decimals.
+- [x] A synthetic boundary test (for example a 250 m × 150 m rectangle offset from the grid) gives the expected ids, clipped areas and sliver drop.
+- [x] On the real boundary, it prints the tile count (expected about 12,000), with total land area within 1% of the boundary area.
+- [x] Rings are closed, in [lng, lat] order, rounded to 6 decimals.
 
 **Verification:**
-- [ ] `cd pipeline && uv run pytest -q tests/test_grid.py`
-- [ ] `uv run python -m coolboston.grid` prints the count and area.
+- [x] `cd pipeline && uv run pytest -q tests/test_grid.py`
+- [x] `uv run python -m coolboston.grid` prints the count and area.
 
-**Dependencies:** None. `pyproj` must be declared in `pyproject.toml` first, which needs your yes (see Open Questions).
+Notes: `square_tiles` and `tile_coordinates` in `grid.py`, added alongside the H3 functions so the pipeline keeps working until Task 41 switches over. Real boundary: 13,562 tiles (11,168 full), 125.091 km² land vs 125.096 km² boundary. 276 tiles are split by water and 25 have holes, so the contract stores GeoJSON MultiPolygon `coords` instead of a single ring (spec updated). No new dependency: reprojection goes through geopandas, so pyproj isn't imported directly. Pytest: 35 passed (5 new).
+
+**Dependencies:** None
 
 **Files likely touched:** `pipeline/src/coolboston/grid.py`, `pipeline/tests/test_grid.py`, `pipeline/pyproject.toml`, `pipeline/uv.lock`
 
