@@ -22,12 +22,17 @@ export class App {
     return this.page.getByRole("complementary", { name: "Dashboard controls" });
   }
 
-  /** Load the page and wait for the map, its tiles and the heat layer. */
+  /** Load the page and wait for the map, its tiles and the coloured heat layer. */
   async open() {
     await this.page.goto("/");
     await this.page.waitForFunction(() => {
       const map = (window as W).__coolboston?.map;
-      return map?.loaded() && map.areTilesLoaded() && map.__deck?.props.layers?.some((l: any) => l.id === "heat-tiles");
+      return (
+        map?.loaded() &&
+        map.areTilesLoaded() &&
+        map.getLayer("heat-tiles") &&
+        map.getFeatureState({ source: "heat-tiles", id: 0 }).color !== undefined
+      );
     }, null, { timeout: 60_000 });
     await this.page.waitForTimeout(1000); // let the first interleaved frame settle
   }
@@ -97,13 +102,25 @@ export class App {
     return this.page.evaluate(() => (window as W).__coolboston!.map.__deck.props.layers.map((l: any) => l.id) as string[]);
   }
 
-  /** Fill colour the heat layer gives tile `cell` (or the first tile with air data). */
+  /** CSS colour (feature state) the heat layer gives tile `cell`, or the first tile with air data. */
   tileColor(cell?: string) {
     return this.page.evaluate((cell) => {
-      const L = (window as W).__coolboston!.map.__deck.props.layers.find((l: any) => l.id === "heat-tiles");
-      const d = L.props.data.find((p: any) => (cell ? p.cell.id === cell : p.cell.temp3pm !== null));
-      return L.props.getFillColor(d) as number[];
+      const map = (window as W).__coolboston!.map;
+      const fc = map.getSource("heat-tiles").serialize().data;
+      const i = fc.features.findIndex((f: any) => (cell ? f.properties.id === cell : f.properties.temp3pm !== null));
+      return map.getFeatureState({ source: "heat-tiles", id: i }).color as string;
     }, cell);
+  }
+
+  /** The Mapbox heat fill layer's visibility and opacity. */
+  heatLayer() {
+    return this.page.evaluate(() => {
+      const map = (window as W).__coolboston!.map;
+      return {
+        visible: map.getLayoutProperty("heat-tiles", "visibility") !== "none",
+        opacity: map.getPaintProperty("heat-tiles", "fill-opacity") as number,
+      };
+    });
   }
 
   /** Whether building `id` carries the `select` feature state. */

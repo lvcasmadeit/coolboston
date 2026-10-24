@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CHANGE_RAMP, FADED, HEAT_RAMP } from "@/lib/colors";
 import { computeDeltas, type Deltas } from "@/lib/cooling";
 import { quantileRange } from "@/lib/heat";
-import { afterValue, changePct, fillColor, maxChangePct, type HeatView } from "@/lib/heatView";
+import { afterValue, changePct, fillColor, maxChangePct, type HeatView, tileTooltip } from "@/lib/heatView";
 import { computeBaseline } from "@/lib/impact";
 import type { CellTemps } from "@/lib/types";
 
@@ -83,5 +83,14 @@ describe("quantileRange", () => {
     const vs = [null, ...Array.from({ length: 101 }, (_, i) => i)];
     expect(quantileRange(vs)).toEqual({ min: 2, max: 98 });
     expect(quantileRange([null])).toBeNull();
+  });
+});
+
+describe("tileTooltip", () => {
+  it("shows the base value, then the estimate and heat-island change once treated", () => {
+    const v = { metric: "air" as const, mode: "heat" as const, deltas: new Map(), baseline, ranges: { air: { min: 88, max: 94 }, surface: { min: 80, max: 110 } } };
+    expect(tileTooltip(hexes[0], v)).toBe("3pm air temp: 94.0 °F");
+    const treated = tileTooltip(hexes[0], { ...v, deltas: trees(["hot"]) });
+    expect(treated).toMatch(/^3pm air temp: 94\.0 °F → 93\.9 °F \(est\.\)\nHeat island: −\d+\.\d%$/);
   });
 });

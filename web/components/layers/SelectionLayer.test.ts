@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TILE_Z_M } from "@/components/layers/HeatLayer";
-import { createSelectionLayer } from "@/components/layers/SelectionLayer";
+import { OUTLINE_Z_M, createSelectionLayer } from "@/components/layers/SelectionLayer";
 
 import type { Cell } from "@/lib/types";
 
@@ -14,7 +13,7 @@ describe("createSelectionLayer", () => {
     expect(data.map((d) => d.id)).toEqual(["2363_9011", "2364_9011", "2364_9011"]);
     const ring = data[0].rings[0];
     expect(ring[0]).toEqual(ring[ring.length - 1]);
-    expect(ring.every((p) => p[2] > TILE_Z_M)).toBe(true);
+    expect(ring.every((p) => p[2] === OUTLINE_Z_M && OUTLINE_Z_M > 0)).toBe(true);
     expect(layer.props.pickable).toBe(false);
   });
 

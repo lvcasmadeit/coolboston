@@ -13,10 +13,7 @@ const roof: Action = {
 function inputs(store: ReturnType<typeof createDashboardStore>): DeckLayerInputs {
   const s = store.getState();
   return {
-    cells,
     byId: new Map(cells.map((c) => [c.id, c])),
-    view: { metric: s.metric, mode: s.viewMode, deltas: new Map(), baseline: { air: 91, surface: 100 }, ranges: { air: { min: 88, max: 94 }, surface: { min: 80, max: 110 } } },
-    maxPct: 0,
     actions: s.actions,
     areaCells: s.selection?.kind === "area" ? s.selection.cells : null,
     layers: s.layers,
@@ -25,28 +22,31 @@ function inputs(store: ReturnType<typeof createDashboardStore>): DeckLayerInputs
 const ids = (i: DeckLayerInputs) => buildDeckLayers(i).map((l) => l.id);
 
 describe("buildDeckLayers", () => {
-  it("store toggles reach the layer list", () => {
+  it("store toggles reach the layer list; the heat tiles are not a deck layer", () => {
     const store = createDashboardStore();
     store.getState().addAction({ intervention: "green-roof", target: roof.target as never });
     store.getState().setAreaCells([cells[0].id]);
-    expect(ids(inputs(store))).toEqual(["heat-tiles", "roof-markers", "area-selection"]);
-    store.getState().toggleLayer("heat");
+    expect(ids(inputs(store))).toEqual(["roof-markers", "area-selection"]);
     store.getState().toggleLayer("roofs");
     expect(ids(inputs(store))).toEqual(["area-selection"]);
   });
 
-  it("store opacity reaches the layers' fill alpha", () => {
+  it("store opacity reaches the roof caps' fill alpha", () => {
     const store = createDashboardStore();
     store.getState().addAction({ intervention: "green-roof", target: roof.target as never });
-    store.getState().setLayerOpacity("heat", 0.2);
     store.getState().setLayerOpacity("roofs", 0.4);
-    const [heat, roofs] = buildDeckLayers(inputs(store));
-    const fill = (l: typeof heat, d: unknown) => (l.props.getFillColor as unknown as (d: unknown) => number[])(d);
-    expect(fill(heat, { cell: cells[0], polygon: [] })[3]).toBe(51);
-    expect(fill(roofs, (roofs.props.data as unknown[])[0])[3]).toBe(102);
+    const [roofs] = buildDeckLayers(inputs(store));
+    expect((roofs.props.getFillColor as unknown as (d: unknown) => number[])((roofs.props.data as unknown[])[0])[3]).toBe(102);
   });
 
   it("omits roof caps when there are no building actions", () => {
-    expect(ids(inputs(createDashboardStore()))).toEqual(["heat-tiles"]);
+    expect(ids(inputs(createDashboardStore()))).toEqual([]);
+  });
+
+  it("skips selected ids that are not in the data", () => {
+    const store = createDashboardStore();
+    store.getState().setAreaCells(["9_9"]);
+    const [sel] = buildDeckLayers(inputs(store));
+    expect(sel.props.data).toEqual([]);
   });
 });

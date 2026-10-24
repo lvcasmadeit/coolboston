@@ -60,7 +60,7 @@ Parallelizable work: Task 45 alongside Tasks 42–44, since it is pure and only 
 - [ ] Review with human before proceeding
 
 ### Phase 11: Grid rendering and model
-- [ ] Task 42: Flat Mapbox fill heat layer
+- [x] Task 42: Flat Mapbox fill heat layer
 - [ ] Task 43: Footprint overlap and neighbourhood share rule
 - [ ] Task 44: Remove H3, update docs, straddle e2e
 

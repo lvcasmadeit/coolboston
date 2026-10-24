@@ -1,9 +1,10 @@
 /**
- * What the heat tiles shows (Task 26). Pure.
+ * What the heat tiles show (Task 26). Pure.
  *   Heat mode: the after-action value of the chosen metric on that metric's fixed baseline range.
  *   Change mode: affected tiles coloured by % heat-island reduction on 0 → max (own scale);
  *   unaffected and n/a tiles faded.
  */
+import { formatTemp } from "@/lib/heat";
 import { changeColor, FADED, heatColor, TRANSPARENT, type RGBA } from "@/lib/colors";
 import type { Deltas } from "@/lib/cooling";
 import type { Range } from "@/lib/heat";
@@ -69,4 +70,18 @@ export function fillColor(h: CellTemps, v: HeatView, maxPct: number): RGBA {
   const p = changePct(h, v.metric, v.deltas, v.baseline);
   if (p === null || p <= 0) return [...FADED, Math.round(alpha * FADE)];
   return changeColor(p, maxPct, alpha);
+}
+
+const METRIC_LABEL: Record<Metric, string> = { air: "3pm air temp", surface: "Surface temp (mid-morning)" };
+
+/** Hover text for a tile: base value, plus after value and % change when the tile is treated. */
+export function tileTooltip(h: CellTemps, view: Omit<HeatView, "opacity">): string {
+  const base = baseValue(h, view.metric);
+  const after = afterValue(h, view.metric, view.deltas);
+  let text = `${METRIC_LABEL[view.metric]}: ${formatTemp(base)}`;
+  if (base !== null && after !== null && after !== base) {
+    const pct = changePct(h, view.metric, view.deltas, view.baseline);
+    text += ` → ${formatTemp(after)} (est.)\nHeat island: ${pct === null ? "n/a" : `−${pct.toFixed(1)}%`}`;
+  }
+  return text;
 }

@@ -1,13 +1,14 @@
 "use client";
 
 import "mapbox-gl/dist/mapbox-gl.css";
-import type { PickingInfo } from "@deck.gl/core";
 import { useEffect, useMemo } from "react";
 import Map, { NavigationControl, ScaleControl } from "react-map-gl/mapbox";
 import { AreaSelection } from "@/components/AreaSelection";
 import { BasemapBuildings } from "@/components/BasemapBuildings";
 import { BuildingSelection } from "@/components/BuildingSelection";
 import { DeckOverlay } from "@/components/DeckOverlay";
+import { HeatFill } from "@/components/HeatFill";
+import { HeatHover } from "@/components/HeatHover";
 import { Legend } from "@/components/Legend";
 import { MapFocus } from "@/components/MapFocus";
 import { TestHookMap } from "@/components/TestHookMap";
@@ -15,42 +16,11 @@ import { buildDeckLayers } from "@/components/layers/buildLayers";
 import { ToolToggle } from "@/components/ToolToggle";
 import { useHeatModel } from "@/components/useHeatModel";
 import { computeDeltas } from "@/lib/cooling";
-import { formatTemp } from "@/lib/heat";
-import { afterValue, baseValue, changePct, maxChangePct, type HeatView } from "@/lib/heatView";
+import { maxChangePct, type HeatView } from "@/lib/heatView";
+import { layerSetting } from "@/lib/layers";
 import { BASEMAP_CONFIG, BOSTON_VIEW, MAP_STYLE } from "@/lib/mapConfig";
 import { useDashboard } from "@/lib/store";
 import { installTestHook } from "@/lib/testHook";
-import type { Metric } from "@/lib/types";
-import type { TilePart } from "@/components/layers/HeatLayer";
-
-// Deck's default tooltip is dark; style it with the light tokens.
-const TOOLTIP_STYLE = {
-  backgroundColor: "var(--card)",
-  color: "var(--foreground)",
-  border: "1px solid var(--border)",
-  borderRadius: "6px",
-  boxShadow: "0 1px 3px rgba(43, 41, 37, 0.15)",
-  padding: "6px 8px",
-  fontSize: "12px",
-};
-
-const METRIC_LABEL: Record<Metric, string> = { air: "3pm air temp", surface: "Surface temp (mid-morning)" };
-
-/** Tooltip for the current view: base value, plus after value and % change when the tile is treated. */
-function makeTooltip(view: Omit<HeatView, "opacity"> | null) {
-  return ({ object: part }: PickingInfo<TilePart>) => {
-    if (!part || !view) return null;
-    const object = part.cell;
-    const base = baseValue(object, view.metric);
-    const after = afterValue(object, view.metric, view.deltas);
-    let text = `${METRIC_LABEL[view.metric]}: ${formatTemp(base)}`;
-    if (base !== null && after !== null && after !== base) {
-      const pct = changePct(object, view.metric, view.deltas, view.baseline);
-      text += ` → ${formatTemp(after)} (est.)\nHeat island: ${pct === null ? "n/a" : `−${pct.toFixed(1)}%`}`;
-    }
-    return { text, style: TOOLTIP_STYLE };
-  };
-}
 
 interface MapViewProps {
   token: string;
@@ -60,6 +30,7 @@ interface MapViewProps {
 export default function MapView({ token, children }: MapViewProps) {
   const data = useHeatModel();
   const layerState = useDashboard((s) => s.layers);
+  const heat = layerSetting(layerState, "heat");
   const actions = useDashboard((s) => s.actions);
   const metric = useDashboard((s) => s.metric);
   const mode = useDashboard((s) => s.viewMode);
@@ -79,11 +50,10 @@ export default function MapView({ token, children }: MapViewProps) {
     () => (base ? maxChangePct(base.byId, metric, deltas, base.baseline) : 0),
     [base, metric, deltas],
   );
-  const getTooltip = useMemo(() => makeTooltip(view), [view]);
   const areaCells = useDashboard((s) => (s.selection?.kind === "area" ? s.selection.cells : null));
   const layers = useMemo(
-    () => buildDeckLayers({ cells, byId, view, maxPct, actions, areaCells, layers: layerState }),
-    [cells, byId, view, maxPct, actions, areaCells, layerState],
+    () => buildDeckLayers({ byId, actions, areaCells, layers: layerState }),
+    [byId, actions, areaCells, layerState],
   );
 
   return (
@@ -98,7 +68,9 @@ export default function MapView({ token, children }: MapViewProps) {
       reuseMaps
       style={{ width: "100%", height: "100%" }}
     >
-      <DeckOverlay layers={layers} getTooltip={getTooltip} />
+      {cells && view && <HeatFill cells={cells} view={view} maxPct={maxPct} visible={heat.visible} opacity={heat.opacity} />}
+      <DeckOverlay layers={layers} />
+      {byId && view && <HeatHover byId={byId} view={view} enabled={heat.visible} />}
       <BuildingSelection />
       <MapFocus />
       <BasemapBuildings />

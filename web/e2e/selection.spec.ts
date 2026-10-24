@@ -1,3 +1,4 @@
+import { parseTileId, tileCentre, tileId, tileIdAt } from "../lib/grid";
 import { expect, test } from "./helpers";
 
 // Chinatown, inside the default Downtown view.
@@ -27,9 +28,12 @@ test("area tool: click, shift-click toggle, shift-drag box; plain drag pans", as
   await app.clickMap(c.x, c.y);
   await expect.poll(async () => (await app.state()).selection).toMatchObject({ kind: "area", cells: [expect.any(String)] });
 
-  await app.clickMap(c.x + 60, c.y, { shift: true });
+  // The centre of the next tile east: 100 m tiles can be wider than a fixed pixel offset.
+  const [i, j] = parseTileId(tileIdAt(CHINATOWN));
+  const east = await app.project(tileCentre(tileId(i + 1, j)));
+  await app.clickMap(east.x, east.y, { shift: true });
   await expect.poll(async () => (await app.state()).selection).toMatchObject({ cells: { length: 2 } });
-  await app.clickMap(c.x + 60, c.y, { shift: true });
+  await app.clickMap(east.x, east.y, { shift: true });
   await expect.poll(async () => (await app.state()).selection).toMatchObject({ cells: { length: 1 } });
 
   const center = () => app.centerLng();

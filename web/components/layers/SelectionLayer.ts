@@ -1,13 +1,12 @@
 import { PolygonLayer } from "@deck.gl/layers";
 import type { InterleavedLayerProps } from "@/components/DeckOverlay";
-import { TILE_Z_M } from "@/components/layers/HeatLayer";
 import { cellPolygons } from "@/lib/grid";
 import type { Cell } from "@/lib/types";
 
 /** Sage accent (#4F7A5A). */
 const SAGE: [number, number, number] = [79, 122, 90];
-/** Just above the heat tiles so the outline is not hidden by them. */
-const OUTLINE_Z_M = TILE_Z_M + 0.5;
+/** Just above the ground-level heat tiles and streets, so the outline is never hidden by them. */
+export const OUTLINE_Z_M = 1.5;
 
 interface Outline {
   id: string;

@@ -2,11 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMap } from "react-map-gl/mapbox";
-import { getDeckOverlay } from "@/components/DeckOverlay";
-import { HEAT_LAYER_ID, type TilePart } from "@/components/layers/HeatLayer";
 import { addCells, cellsInBox, clickCell, isBox, type CellCentre, type Point } from "@/lib/areaSelect";
 import { dashboardStore, useDashboard } from "@/lib/store";
-import { cellCentre } from "@/lib/grid";
+import { cellCentre, tileIdAt } from "@/lib/grid";
 import type { Cell } from "@/lib/types";
 
 /**
@@ -25,6 +23,7 @@ export function AreaSelection({ cells }: { cells: readonly Cell[] }) {
       cells.map((c) => ({ id: c.id, centre: cellCentre(c) })),
     [cells],
   );
+  const ids = useMemo(() => new Set(cells.map((c) => c.id)), [cells]);
 
   useEffect(() => {
     const map = mapRef?.getMap();
@@ -66,9 +65,10 @@ export function AreaSelection({ cells }: { cells: readonly Cell[] }) {
         st.setAreaCells(addCells(current, inBox));
         return;
       }
-      const picked = getDeckOverlay(map)?.pickObject({ x: end.x, y: end.y, layerIds: [HEAT_LAYER_ID] });
-      const part = picked?.object as TilePart | undefined;
-      if (part) st.setAreaCells(clickCell(current, part.cell.id, start.shift));
+      // The tile under the ground point (lib/grid.ts): works with the heat layer hidden.
+      const { lng, lat } = map.unproject([end.x, end.y]);
+      const id = tileIdAt([lng, lat]);
+      if (ids.has(id)) st.setAreaCells(clickCell(current, id, start.shift));
     };
 
     map.boxZoom.disable();
@@ -86,7 +86,7 @@ export function AreaSelection({ cells }: { cells: readonly Cell[] }) {
       boxRef.current = null;
       setBox(null);
     };
-  }, [mapRef, tool, centres]);
+  }, [mapRef, tool, centres, ids]);
 
   if (!box) return null;
   return (

@@ -121,7 +121,7 @@ The rest are rename-only.
 
 ## Phase 11: Grid rendering and model
 
-### Task 42: Flat Mapbox fill heat layer [M]
+### Task 42: Flat Mapbox fill heat layer [M] (done)
 
 **Description:** Replace the deck tile layer with a Mapbox GeoJSON source and a `fill` layer in Standard's `middle` slot, under the 3D buildings.
 - The source is built once. Colour comes from feature-state, set from the current view (metric, mode, deltas, opacity).
@@ -129,12 +129,26 @@ The rest are rename-only.
 - Clicking a tile is hit-tested through `lib/grid.ts`, so it works with the heat layer hidden.
 
 **Acceptance criteria:**
-- [ ] Screenshots at pitch 0 and pitch 60 show flat tiles under the buildings, with no borders. If they sit above the buildings or flicker, stop and ask (see Risks).
-- [ ] Panning, zooming or hovering doesn't call `setData` or recompute deltas. A test counts source updates: 1 on load, and 0 on pan and zoom.
-- [ ] Heat/Change, the opacity slider and the area tool work, and the existing e2e specs pass.
+- [x] Screenshots at pitch 0 and pitch 60 show flat tiles under the buildings, with no borders. If they sit above the buildings or flicker, stop and ask (see Risks).
+- [x] Panning, zooming or hovering doesn't call `setData` or recompute deltas. A test counts source updates: 1 on load, and 0 on pan and zoom.
+- [x] Heat/Change, the opacity slider and the area tool work, and the existing e2e specs pass.
 
 **Verification:**
-- [ ] Standard; `e2e/layers.spec.ts`, `e2e/selection.spec.ts`
+- [x] Standard; `e2e/layers.spec.ts`, `e2e/selection.spec.ts`
+
+Notes:
+- **Layer:** `components/HeatFill.tsx` adds a GeoJSON source (built once by `lib/heatFill.ts`; feature id = cell index) and a `fill` layer in the `middle` slot.
+- **Colour and opacity:** colour is feature state, set only for tiles whose colour changed. Opacity is `fill-opacity`. `fill-antialias` is off, because antialiased edges of translucent neighbours drew a grid.
+- **Screenshots:** at pitch 60 and pitch 0, tiles sit flat on the ground under every building, with no borders.
+- **Clicks and hover:** area-tool clicks and the new hover tooltip (`HeatHover`) find the tile from the ground point via `tileIdAt`, so they need no rendered-feature query and work with the layer hidden. The deck heat layer and deck tooltip are gone.
+- **Source updates:** the new e2e check in `layers.spec.ts` counts zero `setData` calls on pan and zoom.
+- **Also in this change (f05e2f6):**
+  - Tiles were flattened just above street level, at your request.
+  - Default heat opacity is 65%.
+  - `BasemapBuildings` lost a toggle when the style was busy; it now also applies on `idle`.
+- **Test fixes:**
+  - The area-tool e2e shift-clicked 60 px east, which can land in the same 100 m tile. It now clicks the next tile's centre.
+  - The e2e suite runs about 3× faster without the deck slab.
 
 **Dependencies:** Task 41
 
