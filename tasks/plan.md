@@ -40,7 +40,7 @@ Every number in the app is an estimate and is labelled as one.
 ### Phase 4: Selection
 - [x] Task 19: Intervention catalog
 - [x] Task 20: Geometry helpers
-- [ ] Task 21: Building selection spike (Mapbox featureset)
+- [x] Task 21: Building selection spike (Mapbox featureset)
 - [ ] Task 22: Building selection and highlight
 - [ ] Task 23: Area selection on hexes
 
@@ -121,8 +121,19 @@ Phase 3 first, because the catalog needs its inputs and the surface layer needs 
 | Green roof air proxy | up to −5 °F citywide | EPA "Using Green Roofs" (2019 snapshot) | Proxy and upper bound. The current EPA page gives "up to 20 °F nearby", which is not used. |
 | Roof surface change | Green roof up to 56 °F lower; cool roof 50–60 °F lower | EPA "Using Green Roofs" and "Using Cool Roofs" | Found. Peak-summer values, not averages. |
 | Landsat overpass time | About 10:12 a.m. local solar time (descending) | USGS and NASA | Found. Clock-time conversion for Boston is my arithmetic. |
-| Mapbox buildings featureset properties | — | Docs page cut off before the Buildings section | Unverified. Task 21 decides. |
+| Mapbox buildings featureset properties | Numeric `id` (stable, unique per rendered feature), `height` and `min_height` in m, `group: "building-3d"`, Polygon geometry in [lng, lat] | Live probe of `queryRenderedFeatures({target: {featuresetId: "buildings", importId: "basemap"}})` and `addInteraction` clicks, Downtown at zoom 15.2, 2026-10-24 (Task 21) | Verified. See the spike decision below. |
 | Landsat thermal asset key | `lwir` on Landsat 7, `lwir11` on Landsat 8; QA band `qa_pixel` on both | Planetary Computer STAC, live items checked 2026-10-24 (Task 15) | Verified. Boston 2019 scenes acquired 15:13–15:27 UTC (about 11:15 a.m. EDT). |
+
+## Spike Decision (Task 21): Mapbox buildings featureset kept
+
+Probed on the live map (Downtown, zoom 15.2, 2,705 rendered buildings):
+- `map.addInteraction(id, {type: "click", target: {featuresetId: "buildings", importId: "basemap"}})` fires with `e.feature` for a 210 m tower, a 31 m building part, a 3 m low-rise and a tile-edge building. A plain `click` interaction without a target fires on empty ground.
+- Every feature has a numeric id (no nulls, no duplicates among rendered features), `height`, `min_height` and Polygon geometry (5–45 vertices, no holes in the sample).
+- `map.setFeatureState(e.feature, {select: true})` highlights the building in the `colorBuildingSelect` config colour. Setting that colour to sage is enough for the highlight; no custom layer is needed.
+- Tile edges: 3 of 2,705 buildings touch a tile boundary. For those, the same id exists as a separate piece in the neighbouring tile, and `queryRenderedFeatures` returns only one piece. Their footprint (and so roof area) is underestimated. This affects about 0.1% of buildings and is accepted as a known limitation. Fallback if it matters: union the pieces with the same id found by querying the neighbouring tile.
+- `min_height > 0` marks a building part (for example a setback tier). Its footprint is treated as its roof.
+
+Decision: keep Mapbox. The Analyze Boston footprint fallback is not needed.
 
 ## Risks and Mitigations
 
@@ -150,5 +161,4 @@ Phase 3 first, because the catalog needs its inputs and the surface layer needs 
 - Time-series charts by year.
 
 ## Open Questions
-- Task 21: whether Mapbox's buildings layer returns footprints and heights. Decides Mapbox versus fallback.
 - Mid-morning surface values are shown with a label. Is that acceptable, or should surface be dropped from the metrics? Recommended: keep, labelled.

@@ -158,16 +158,16 @@ Note: `HEX_AREA_M2` is the h3 average (15,047 m²). A downtown Boston cell measu
 **Dependencies:** None
 **Files likely touched:** `web/lib/geo.ts`, `web/lib/geo.test.ts`, `web/package.json`
 
-### Task 21: Building selection spike (Mapbox featureset) [MVP, S]
+### Task 21: Building selection spike (Mapbox featureset) [MVP, S] (done)
 **Description:** Confirm that Standard's `buildings` featureset gives a stable id, footprint and height, and that footprints are whole rather than cut at tile edges. Decide Mapbox or the fallback.
 
 **Acceptance criteria:**
-- [ ] A click handler on `{ featuresetId: "buildings", importId: "basemap" }` logs id, properties and geometry type for five buildings, including one tall tower and one on a tile edge.
-- [ ] `plan.md` records the decision: Mapbox kept, or the downtown footprint fallback chosen, with the reason.
-- [ ] Debug code is removed or clearly marked as a spike.
+- [x] A click handler on `{ featuresetId: "buildings", importId: "basemap" }` logs id, properties and geometry type for five buildings, including one tall tower and one on a tile edge.
+- [x] `plan.md` records the decision: Mapbox kept, or the downtown footprint fallback chosen, with the reason.
+- [x] Debug code is removed or clearly marked as a spike.
 
 **Verification:**
-- [ ] Manual check with a temporary Playwright script, deleted afterwards.
+- [x] Manual check with a temporary Playwright script, deleted afterwards.
 
 **Dependencies:** Task 20
 **Files likely touched:** `web/components/MapView.tsx`, `tasks/plan.md`
