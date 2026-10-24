@@ -2,13 +2,15 @@
 
 import { useMemo } from "react";
 import { ActionList } from "@/components/ActionList";
+import { MetricCards } from "@/components/MetricCards";
 import { useHexes } from "@/components/useHexes";
 import { availableActions, type Offer } from "@/lib/availableActions";
 import { computeDeltas } from "@/lib/cooling";
 import { formatAcres, formatArea, formatDeltaF, formatEstimate, formatUsdRange } from "@/lib/format";
 import { HEX_AREA_M2 } from "@/lib/geo";
 import { formatTemp } from "@/lib/heat";
-import { capitalCost } from "@/lib/impact";
+import { capitalCost, computeBaseline } from "@/lib/impact";
+import { selectionMetrics } from "@/lib/metrics";
 import { useDashboard } from "@/lib/store";
 import type { Action, ActionTarget, Hex, NewAction, Selection } from "@/lib/types";
 
@@ -93,6 +95,7 @@ export function ActPanel() {
     () => (data.status === "ready" ? new Map(data.hexes.map((h) => [h.id, h])) : null),
     [data],
   );
+  const baseline = useMemo(() => (data.status === "ready" ? computeBaseline(data.hexes) : null), [data]);
 
   if (!selection) {
     return (
@@ -116,6 +119,7 @@ export function ActPanel() {
         </h3>
         <Details selection={selection} byId={byId} />
       </section>
+      {byId && baseline && <MetricCards m={selectionMetrics(selection, actions, byId, baseline)} />}
       <section aria-label="Cooling actions" className="space-y-1">
         <h3 className="text-sm font-medium text-foreground">Actions</h3>
         <ul className="space-y-1.5">

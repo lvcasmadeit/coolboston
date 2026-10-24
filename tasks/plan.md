@@ -64,7 +64,7 @@ Every number in the app is an estimate and is labelled as one.
 - [x] Task 27: Act panel
 - [x] Task 28: Applied actions list
 - [x] Task 29: Treated roof markers
-- [ ] Task 30: Metric cards
+- [x] Task 30: Metric cards
 - [ ] Task 31: Layers tab and top-bar view controls
 
 ### Checkpoint F: Core loop complete

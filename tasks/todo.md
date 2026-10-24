@@ -331,17 +331,19 @@ Notes: `components/layers/RoofLayer.ts`, a flat `PolygonLayer` 0.4 m above the r
 **Dependencies:** Tasks 22, 28
 **Files likely touched:** `web/components/layers/RoofLayer.ts`, `web/components/MapView.tsx`
 
-### Task 30: Metric cards [MVP, M]
+### Task 30: Metric cards [MVP, M] (done)
 **Description:** Right-panel cards for current conditions and for each change, labelled as building-level or hex-level.
 
 **Acceptance criteria:**
-- [ ] Current conditions: air temperature (3pm, July 2019); surface temperature (summer 2019, mid-morning, hex average); heat island as °F above the citywide mean.
-- [ ] After an action: air change, surface change, heat-island % change, energy offset (kWh/yr and $/yr, as ranges) or "not quantified", capital cost range, and roof surface change for building actions, labelled peak-summer.
-- [ ] Every number carries an estimate label. Air and heat-island values for a building are shown at hex level.
+- [x] Current conditions: air temperature (3pm, July 2019); surface temperature (summer 2019, mid-morning, hex average); heat island as °F above the citywide mean.
+- [x] After an action: air change, surface change, heat-island % change, energy offset (kWh/yr and $/yr, as ranges) or "not quantified", capital cost range, and roof surface change for building actions, labelled peak-summer.
+- [x] Every number carries an estimate label. Air and heat-island values for a building are shown at hex level.
 
 **Verification:**
-- [ ] `npm test`: cards match `impact.ts` output for a fixture.
-- [ ] Manual check: a green roof shows every card.
+- [x] `npm test`: cards match `impact.ts` output for a fixture.
+- [x] Manual check: a green roof shows every card.
+
+Notes: `lib/metrics.ts` (`selectionMetrics`) and `components/MetricCards.tsx`, shown in the Act tab under the selection details. Temperatures count every action in the hex (including other buildings'); energy and cost cover only this selection's actions. Areas use the mean over selected hexes with data. The change section is an `aria-live` region. Browser check: green roof + solar on a 2,606 m² roof shows air −0.87 °F, surface −9.7 °F, heat island −81.1%, roof surface −56 °F peak summer, 244k–323k kWh/yr ($61k–$82k/yr), capital $781k–$1.8M.
 
 **Dependencies:** Tasks 25, 27
 **Files likely touched:** `web/components/MetricCards.tsx`, `web/components/RightPanel.tsx`
