@@ -89,18 +89,18 @@ Checkpoint C passed (46 web tests, 13 pipeline tests, typecheck, lint, build, 12
 **Dependencies:** Task 15
 **Files likely touched:** `pipeline/src/coolboston/lst.py`, `pipeline/tests/test_lst.py`
 
-### Task 17: Summer 2019 composite and per-hex mean [MVP, M]
+### Task 17: Summer 2019 composite and per-hex mean [MVP, M] (done)
 **Description:** Stack the masked scenes from Tasks 15–16, take the per-pixel nan-median, clip to Boston, and compute the mean of valid pixels per H3 res-10 cell. Output goes to `pipeline/cache/` (gitignored). Runs fail loudly if fewer than two usable scenes exist.
 
 **Acceptance criteria:**
-- [ ] Nan-median composite matches fixture values; NaN pixels are ignored.
-- [ ] Per-hex mean uses only valid pixels; a cell with none is null.
-- [ ] Fewer than two usable scenes raises an error that names the year.
-- [ ] Output is written to `pipeline/cache/`, never to `web/`.
+- [x] Nan-median composite matches fixture values; NaN pixels are ignored.
+- [x] Per-hex mean uses only valid pixels; a cell with none is null.
+- [x] Fewer than two usable scenes raises an error that names the year.
+- [x] Output is written to `pipeline/cache/`, never to `web/`.
 
 **Verification:**
-- [ ] `uv run pytest`: composite, zonal mean and failure-mode fixtures pass.
-- [ ] Manual check: the run prints how many of the 7,908 air-data cells have a surface value.
+- [x] `uv run pytest`: composite, zonal mean and failure-mode fixtures pass.
+- [x] Manual check: the run prints how many of the 7,908 air-data cells have a surface value. Result: 9 usable scenes; 7,906 of 7,908 air cells (8,042 of 8,044 overall) have a surface value; median 95.2 °F, 5th–95th percentile 77.7–105.2 °F; correlation with 3pm air 0.57; 18 cells below 70 °F, mostly at the waterfront.
 
 **Dependencies:** Tasks 7, 15, 16
 **Files likely touched:** `pipeline/src/coolboston/composite.py`, `pipeline/src/coolboston/zonal.py`, `pipeline/src/coolboston/run_landsat.py`, `pipeline/tests/test_composite.py`, `pipeline/tests/test_zonal.py`
