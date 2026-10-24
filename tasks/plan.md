@@ -68,10 +68,10 @@ Every number in the app is an estimate and is labelled as one.
 - [x] Task 31: Layers tab and top-bar view controls
 
 ### Checkpoint F: Core loop complete
-- [ ] Select building, apply green roof, see the map and metrics change, remove it, see it restore
-- [ ] Same loop for an area with street trees
-- [ ] Deploy the current build now (Task 37) so the URL is known early
-- [ ] Review with human before proceeding
+- [x] Select building, apply green roof, see the map and metrics change, remove it, see it restore (`e2e/act.spec.ts`)
+- [x] Same loop for an area with street trees (`e2e/act.spec.ts`)
+- [ ] Deploy the current build now (Task 37) so the URL is known early — deferred by request (2026-10-24); nothing deployed
+- [x] Review with human before proceeding (core loop accepted; deploy held)
 
 ### Phase 7: Charts
 - [ ] Task 32: Recharts and cost-versus-effect chart

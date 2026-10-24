@@ -367,10 +367,10 @@ Notes: `lib/layers.ts` (registry), `components/layers/buildLayers.ts` (store →
 
 
 ### Checkpoint F: Core loop complete
-- [ ] Select a building, apply green roof, see the map and metrics change, remove it, see it restore
-- [ ] The same loop works for an area with street trees
-- [ ] Deploy the current build (Task 37) so the URL is known
-- [ ] Review with human before proceeding
+- [x] Select a building, apply green roof, see the map and metrics change, remove it, see it restore (`e2e/act.spec.ts`)
+- [x] The same loop works for an area with street trees (`e2e/act.spec.ts`)
+- [ ] Deploy the current build (Task 37) so the URL is known — deferred by request (2026-10-24); nothing deployed
+- [x] Review with human before proceeding (core loop accepted; deploy held)
 
 ---
 
