@@ -19,9 +19,21 @@ __pycache__/
 .pytest_cache/
 pipeline/cache/
 
-# Secrets
+# Secrets and keys
 .env
 .env*.local
+*.pem
+*.p12
+*.key
+
+# Vercel local project link
+.vercel/
+
+# Logs
+*.log
+
+# Downloaded source datasets (re-fetched by the pipeline)
+pipeline/data/raw/
 
 # Test artifacts
 playwright-report/
