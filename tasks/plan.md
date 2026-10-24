@@ -39,7 +39,7 @@ Every number in the app is an estimate and is labelled as one.
 
 ### Phase 4: Selection
 - [x] Task 19: Intervention catalog
-- [ ] Task 20: Geometry helpers
+- [x] Task 20: Geometry helpers
 - [ ] Task 21: Building selection spike (Mapbox featureset)
 - [ ] Task 22: Building selection and highlight
 - [ ] Task 23: Area selection on hexes

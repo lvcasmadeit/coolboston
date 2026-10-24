@@ -142,16 +142,18 @@ Note: `costPerUnit` is a list of cost lines so the combined action can carry bot
 **Dependencies:** Task 14
 **Files likely touched:** `web/lib/interventions.ts`, `web/lib/interventions.test.ts`, `web/lib/types.ts`
 
-### Task 20: Geometry helpers [MVP, S]
+### Task 20: Geometry helpers [MVP, S] (done)
 **Description:** Footprint area, the res-10 cell of a building's centroid, and the hex area. Adds `h3-js` as a direct dependency, pinned to 4.5.0 (the version deck.gl resolves).
 
 **Acceptance criteria:**
-- [ ] `footprintAreaM2` on a ~100 m × 100 m square near Boston is within 1% of 10,000 m²; a hole subtracts its area.
-- [ ] `buildingCell` returns a valid res-10 cell.
-- [ ] `HEX_AREA_M2` comes from h3 (about 15,050 m²), not a literal.
+- [x] `footprintAreaM2` on a ~100 m × 100 m square near Boston is within 1% of 10,000 m²; a hole subtracts its area.
+- [x] `buildingCell` returns a valid res-10 cell.
+- [x] `HEX_AREA_M2` comes from h3 (about 15,050 m²), not a literal.
 
 **Verification:**
-- [ ] `npm test` passes.
+- [x] `npm test` passes.
+
+Note: `HEX_AREA_M2` is the h3 average (15,047 m²). A downtown Boston cell measures 15,496 m² (`cellArea`), about 3% larger; Task 24 can use per-cell area if that matters.
 
 **Dependencies:** None
 **Files likely touched:** `web/lib/geo.ts`, `web/lib/geo.test.ts`, `web/package.json`
