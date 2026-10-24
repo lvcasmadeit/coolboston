@@ -105,18 +105,18 @@ Checkpoint C passed (46 web tests, 13 pipeline tests, typecheck, lint, build, 12
 **Dependencies:** Tasks 7, 15, 16
 **Files likely touched:** `pipeline/src/coolboston/composite.py`, `pipeline/src/coolboston/zonal.py`, `pipeline/src/coolboston/run_landsat.py`, `pipeline/tests/test_composite.py`, `pipeline/tests/test_zonal.py`
 
-### Task 18: Surface field in hexes.json v3 [MVP, M]
+### Task 18: Surface field in hexes.json v3 [MVP, M] (done)
 **Description:** Add `surface` (°F, 2 decimals, null allowed) to the hex contract. Bump the schema to version 3 on both sides.
 
 **Acceptance criteria:**
-- [ ] `build_hexes.py` writes `surface` in °F, rounded to 2 decimals, `allow_nan=False`; schema version is 3.
-- [ ] `Hex` type and `parseHexes` include `surface`; a v2 file is rejected with a clear error.
-- [ ] `web/data/hexes.json` is regenerated.
+- [x] `build_hexes.py` writes `surface` in °F, rounded to 2 decimals, `allow_nan=False`; schema version is 3.
+- [x] `Hex` type and `parseHexes` include `surface`; a v2 file is rejected with a clear error.
+- [x] `web/data/hexes.json` is regenerated.
 
 **Verification:**
-- [ ] `uv run pytest`: writer tests pass with the new field.
-- [ ] `npm test`: loader accepts v3 and rejects v2.
-- [ ] Manual check: `curl localhost:3000/api/hexes` returns `"version":3` with `surface` values.
+- [x] `uv run pytest`: writer tests pass with the new field.
+- [x] `npm test`: loader accepts v3 and rejects v2.
+- [x] Manual check: `curl localhost:3000/api/hexes` returns `"version":3` with `surface` values.
 
 **Dependencies:** Task 17
 **Files likely touched:** `pipeline/src/coolboston/build_hexes.py`, `pipeline/tests/test_build_hexes.py`, `web/lib/types.ts`, `web/lib/data.ts`, `web/lib/data.test.ts`, `web/data/hexes.json`

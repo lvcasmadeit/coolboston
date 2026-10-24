@@ -50,13 +50,15 @@ export type LayerId = string;
  * Contract for web/data/hexes.json, written by pipeline/src/coolboston/build_hexes.py.
  * Bump HEXES_SCHEMA_VERSION on both sides together when fields change.
  */
-export const HEXES_SCHEMA_VERSION = 2;
+export const HEXES_SCHEMA_VERSION = 3;
 
 export interface Hex {
   /** H3 resolution-10 cell index. */
   id: string;
   /** 2019 Heat Watch mean 3pm air temperature, °F. null = no traverse data. */
   temp3pm: number | null;
+  /** Landsat summer 2019 median surface temperature, °F, MID-MORNING (~11 a.m. EDT). null = no clear pixel. */
+  surface: number | null;
 }
 
 export interface HexesFile {
