@@ -76,15 +76,15 @@ Checkpoint C passed (46 web tests, 13 pipeline tests, typecheck, lint, build, 12
 **Dependencies:** Task 7
 **Files likely touched:** `pipeline/src/coolboston/landsat.py`, `pipeline/tests/test_landsat_query.py`
 
-### Task 16: Landsat DN conversion and QA mask [MVP, S]
+### Task 16: Landsat DN conversion and QA mask [MVP, S] (done)
 **Description:** Pure functions that turn Landsat thermal digital numbers into °C and mask invalid pixels.
 
 **Acceptance criteria:**
-- [ ] `dn_to_celsius(dn) = dn × 0.00341802 + 149.0 − 273.15`; DN 0 becomes NaN.
-- [ ] `cloud_mask(qa)` flags fill, dilated cloud, cirrus, cloud and cloud shadow using QA_PIXEL bit positions from the Landsat Collection 2 documentation (cited in a comment). Masked pixels become NaN.
+- [x] `dn_to_celsius(dn) = dn × 0.00341802 + 149.0 − 273.15`; DN 0 becomes NaN.
+- [x] `cloud_mask(qa)` flags fill, dilated cloud, cirrus, cloud and cloud shadow using QA_PIXEL bit positions from the Landsat Collection 2 documentation (cited in a comment). Masked pixels become NaN.
 
 **Verification:**
-- [ ] `uv run pytest`: DN 44000 gives about 26.24 °C; a synthetic QA array with known bits masks exactly those pixels.
+- [x] `uv run pytest`: DN 44000 gives about 26.24 °C; a synthetic QA array with known bits masks exactly those pixels.
 
 **Dependencies:** Task 15
 **Files likely touched:** `pipeline/src/coolboston/lst.py`, `pipeline/tests/test_lst.py`
