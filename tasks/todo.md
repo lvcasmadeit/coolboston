@@ -65,7 +65,7 @@ Conventions
 - [x] CSS grid layout fills the viewport with no page scroll: top bar, map slot, right panel (~320px), bottom panel (~220px).
 - [x] Right panel has tabs: Layers, Analysis, Simulate, Methodology (placeholders).
 - [x] Top bar shows the app name and an intervention dropdown (wired to the store).
-- [x] Dark theme; layout holds from 1280px up.
+- [x] Dark theme; layout holds from 1280px up. *(Superseded by the UI revamp: light cream palette, dark mode removed. See planui.md.)*
 
 **Verification:**
 - [x] `npm run build` succeeds
@@ -79,7 +79,7 @@ Conventions
 
 **Acceptance criteria:**
 - [x] `MapView` loaded via `dynamic(() => import(...), { ssr: false })`.
-- [x] Classic dark style (not Standard), centered near `[-71.0589, 42.3601]`, pitch 60, zoom ~12.5.
+- [x] Classic dark style (not Standard) *(superseded: now Mapbox Standard, faded theme; see planui.md)*, centered near `[-71.0589, 42.3601]`, pitch 60, zoom ~12.5.
 - [x] A `fill-extrusion` layer extrudes buildings using `height` from the vector tiles; Mapbox attribution visible.
 - [x] Missing token shows a readable error message instead of a blank page.
 
@@ -113,7 +113,7 @@ Conventions
 Notes from Phase 0:
 - Tokens are checked for the pk. prefix; sk. tokens are rejected so they never ship to the browser.
 - deck.gl overlay is a per-map singleton (not react-map-gl useControl); useControl raced under React StrictMode ("WebGL context already attached") and rendered nothing in dev.
-- Deck mounts only after the 3d-buildings layer exists (`WhenLayerExists`), because addLayer with a missing beforeId throws.
+- Deck mounts only after the 3d-buildings layer exists (`WhenLayerExists`), because addLayer with a missing beforeId throws. *(Removed in the UI revamp: Standard uses slots, not beforeId.)*
 - Layering verified offline with a stubbed style + synthetic building tiles: hexes draw beneath extrusions and are occluded by them, in dev and prod.
 - `@playwright/test` installed early (needed for Task 46; used now for screenshots).
 
@@ -170,7 +170,7 @@ Notes from Phase 0:
 **Description:** Render the hexes colored by temperature.
 
 **Acceptance criteria:**
-- [x] `H3HexagonLayer` shows all hexes, colored by `temp3pm` with a continuous ramp (cool blue → hot red); `null` cells are transparent.
+- [x] `H3HexagonLayer` shows all hexes, colored by `temp3pm` with a continuous ramp (cool blue → hot red; now amber → maroon per the UI revamp); `null` cells are transparent.
 - [x] Hover tooltip shows the temperature in °F, rounded to 1 decimal.
 - [x] Legend with min/max values in the Layers tab or map corner.
 

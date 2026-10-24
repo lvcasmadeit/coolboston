@@ -37,8 +37,9 @@ Boston planners and advocates need to see where urban heat is concentrated and w
 - Free tier is 50k map loads per month. A load counts when a Map object is created, so remounts count. Keep the map mounted in the root layout and avoid re-creating it.
 - The access token ships in the browser. Restrict it by URL in the Mapbox account settings.
 - Mapbox GL JS v2+ is proprietary. The attribution must stay visible.
-- Use a classic style (Dark / Satellite Streets), not Standard, so buildings can be colored by data.
-- Use deck.gl interleaved mode so overlays layer correctly with 3D buildings. Test this early.
+- Basemap is Mapbox Standard (`theme: "faded"`, `lightPreset: "day"`, cream tints; see planui.md). Changed from the original classic-style choice in the UI revamp. Standard's own 3D buildings take one color only, so per-building scores will set `show3dBuildings: false` and draw our own building tileset as a `fill-extrusion` in a slot.
+- Use deck.gl interleaved mode so overlays layer correctly with 3D buildings. Data layers go in Standard's `middle` slot with a small negative `depthBias`; without it, ground-level hexes fail the depth test against Standard's ground and most don't draw.
+- deck.gl gamma-corrects the layer `opacity` prop (0.5 composites as ~0.73). Put the requested opacity in the fill-color alpha instead.
 - The map must be client-only (`dynamic(..., { ssr: false })`).
 - Boston is flat, so the 3D effect comes from extruded buildings and camera pitch, not terrain.
 - Landsat thermal data is natively 100 m (resampled to 30 m), so it looks blocky at street zoom. Use it at neighborhood zoom.
@@ -82,7 +83,7 @@ flowchart LR
   - Trees = 0.40·heat + 0.30·vulnerability + 0.30·(1 − canopy)
   - Cool pavement = 0.45·heat + 0.20·vulnerability + 0.35·parking share
 - **What-if:** estimated temperature change per hex = Σ (coefficient × added coverage fraction). Coefficients live in `lib/coefficients.ts` with citations. Runs entirely in the browser.
-- **Buildings:** filter to roofs larger than about 2,000 sq ft. Upload as a Mapbox tileset and color extrusions with data-driven expressions. Fallback: simplified GeoJSON under 15 MB with trimmed coordinates.
+- **Buildings:** filter to roofs larger than about 2,000 sq ft. Upload as a Mapbox tileset and color extrusions with data-driven expressions (with Standard's own 3D buildings hidden). Fallback: simplified GeoJSON under 15 MB with trimmed coordinates.
 - **Security:** read-only public data, no authentication. API routes still validate inputs (hex ID format, year range).
 
 ### Repo layout
@@ -103,7 +104,7 @@ Estimated total about 8.5 hours. If time runs short, cut Task 8 first, then Task
 
 ### Task 1: Next.js shell with a 3D Boston map (45m)
 - Objective: A dashboard layout shaped like FireTrace (top bar, map, right panel, bottom timeline area) with a working 3D Mapbox map.
-- Guidance: `create-next-app` with TypeScript, Tailwind, App Router; add shadcn/ui, Zustand, Vitest. `MapView` is a client component loaded with `dynamic(..., { ssr: false })`. Classic dark or satellite style with a `fill-extrusion` building layer, pitch about 60, centered on Boston. Keep the map mounted in the root layout. Placeholder panels.
+- Guidance: `create-next-app` with TypeScript, Tailwind, App Router; add shadcn/ui, Zustand, Vitest. `MapView` is a client component loaded with `dynamic(..., { ssr: false })`. Mapbox Standard (originally classic dark; changed in the UI revamp) with 3D buildings, pitch about 60, centered on Boston. Keep the map mounted in the root layout. Placeholder panels.
 - Tests: Vitest setup with a store test (default year, default intervention).
 - Demo: Boston in 3D inside the dashboard frame; pan, tilt and rotate work.
 
