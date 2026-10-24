@@ -58,7 +58,7 @@ export function TradeoffChart({ points }: { points: TradeoffPoint[] }) {
                 <Tooltip content={<TipContent />} cursor={{ strokeDasharray: "3 3" }} />
                 {groups.map((g) => (
                   <Scatter key={g} data={plotted.filter((p) => p.intervention === g)} fill={INTERVENTION_CSS[g]} isAnimationActive={false}>
-                    <ErrorBar dataKey="costError" direction="x" width={4} stroke={INTERVENTION_CSS[g]} />
+                    <ErrorBar dataKey="costError" direction="x" width={4} stroke={INTERVENTION_CSS[g]} isAnimationActive={false} />
                   </Scatter>
                 ))}
               </ScatterChart>

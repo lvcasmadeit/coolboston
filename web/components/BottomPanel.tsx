@@ -1,7 +1,10 @@
 "use client";
 
+import { BeforeAfterChart } from "@/components/charts/BeforeAfterChart";
 import { TradeoffChart } from "@/components/charts/TradeoffChart";
 import { useHeatModel } from "@/components/useHeatModel";
+import { beforeAfterRows } from "@/lib/beforeAfter";
+import { selectionMetrics } from "@/lib/metrics";
 import { useDashboard } from "@/lib/store";
 import { chartActions, tradeoffPoints } from "@/lib/tradeoff";
 
@@ -11,7 +14,9 @@ export function BottomPanel() {
   const actions = useDashboard((s) => s.actions);
   const data = useHeatModel();
   const mine = chartActions(selection, actions);
-  const points = data.status === "ready" ? tradeoffPoints(mine, data.model.byId, data.model.baseline) : [];
+  const ready = data.status === "ready" ? data.model : null;
+  const points = ready ? tradeoffPoints(mine, ready.byId, ready.baseline) : [];
+  const rows = ready && selection ? beforeAfterRows(selectionMetrics(selection, actions, ready.byId, ready.baseline)) : [];
   return (
     <section aria-label="Impact" className="grid min-h-0 grid-rows-[auto_1fr] gap-2 border-t border-border bg-card p-3">
       <h2 className="text-sm font-medium">
@@ -19,7 +24,7 @@ export function BottomPanel() {
       </h2>
       <div className="grid min-h-0 grid-cols-2 gap-3">
         <TradeoffChart points={points} />
-        <div className="rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">Before and after (next).</div>
+        <BeforeAfterChart rows={rows} emptyText={selection ? "Apply an action to this selection to compare." : "Select a building or area to compare."} />
       </div>
     </section>
   );

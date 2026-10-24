@@ -394,22 +394,24 @@ Notes: `lib/tradeoff.ts` (points; each action's % is computed from that action a
 **Dependencies:** Tasks 25, 30
 **Files likely touched:** `web/package.json`, `web/components/charts/TradeoffChart.tsx`, `web/components/BottomPanel.tsx`, `web/lib/tradeoff.ts`, `web/lib/tradeoff.test.ts`
 
-### Task 33: Before-and-after chart [MVP, S]
+### Task 33: Before-and-after chart [MVP, S] (done)
 **Description:** Bars for air, surface and heat island (°F), before and after, for the current selection.
 
 **Acceptance criteria:**
-- [ ] Bars update as actions are added and removed.
-- [ ] Empty state when no action is applied.
+- [x] Bars update as actions are added and removed.
+- [x] Empty state when no action is applied.
 
 **Verification:**
-- [ ] `npm test`: the transform.
-- [ ] Manual check: a green roof moves the bars.
+- [x] `npm test`: the transform.
+- [x] Manual check: a green roof moves the bars.
+
+Notes: `lib/beforeAfter.ts`, `components/charts/BeforeAfterChart.tsx`. One small chart per metric, each on its own scale starting at 0 (so small changes look small); value labels carry the numbers. Two empty states: no selection, and a selection with no action. Verified by `e2e/charts.spec.ts`. Also fixed in Task 32's chart: the cost range bars were stuck mid-animation, so ErrorBar animation is off.
 
 **Dependencies:** Task 32
 **Files likely touched:** `web/components/charts/BeforeAfterChart.tsx`, `web/components/BottomPanel.tsx`
 
 ### Checkpoint G: Charts
-- [ ] Both charts update with actions and show an empty state with none
+- [x] Both charts update with actions and show an empty state with none (`e2e/charts.spec.ts`)
 - [ ] Review with human before proceeding
 
 ---

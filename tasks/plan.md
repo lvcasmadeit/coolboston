@@ -75,10 +75,10 @@ Every number in the app is an estimate and is labelled as one.
 
 ### Phase 7: Charts
 - [x] Task 32: Recharts and cost-versus-effect chart
-- [ ] Task 33: Before-and-after chart
+- [x] Task 33: Before-and-after chart
 
 ### Checkpoint G: Charts
-- [ ] Both charts update with actions and show an empty state with none
+- [x] Both charts update with actions and show an empty state with none
 
 ### Phase 8: Stretch
 - [ ] Task 34: Shareable scenario URL
