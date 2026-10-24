@@ -107,8 +107,8 @@ Conventions
 ### Checkpoint A: After Tasks 1-6
 - [x] `npm test`, `npm run lint`, `npm run build` all pass
 - [x] 3D Boston renders inside the dashboard frame with a deck.gl layer on it
-- [ ] Review with human before proceeding
-- [ ] Visual check against real Mapbox tiles (needs NEXT_PUBLIC_MAPBOX_TOKEN in web/.env.local)
+- [x] Review with human before proceeding
+- [x] Visual check against real Mapbox tiles (needs NEXT_PUBLIC_MAPBOX_TOKEN in web/.env.local)
 
 Notes from Phase 0:
 - Tokens are checked for the pk. prefix; sk. tokens are rejected so they never ship to the browser.
