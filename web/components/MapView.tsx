@@ -1,8 +1,30 @@
 "use client";
 
 import "mapbox-gl/dist/mapbox-gl.css";
+import { H3HexagonLayer } from "@deck.gl/geo-layers";
 import Map, { Layer, NavigationControl, ScaleControl } from "react-map-gl/mapbox";
+import { DeckOverlay, type InterleavedLayerProps } from "@/components/DeckOverlay";
+import { WhenLayerExists } from "@/components/WhenLayerExists";
 import { BOSTON_VIEW, BUILDINGS_LAYER_ID, MAP_STYLE } from "@/lib/mapConfig";
+
+// Task 6 spike: three hard-coded H3 res-9 cells downtown. Replaced by real hexes in Task 10.
+const SPIKE_CELLS = [
+  { id: "892a3066037ffff", color: [239, 68, 68] },
+  { id: "892a306614fffff", color: [249, 115, 22] },
+  { id: "892a3066007ffff", color: [250, 204, 21] },
+] as const;
+
+const spikeLayer = new H3HexagonLayer<(typeof SPIKE_CELLS)[number], InterleavedLayerProps>({
+  id: "spike-hexes",
+  beforeId: BUILDINGS_LAYER_ID,
+  data: SPIKE_CELLS,
+  getHexagon: (d) => d.id,
+  getFillColor: (d) => [...d.color, 170],
+  extruded: false,
+  stroked: true,
+  getLineColor: [255, 255, 255, 200],
+  lineWidthMinPixels: 1,
+});
 
 interface MapViewProps {
   token: string;
@@ -35,6 +57,10 @@ export default function MapView({ token, children }: MapViewProps) {
           "fill-extrusion-opacity": 0.85,
         }}
       />
+      {/* Mount deck only after its beforeId anchor exists in the style. */}
+      <WhenLayerExists id={BUILDINGS_LAYER_ID}>
+        <DeckOverlay layers={[spikeLayer]} />
+      </WhenLayerExists>
       <NavigationControl position="top-left" visualizePitch />
       <ScaleControl position="bottom-right" unit="imperial" />
       {children}
