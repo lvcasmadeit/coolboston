@@ -24,7 +24,7 @@ export class App {
 
   /** Load the page and wait for the map, its tiles and the heat layer. */
   async open() {
-    await this.page.goto("/");
+    await this.page.goto("/map");
     await this.page.waitForFunction(() => {
       const map = (window as W).__coolboston?.map;
       return map?.loaded() && map.areTilesLoaded() && map.__deck?.props.layers?.some((l: any) => l.id === "heat-hexes");
