@@ -5,13 +5,12 @@ import type { PickingInfo } from "@deck.gl/core";
 import { useEffect, useMemo } from "react";
 import Map, { NavigationControl, ScaleControl } from "react-map-gl/mapbox";
 import { AreaSelection } from "@/components/AreaSelection";
+import { BasemapBuildings } from "@/components/BasemapBuildings";
 import { BuildingSelection } from "@/components/BuildingSelection";
 import { DeckOverlay } from "@/components/DeckOverlay";
 import { Legend } from "@/components/Legend";
 import { MapFocus } from "@/components/MapFocus";
-import { createHeatLayer } from "@/components/layers/HeatLayer";
-import { createRoofLayer } from "@/components/layers/RoofLayer";
-import { createSelectionLayer } from "@/components/layers/SelectionLayer";
+import { buildDeckLayers } from "@/components/layers/buildLayers";
 import { ToolToggle } from "@/components/ToolToggle";
 import { useHexes } from "@/components/useHexes";
 import { computeDeltas } from "@/lib/cooling";
@@ -19,7 +18,7 @@ import { formatTemp, quantileRange, valueRange, type Range } from "@/lib/heat";
 import { afterValue, baseValue, changePct, maxChangePct, type HeatView } from "@/lib/heatView";
 import { computeBaseline } from "@/lib/impact";
 import { BASEMAP_CONFIG, BOSTON_VIEW, MAP_STYLE } from "@/lib/mapConfig";
-import { DEFAULT_LAYERS, useDashboard } from "@/lib/store";
+import { useDashboard } from "@/lib/store";
 import { installTestHook } from "@/lib/testHook";
 import type { Hex, Metric } from "@/lib/types";
 
@@ -37,7 +36,7 @@ const TOOLTIP_STYLE = {
 const METRIC_LABEL: Record<Metric, string> = { air: "3pm air temp", surface: "Surface temp (mid-morning)" };
 
 /** Tooltip for the current view: base value, plus after value and % change when the hex is treated. */
-function makeTooltip(view: HeatView | null) {
+function makeTooltip(view: Omit<HeatView, "opacity"> | null) {
   return ({ object }: PickingInfo<Hex>) => {
     if (!object || !view) return null;
     const base = baseValue(object, view.metric);
@@ -58,9 +57,7 @@ interface MapViewProps {
 
 export default function MapView({ token, children }: MapViewProps) {
   const data = useHexes();
-  const heatVisible = useDashboard((s) => s.layers.heat?.visible ?? true);
-  const heatOpacity = useDashboard((s) => s.layers.heat?.opacity ?? DEFAULT_LAYERS.heat.opacity);
-
+  const layerState = useDashboard((s) => s.layers);
   const actions = useDashboard((s) => s.actions);
   const metric = useDashboard((s) => s.metric);
   const mode = useDashboard((s) => s.viewMode);
@@ -81,10 +78,9 @@ export default function MapView({ token, children }: MapViewProps) {
     };
   }, [hexes]);
   const deltas = useMemo(() => computeDeltas(actions), [actions]);
-  const view = useMemo<HeatView | null>(
-    () =>
-      base && { metric, mode, deltas, baseline: base.baseline, ranges: base.ranges, opacity: heatOpacity },
-    [base, metric, mode, deltas, heatOpacity],
+  const view = useMemo<Omit<HeatView, "opacity"> | null>(
+    () => base && { metric, mode, deltas, baseline: base.baseline, ranges: base.ranges },
+    [base, metric, mode, deltas],
   );
   const maxPct = useMemo(
     () => (base ? maxChangePct(base.byId, metric, deltas, base.baseline) : 0),
@@ -92,17 +88,9 @@ export default function MapView({ token, children }: MapViewProps) {
   );
   const getTooltip = useMemo(() => makeTooltip(view), [view]);
   const areaCells = useDashboard((s) => (s.selection?.kind === "area" ? s.selection.cells : null));
-  const heatLayer = useMemo(
-    () => (hexes && view && heatVisible ? createHeatLayer(hexes, view, maxPct) : null),
-    [hexes, view, heatVisible, maxPct],
-  );
-  const roofLayer = useMemo(
-    () => (actions.some((a) => a.target.kind === "building") ? createRoofLayer(actions, 0.9) : null),
-    [actions],
-  );
   const layers = useMemo(
-    () => [heatLayer, roofLayer, areaCells && createSelectionLayer(areaCells)].filter((l) => !!l),
-    [heatLayer, roofLayer, areaCells],
+    () => buildDeckLayers({ hexes, view, maxPct, actions, areaCells, layers: layerState }),
+    [hexes, view, maxPct, actions, areaCells, layerState],
   );
 
   return (
@@ -120,6 +108,7 @@ export default function MapView({ token, children }: MapViewProps) {
       <DeckOverlay layers={layers} getTooltip={getTooltip} />
       <BuildingSelection />
       <MapFocus />
+      <BasemapBuildings />
       {hexes && <AreaSelection hexes={hexes} />}
       <ToolToggle />
       <NavigationControl position="top-left" visualizePitch />

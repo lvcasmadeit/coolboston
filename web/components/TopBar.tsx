@@ -1,4 +1,5 @@
 import { Thermometer } from "lucide-react";
+import { ViewControls } from "@/components/ViewControls";
 
 export function TopBar() {
   return (
@@ -11,6 +12,9 @@ export function TopBar() {
         </span>
       </div>
       <span className="text-sm text-muted-foreground">Boston, MA</span>
+      <div className="ml-auto">
+        <ViewControls />
+      </div>
     </header>
   );
 }

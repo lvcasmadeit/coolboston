@@ -41,9 +41,10 @@ export interface DashboardState {
   setLayerOpacity: (id: LayerId, opacity: number) => void;
 }
 
-// Replaced by the layer registry in Task 27.
+/** Defaults for the layers in lib/layers.ts. */
 export const DEFAULT_LAYERS: Record<LayerId, LayerState> = {
   heat: { visible: true, opacity: 0.5 },
+  roofs: { visible: true, opacity: 0.9 },
   buildings: { visible: true, opacity: 1 },
 };
 
