@@ -8,6 +8,7 @@ import { AreaSelection } from "@/components/AreaSelection";
 import { BuildingSelection } from "@/components/BuildingSelection";
 import { DeckOverlay } from "@/components/DeckOverlay";
 import { Legend } from "@/components/Legend";
+import { MapFocus } from "@/components/MapFocus";
 import { createHeatLayer } from "@/components/layers/HeatLayer";
 import { createSelectionLayer } from "@/components/layers/SelectionLayer";
 import { ToolToggle } from "@/components/ToolToggle";
@@ -113,6 +114,7 @@ export default function MapView({ token, children }: MapViewProps) {
     >
       <DeckOverlay layers={layers} getTooltip={getTooltip} />
       <BuildingSelection />
+      <MapFocus />
       {hexes && <AreaSelection hexes={hexes} />}
       <ToolToggle />
       <NavigationControl position="top-left" visualizePitch />

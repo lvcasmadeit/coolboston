@@ -298,17 +298,19 @@ Notes: `components/ActPanel.tsx`, `lib/availableActions.ts`, `lib/format.ts`. Ea
 **Dependencies:** Tasks 19, 22, 23, 24, 25
 **Files likely touched:** `web/components/ActPanel.tsx`, `web/components/RightPanel.tsx`, `web/lib/availableActions.ts`, `web/lib/availableActions.test.ts`
 
-### Task 28: Applied actions list [MVP, S]
+### Task 28: Applied actions list [MVP, S] (done)
 **Description:** A list of applied actions with remove, undo and reset.
 
 **Acceptance criteria:**
-- [ ] Each item shows intervention, target and cost range.
-- [ ] Remove deletes one action; Undo removes the most recent; Reset clears all.
-- [ ] Clicking an item flies the map to its target.
+- [x] Each item shows intervention, target and cost range.
+- [x] Remove deletes one action; Undo removes the most recent; Reset clears all.
+- [x] Clicking an item flies the map to its target.
 
 **Verification:**
-- [ ] `npm test`: the list is derived from the store; remove, undo and reset update it.
-- [ ] Manual check: the list matches the map.
+- [x] `npm test`: the list is derived from the store; remove, undo and reset update it.
+- [x] Manual check: the list matches the map.
+
+Notes: `components/ActionList.tsx` (newest first, with total capital), `lib/actionList.ts`, `components/MapFocus.tsx`. Fly-to goes through a store `focus` request so the list does not need the map. The list shows in the Act tab with or without a selection. Browser check: three actions listed with costs; remove, undo and reset update the list and the map; reset restores the hex colour; clicking an item flies to it at zoom 16.
 
 **Dependencies:** Task 27
 **Files likely touched:** `web/components/ActionList.tsx`, `web/components/ActPanel.tsx`

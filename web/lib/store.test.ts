@@ -108,6 +108,12 @@ describe("dashboard store", () => {
     store.getState().addAction({ intervention: "street-trees", target: { kind: "building", building: BUILDING } });
   });
 
+  it("issues focus requests with an increasing seq", () => {
+    store.getState().focusOn([-71, 42]);
+    store.getState().focusOn([-71, 42]);
+    expect(store.getState().focus).toEqual({ lngLat: [-71, 42], seq: 2 });
+  });
+
   it("sets the metric", () => {
     store.getState().setMetric("surface");
     expect(store.getState().metric).toBe("surface");

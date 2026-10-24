@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { ActionList } from "@/components/ActionList";
 import { useHexes } from "@/components/useHexes";
 import { availableActions, type Offer } from "@/lib/availableActions";
 import { computeDeltas } from "@/lib/cooling";
@@ -95,9 +96,12 @@ export function ActPanel() {
 
   if (!selection) {
     return (
-      <div className="space-y-2 text-sm text-muted-foreground">
-        <p>Click a building to select it, or switch to the Area tool and click hexes.</p>
-        <p className="text-xs">Area tool: shift-click adds or removes a hex; shift-drag selects a box. Escape clears.</p>
+      <div className="space-y-4">
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>Click a building to select it, or switch to the Area tool and click hexes.</p>
+          <p className="text-xs">Area tool: shift-click adds or removes a hex; shift-drag selects a box. Escape clears.</p>
+        </div>
+        <ActionList />
       </div>
     );
   }
@@ -121,6 +125,7 @@ export function ActPanel() {
         </ul>
         <p className="text-[11px] text-muted-foreground">Costs are capital estimates (low–high). Air effects are hex averages.</p>
       </section>
+      <ActionList />
     </div>
   );
 }

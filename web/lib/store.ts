@@ -19,6 +19,8 @@ export interface DashboardState {
   metric: Metric;
   tool: SelectTool;
   layers: Record<LayerId, LayerState>;
+  /** Latest request to move the map; `seq` increases so repeat requests still fire. */
+  focus: { lngLat: [number, number]; seq: number } | null;
 
   selectBuilding: (building: SelectedBuilding) => void;
   /** Adds or removes one cell; starts a new area if a building was selected. */
@@ -34,6 +36,7 @@ export interface DashboardState {
   setViewMode: (mode: ViewMode) => void;
   setMetric: (metric: Metric) => void;
   setTool: (tool: SelectTool) => void;
+  focusOn: (lngLat: [number, number]) => void;
   toggleLayer: (id: LayerId) => void;
   setLayerOpacity: (id: LayerId, opacity: number) => void;
 }
@@ -58,6 +61,7 @@ export function createDashboardStore(initialLayers: Record<LayerId, LayerState> 
     metric: "air",
     tool: "building",
     layers: structuredClone(initialLayers),
+    focus: null,
 
     selectBuilding: (building) => set({ selection: { kind: "building", building } }),
     toggleAreaCell: (cell) =>
@@ -82,6 +86,7 @@ export function createDashboardStore(initialLayers: Record<LayerId, LayerState> 
     setViewMode: (viewMode) => set({ viewMode }),
     setMetric: (metric) => set({ metric }),
     setTool: (tool) => set({ tool }),
+    focusOn: (lngLat) => set((s) => ({ focus: { lngLat, seq: (s.focus?.seq ?? 0) + 1 } })),
     toggleLayer: (id) =>
       set((s) =>
         s.layers[id]
