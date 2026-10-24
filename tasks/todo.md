@@ -326,7 +326,7 @@ Notes: `components/ActionList.tsx` (newest first, with total capital), `lib/acti
 - [x] `npm test`: marker data derived from actions (colour, elevation).
 - [x] Manual check: a tilted view shows the capped roof.
 
-Notes: `components/layers/RoofLayer.ts`, a flat `PolygonLayer` 0.4 m above the roof in the `middle` slot. Green walls draw as a thick outline; cool roofs are light blue because white would disappear on Standard's white roofs. Buildings with unknown height sit at ground level. Browser check: the top-down view at zoom 18.3 shows the selected roof navy with solar and white again after undo; the layer goes away when the last building action is removed. Solar navy is close to the basemap water colour; it reads fine on roofs.
+Notes: `components/layers/RoofLayer.ts`, a flat `PolygonLayer` 0.4 m above the roof in the `middle` slot. Green walls draw as a thick outline; cool roofs are light blue because white would disappear on Standard's white roofs. Buildings with unknown height sit at ground level. Browser check: in a pitched view (zoom 16.5, pitch 60) the green-roof cap sits on its roof and is hidden behind nearer buildings; the layer goes away when the last building action is removed. Known limitation: looking straight down at zoom 18+, Standard's roof covers most of the cap (a 2 m offset did not help; 60 m or `depthCompare: always` does, but then caps show through towers). The demo view is pitched, so this is accepted.
 
 **Dependencies:** Tasks 22, 28
 **Files likely touched:** `web/components/layers/RoofLayer.ts`, `web/components/MapView.tsx`
