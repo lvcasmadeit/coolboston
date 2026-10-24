@@ -79,7 +79,7 @@ function InterventionButton({
         disabled={!offer.enabled}
         aria-describedby={offer.reason ? reasonId : undefined}
         onClick={() => target && onApply({ intervention: spec.id, target } as NewAction)}
-        className="flex w-full items-center gap-3 rounded-lg border border-border bg-background p-2 text-left outline-none transition-colors hover:border-emerald-500 hover:bg-emerald-50 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-border disabled:hover:bg-background dark:hover:bg-emerald-950"
+        className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-2 text-left outline-none transition-colors hover:border-emerald-500 hover:bg-emerald-50 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-border disabled:hover:bg-card dark:hover:bg-emerald-950"
       >
         <span className="block min-w-0 flex-1">
           <span className="block text-sm font-medium text-foreground">{spec.label}</span>
@@ -116,7 +116,7 @@ export function InterventionsPanel() {
   const target = selection ? targetOf(selection) : null;
 
   return (
-    <aside aria-label="Interventions" className="flex min-h-0 flex-col gap-4 overflow-y-auto border-r border-border bg-card p-3">
+    <aside aria-label="Interventions" className="flex min-h-0 flex-col gap-4 overflow-y-auto border-r border-border bg-background p-3">
       <section aria-label="Cooling actions" className="space-y-2">
         <div>
           <h2 className="text-base font-semibold text-foreground">Interventions</h2>

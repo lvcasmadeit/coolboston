@@ -21,7 +21,7 @@ function Row({ r }: { r: ActionRow }) {
         type="button"
         onClick={() => focusOn(r.center)}
         title="Show on map"
-        className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-border bg-background px-2 py-1 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-border bg-card px-2 py-1 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="block min-w-0 flex-1">
           <span className="block truncate text-xs font-medium text-foreground">{r.label}</span>
@@ -67,7 +67,7 @@ export function ActionList() {
           {GROUPS.map((g) => {
             const mine = rows.filter((r) => r.kind === g.kind);
             return (
-              <details key={g.kind} open className="group rounded-md border border-border">
+              <details key={g.kind} open className="group rounded-md border border-border bg-card">
                 <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-2 py-1.5 text-xs font-medium text-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
                   <span>
                     {g.label} <span className="text-muted-foreground">({mine.length})</span>

@@ -18,7 +18,7 @@ import { useDashboard } from "@/lib/store";
 import { chartActions, tradeoffPoints } from "@/lib/tradeoff";
 import type { Selection } from "@/lib/types";
 
-const card = "rounded-lg border border-border bg-background p-3";
+const card = "rounded-lg border border-border bg-card p-3";
 
 /** Heat Score of the selection (tile or mean of tiles), and the estimated score after its actions. */
 function HeatScoreCard({ selection }: { selection: Selection }) {

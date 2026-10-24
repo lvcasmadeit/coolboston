@@ -4,7 +4,7 @@ import { ViewControls } from "@/components/ViewControls";
 
 export function TopBar() {
   return (
-    <header className="flex h-12 items-center gap-4 border-b border-border bg-card px-4">
+    <header className="flex h-12 items-center gap-4 border-b border-border bg-background px-4">
       <Link href="/" className="flex items-center gap-2" aria-label="CoolBoston home">
         <Thermometer className="size-5 text-orange-500" aria-hidden />
         <span className="font-semibold tracking-tight">CoolBoston</span>

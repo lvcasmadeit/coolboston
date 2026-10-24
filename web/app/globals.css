@@ -48,19 +48,19 @@
 
 :root {
   /* Light palette (planui.md section 2). Warm neutrals; text pairs are AA on their surface. */
-  --background: #f7f3ea; /* cream: page */
+  --background: #faf9f6; /* off-white: page, top bar, side panels */
   --foreground: #2b2925; /* warm charcoal: body text (13.1:1 on background) */
-  --card: #fdfbf6; /* off-white: top bar, side and bottom panels, legend */
+  --card: #ffffff; /* cards inside the panels, legend */
   --card-foreground: #2b2925;
-  --popover: #fdfbf6;
+  --popover: #ffffff;
   --popover-foreground: #2b2925;
   --primary: #4f7a5a; /* sage: selected tab, primary actions, focus */
   --primary-foreground: #ffffff;
-  --secondary: #efe9dc;
+  --secondary: #f5f3ef;
   --secondary-foreground: #2b2925;
-  --muted: #efe9dc; /* tab list, inputs, chart boxes */
+  --muted: #f5f3ef; /* tab list, inputs, hover */
   --muted-foreground: #6b6457; /* 5.3:1 on background, 4.8:1 on muted */
-  --accent: #efe9dc;
+  --accent: #f5f3ef;
   --accent-foreground: #2b2925;
   --destructive: #b4412f;
   --border: #e3dccb;
@@ -72,11 +72,11 @@
   --chart-4: #3f7f9e;
   --chart-5: #a8a091;
   --radius: 0.625rem;
-  --sidebar: #fdfbf6;
+  --sidebar: #faf9f6;
   --sidebar-foreground: #2b2925;
   --sidebar-primary: #4f7a5a;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #efe9dc;
+  --sidebar-accent: #f5f3ef;
   --sidebar-accent-foreground: #2b2925;
   --sidebar-border: #e3dccb;
   --sidebar-ring: #4f7a5a;

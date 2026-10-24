@@ -10,7 +10,7 @@ const TABS = [
 /** Right pane: metrics and charts, map layers. */
 export function RightPanel() {
   return (
-    <aside aria-label="Dashboard controls" className="flex min-h-0 flex-col border-l border-border bg-card">
+    <aside aria-label="Dashboard controls" className="flex min-h-0 flex-col border-l border-border bg-background">
       <Tabs defaultValue="metrics" className="flex min-h-0 flex-1 flex-col p-3">
         <TabsList className="w-full">
           {TABS.map((t) => (

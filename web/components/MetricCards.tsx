@@ -6,7 +6,7 @@ import type { SelectionMetrics } from "@/lib/metrics";
 
 function Card({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
-    <div className="rounded-md border border-border bg-background px-2 py-1.5">
+    <div className="rounded-md border border-border bg-card px-2 py-1.5">
       <p className="text-[11px] text-muted-foreground">{label}</p>
       <p className="text-sm font-medium text-foreground">{value}</p>
       {note && <p className="text-[10px] leading-tight text-muted-foreground">{note}</p>}
