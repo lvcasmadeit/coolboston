@@ -15,13 +15,15 @@ export function createHeatLayer(hexes: Hex[], range: Range, opacity: number) {
     parameters: { depthBias: -2, depthBiasSlopeScale: -2 },
     data: hexes,
     getHexagon: (d) => d.id,
-    getFillColor: (d) => heatColor(d.temp3pm, range.min, range.max),
+    // Opacity goes in the fill alpha: deck gamma-corrects the layer `opacity` prop
+    // (0.5 would composite as 0.5^(1/2.2) ≈ 0.73), but blends color alpha as-is.
+    getFillColor: (d) => heatColor(d.temp3pm, range.min, range.max, Math.round(opacity * 255)),
     extruded: false,
     stroked: false,
-    opacity,
+    opacity: 1,
     pickable: true,
     autoHighlight: true,
     highlightColor: [255, 255, 255, 90],
-    updateTriggers: { getFillColor: [range.min, range.max] },
+    updateTriggers: { getFillColor: [range.min, range.max, opacity] },
   });
 }
