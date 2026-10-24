@@ -376,18 +376,20 @@ Notes: `lib/layers.ts` (registry), `components/layers/buildLayers.ts` (store →
 
 ## Phase 7: Charts
 
-### Task 32: Recharts and cost-versus-effect chart [MVP, M]
+### Task 32: Recharts and cost-versus-effect chart [MVP, M] (done)
 **Description:** Re-add Recharts pinned to 3.10.1, removed in Task 13. Add the bottom-panel scatter: x = capital cost (range), y = % heat-island change at the hex. Roof surface change appears in the tooltip.
 
 **Acceptance criteria:**
-- [ ] Recharts is pinned to the exact version in `package.json`.
-- [ ] One point per action for the current selection; the empty state shows when nothing is applied.
-- [ ] The tooltip shows the roof surface change and cost range.
+- [x] Recharts is pinned to the exact version in `package.json`.
+- [x] One point per action for the current selection; the empty state shows when nothing is applied.
+- [x] The tooltip shows the roof surface change and cost range.
 
 **Verification:**
-- [ ] `npm test`: the data transform from impact outputs.
-- [ ] `npm run build` passes.
-- [ ] Manual check: the chart matches the cards.
+- [x] `npm test`: the data transform from impact outputs.
+- [x] `npm run build` passes.
+- [x] Manual check: the chart matches the cards.
+
+Notes: `lib/tradeoff.ts` (points; each action's % is computed from that action alone on its own hexes), `components/charts/TradeoffChart.tsx`, `components/BottomPanel.tsx`. With nothing selected the chart shows every action. Actions with an unquantified cost are left out; n/a heat-island points are counted in a footnote. Colours match the roof markers. Verified by `e2e/charts.spec.ts` (empty state, one point, tooltip, reset).
 
 **Dependencies:** Tasks 25, 30
 **Files likely touched:** `web/package.json`, `web/components/charts/TradeoffChart.tsx`, `web/components/BottomPanel.tsx`, `web/lib/tradeoff.ts`, `web/lib/tradeoff.test.ts`

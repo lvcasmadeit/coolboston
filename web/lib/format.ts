@@ -19,6 +19,9 @@ const compactNum = (v: number) => {
   return Math.round(v).toLocaleString("en-US");
 };
 
+/** "$12k", "$1.5M" */
+export const formatUsd = compactUsd;
+
 /** "$12k–$34k" */
 export const formatUsdRange = (r: Range) => `${compactUsd(r.low)}–${compactUsd(r.high)}`;
 

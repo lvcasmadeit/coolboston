@@ -74,7 +74,7 @@ Every number in the app is an estimate and is labelled as one.
 - [x] Review with human before proceeding (core loop accepted; deploy held)
 
 ### Phase 7: Charts
-- [ ] Task 32: Recharts and cost-versus-effect chart
+- [x] Task 32: Recharts and cost-versus-effect chart
 - [ ] Task 33: Before-and-after chart
 
 ### Checkpoint G: Charts
