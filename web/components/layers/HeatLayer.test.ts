@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createHeatLayer, SLAB_HEIGHT_M, tileParts, type TilePart } from "@/components/layers/HeatLayer";
+import { createHeatLayer, TILE_Z_M, tileParts, type TilePart } from "@/components/layers/HeatLayer";
 import type { HeatView } from "@/lib/heatView";
 import type { Cell } from "@/lib/types";
 
@@ -39,13 +39,11 @@ describe("createHeatLayer", () => {
     expect(createHeatLayer([hex], view(0.3), 0).props.updateTriggers.getFillColor).toContain(0.3);
   });
 
-  it("raises every tile into a flat 18 m slab, above low-rise and below towers", () => {
+  it("lays every tile flat 1 m above the ground, below every building", () => {
     const layer = createHeatLayer([hex], view(0.5), 0);
-
-    expect(layer.props.extruded).toBe(true);
-    expect(layer.props.getElevation).toBe(SLAB_HEIGHT_M);
-    expect(SLAB_HEIGHT_M).toBe(18);
-    expect(layer.props.elevationScale).toBe(1);
+    expect(layer.props.extruded).toBe(false);
+    expect(TILE_Z_M).toBe(1);
+    expect(tileParts([hex])[0].polygon[0].every((p) => p[2] === TILE_Z_M)).toBe(true);
   });
 
   it("keeps the same data and recolours through updateTriggers when actions or modes change", () => {

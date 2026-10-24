@@ -1,5 +1,5 @@
 /**
- * What the heat slab shows (Task 26). Pure.
+ * What the heat tiles shows (Task 26). Pure.
  *   Heat mode: the after-action value of the chosen metric on that metric's fixed baseline range.
  *   Change mode: affected tiles coloured by % heat-island reduction on 0 → max (own scale);
  *   unaffected and n/a tiles faded.
@@ -56,7 +56,7 @@ export function maxChangePct(byId: ReadonlyMap<string, CellTemps>, metric: Metri
   return max;
 }
 
-/** Faded tiles keep a quarter of the slab's alpha. */
+/** Faded tiles keep a quarter of the layer alpha. */
 const FADE = 0.25;
 
 export function fillColor(h: CellTemps, v: HeatView, maxPct: number): RGBA {

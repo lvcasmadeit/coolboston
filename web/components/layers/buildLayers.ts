@@ -16,7 +16,7 @@ export interface DeckLayerInputs {
   layers: Record<LayerId, LayerState>;
 }
 
-/** Deck layers for the current state, bottom to top: heat slab, roof caps, area selection. */
+/** Deck layers for the current state, bottom to top: heat tiles, roof caps, area selection. */
 export function buildDeckLayers(i: DeckLayerInputs) {
   const heat = layerSetting(i.layers, "heat");
   const roofs = layerSetting(i.layers, "roofs");

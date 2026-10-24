@@ -8,9 +8,9 @@ const LAYERS = {
 };
 
 describe("default layers", () => {
-  it("shows heat hexes at 50% opacity", () => {
-    expect(DEFAULT_LAYERS.heat).toEqual({ visible: true, opacity: 0.5 });
-    expect(createDashboardStore().getState().layers.heat.opacity).toBe(0.5);
+  it("shows heat tiles at 65% opacity", () => {
+    expect(DEFAULT_LAYERS.heat).toEqual({ visible: true, opacity: 0.65 });
+    expect(createDashboardStore().getState().layers.heat.opacity).toBe(0.65);
   });
 });
 

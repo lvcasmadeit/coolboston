@@ -43,7 +43,7 @@ export interface DashboardState {
 
 /** Defaults for the layers in lib/layers.ts. */
 export const DEFAULT_LAYERS: Record<LayerId, LayerState> = {
-  heat: { visible: true, opacity: 0.5 },
+  heat: { visible: true, opacity: 0.65 },
   roofs: { visible: true, opacity: 0.9 },
   buildings: { visible: true, opacity: 1 },
 };
