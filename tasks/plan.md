@@ -25,10 +25,10 @@ Tasks are tracked in `tasks/todo.md` (markdown checklist).
 - [ ] Tests, lint and build pass; 3D map with a deck.gl layer renders
 
 ### Phase 1: Heat hexes (70 min)
-- [ ] Task 7: Pipeline scaffold, boundary, H3 grid
-- [ ] Task 8: Heat Watch ingest and area-weighted join
-- [ ] Task 9: hexes.json writer and /api/hexes
-- [ ] Task 10: Heat hex layer, color ramp, tooltip
+- [x] Task 7: Pipeline scaffold, boundary, H3 grid
+- [x] Task 8: Heat Watch ingest and area-weighted join
+- [x] Task 9: hexes.json writer and /api/hexes
+- [x] Task 10: Heat hex layer, color ramp, tooltip
 
 ### Checkpoint B: Heat on the map
 

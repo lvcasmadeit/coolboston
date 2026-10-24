@@ -125,13 +125,13 @@ Notes from Phase 0:
 **Description:** Python project that generates the H3 resolution-9 cells covering Boston.
 
 **Acceptance criteria:**
-- [ ] `pipeline/` is a uv project (pinned versions): `geopandas`, `h3`, `shapely`, `pytest`.
-- [ ] `grid.py` fetches/loads the Boston boundary (Analyze Boston municipal boundary) and returns the list of H3 res-9 cell IDs whose centers fall inside it (use `h3.polygon_to_cells`).
-- [ ] Output ID list is deterministic and contains no duplicates.
+- [x] `pipeline/` is a uv project (pinned versions): `geopandas`, `h3`, `shapely`, `pytest`.
+- [x] `grid.py` fetches/loads the Boston boundary (Analyze Boston municipal boundary) and returns the list of H3 res-9 cell IDs whose centers fall inside it (use `h3.polygon_to_cells`).
+- [x] Output ID list is deterministic and contains no duplicates.
 
 **Verification:**
-- [ ] `uv run pytest`: a small fixture polygon returns the expected cell count; all IDs are valid H3 res 9.
-- [ ] Manual check: count is plausible (roughly 1-3k cells).
+- [x] `uv run pytest`: a small fixture polygon returns the expected cell count; all IDs are valid H3 res 9.
+- [x] Manual check: count is plausible (roughly 1-3k cells).
 
 **Dependencies:** Task 1
 **Files likely touched:** `pipeline/pyproject.toml`, `pipeline/src/grid.py`, `pipeline/tests/test_grid.py`, `pipeline/data/raw/boston_boundary.geojson`
@@ -140,12 +140,12 @@ Notes from Phase 0:
 **Description:** Bring the 2019 Heat Watch hexes (6am, 3pm, 7pm temperature and heat index) onto our H3 grid.
 
 **Acceptance criteria:**
-- [ ] `heatwatch.py` loads the "Canopy Change Assessment: Heat Metrics" hex layer (MassGIS / Analyze Boston).
-- [ ] Each H3 cell receives an area-weighted mean of the overlapping source hexes for `temp_3pm`, `temp_6am`, `temp_7pm` (°F) in the grid CRS.
-- [ ] Cells with no overlap get `null`, not 0.
+- [x] `heatwatch.py` loads the "Canopy Change Assessment: Heat Metrics" hex layer (MassGIS / Analyze Boston).
+- [x] Each H3 cell receives an area-weighted mean of the overlapping source hexes for `temp_3pm`, `temp_6am`, `temp_7pm` (°F) in the grid CRS.
+- [x] Cells with no overlap get `null`, not 0.
 
 **Verification:**
-- [ ] `uv run pytest`: two overlapping fixture polygons with known values give the expected weighted mean; a non-overlapping cell is `null`.
+- [x] `uv run pytest`: two overlapping fixture polygons with known values give the expected weighted mean; a non-overlapping cell is `null`.
 
 **Dependencies:** Task 7
 **Files likely touched:** `pipeline/src/heatwatch.py`, `pipeline/src/join.py`, `pipeline/tests/test_join.py`
@@ -154,14 +154,14 @@ Notes from Phase 0:
 **Description:** Define the data contract between pipeline and web, then serve it.
 
 **Acceptance criteria:**
-- [ ] `build_hexes.py` writes `web/data/hexes.json`: `{ "version": 1, "hexes": [{ "id", "temp3pm", ... }] }`; field names documented in `web/lib/types.ts`.
-- [ ] `GET /api/hexes` returns the file with `Cache-Control` set.
-- [ ] Response type is validated at load time (missing/extra fields throw a clear error).
+- [x] `build_hexes.py` writes `web/data/hexes.json`: `{ "version": 1, "hexes": [{ "id", "temp3pm", ... }] }`; field names documented in `web/lib/types.ts`.
+- [x] `GET /api/hexes` returns the file with `Cache-Control` set.
+- [x] Response type is validated at load time (missing/extra fields throw a clear error).
 
 **Verification:**
-- [ ] `uv run pytest`: written JSON matches schema.
-- [ ] `npm test`: loader rejects a malformed fixture.
-- [ ] Manual check: `curl localhost:3000/api/hexes` returns data.
+- [x] `uv run pytest`: written JSON matches schema.
+- [x] `npm test`: loader rejects a malformed fixture.
+- [x] Manual check: `curl localhost:3000/api/hexes` returns data.
 
 **Dependencies:** Tasks 3, 8
 **Files likely touched:** `pipeline/src/build_hexes.py`, `web/app/api/hexes/route.ts`, `web/lib/data.ts`, `web/lib/data.test.ts`, `web/lib/types.ts`
@@ -170,20 +170,20 @@ Notes from Phase 0:
 **Description:** Render the hexes colored by temperature.
 
 **Acceptance criteria:**
-- [ ] `H3HexagonLayer` shows all hexes, colored by `temp3pm` with a continuous ramp (cool blue → hot red); `null` cells are transparent.
-- [ ] Hover tooltip shows the temperature in °F, rounded to 1 decimal.
-- [ ] Legend with min/max values in the Layers tab or map corner.
+- [x] `H3HexagonLayer` shows all hexes, colored by `temp3pm` with a continuous ramp (cool blue → hot red); `null` cells are transparent.
+- [x] Hover tooltip shows the temperature in °F, rounded to 1 decimal.
+- [x] Legend with min/max values in the Layers tab or map corner.
 
 **Verification:**
-- [ ] `npm test`: ramp returns the first color at min, the last at max, clamps outside the range, handles null.
-- [ ] Manual check: downtown/dense areas look hotter than parks.
+- [x] `npm test`: ramp returns the first color at min, the last at max, clamps outside the range, handles null.
+- [x] Manual check: downtown/dense areas look hotter than parks.
 
 **Dependencies:** Tasks 6, 9
 **Files likely touched:** `web/lib/colors.ts`, `web/lib/colors.test.ts`, `web/components/layers/HeatLayer.ts`, `web/components/Legend.tsx`
 
 ### Checkpoint B: After Tasks 7-10
-- [ ] `uv run pytest` and `npm test` pass; `npm run build` succeeds
-- [ ] Heat hexes are visible on the 3D map with hover values
+- [x] `uv run pytest` and `npm test` pass; `npm run build` succeeds
+- [x] Heat hexes are visible on the 3D map with hover values
 - [ ] Review with human before proceeding
 
 ---
