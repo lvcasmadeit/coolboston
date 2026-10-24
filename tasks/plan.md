@@ -1,126 +1,92 @@
-# Implementation Plan: Boston Urban Heat Island Dashboard
+# Implementation Plan: CoolBoston, interactive heat-island interventions
 
 ## Overview
-A solo, 9-hour build of a 3D Mapbox dashboard that shows where Boston's urban heat is concentrated (Landsat 2013-2025) and which intervention (green roofs, cool roofs, solar, trees, cool pavement) fits each place, with a what-if simulator. Research, scoring formulas and architecture live in `../PLAN.md`; this file is the execution plan and index. Detailed tasks with acceptance criteria are in `todo.md`.
+A 3D Mapbox app where users **select a building or an area of Boston, apply a cooling action** (green roof, cool roof, rooftop solar, street trees, cool pavement, depave to green space), and **watch the surrounding heat map cool**. Base heat is the 2019 Heat Watch 3pm air temperature on an H3 res-10 grid, drawn as a translucent 18 m slab (see `../planui.md`).
 
-Tasks are tracked in `tasks/todo.md` (markdown checklist).
+**Pivot (Sat 12:33):** the Landsat timeline, year playback, year-by-year charts, and the adoption-percentage simulator are dropped entirely. The per-hex scoring and recommendation phases are reduced to a stretch "suitability hint". Completed work (Phases 0–1, UI and map revamp) carries over unchanged.
 
-## Architecture Decisions (summary; full rationale in ../PLAN.md)
-- Next.js App Router, client-only Mapbox GL + deck.gl (interleaved), Zustand, Recharts, Tailwind + shadcn/ui.
-- No runtime backend: offline Python (uv) writes `web/data/hexes.json`; Next route handlers serve it.
-- H3 res-10 hex grid (originally res 9) is the unit of analysis. Scoring formulas live only in `web/lib/scoring.ts`; Python building scores are checked against it by a shared fixture.
-- Changed from ../PLAN.md: the what-if simulator (Phase 6) now comes before per-building scores (Phase 7), because the simulator needs only hex-level data and is a stronger demo moment.
+Detailed tasks with acceptance criteria are in `todo.md`. `../PLAN.md` still describes the old timeline direction and needs a follow-up rewrite (Task 11).
+
+## Architecture Decisions
+- Unchanged: Next.js App Router, client-only Mapbox GL (Standard) + deck.gl interleaved, Zustand, Tailwind + shadcn/ui (Recharts removed: no charts); offline Python (uv) writes `web/data/hexes.json`, served by `/api/hexes`.
+- **Cooling runs in the browser.** `applyActions(baseHexes, actions)` is a pure function from the user's action list to adjusted per-hex temperatures; no server state, no backend.
+- **Buildings come from Mapbox Standard's `buildings` featureset** (click via `map.addInteraction`, highlight via feature state). No building dataset to download or host. Task 16 is a spike that confirms the returned geometry and height are usable; the fallback is a downtown-only footprint GeoJSON from Analyze Boston.
+- **Areas are sets of H3 cells** (click, shift-click, box-drag), so area actions use the same grid as the heat data. Each area action treats a **fixed share** of the selected area, set per action in the catalog (no user slider). Free-form polygon drawing is a stretch.
+- **Heat is 3pm only.** No timeline and no time-of-day comparison; the 6am/7pm Heat Watch values are removed from the data (Task 13b).
+- **Cooling model:** a treated area produces a source reduction in its hex (coefficient × treated fraction of the hex), which spreads to neighbouring hexes with an H3-ring falloff. Coefficients are cited, carry low/central/high ranges, and every number on screen is labelled an estimate.
+- **Color domain is fixed to the baseline min/max**, so cooled hexes visibly shift toward blue instead of the ramp re-stretching. A "Change" view shows ΔT on its own scale, so small effects stay visible.
+- `h3-js` becomes a direct, pinned dependency (building centroid → cell, ring neighbours).
 
 ## Task List
 
-### Phase 0: Foundation (90 min)
-- [x] Task 1: Repo scaffold
-- [x] Task 2: Next.js app and tooling
-- [x] Task 3: Zustand store with core state
-- [x] Task 4: Dashboard layout shell
-- [x] Task 5: 3D Mapbox map, client-only
-- [x] Task 6: deck.gl interleaved overlay spike
+### Done
+- [x] Phase 0: Foundation (Tasks 1–6), Checkpoint A
+- [x] Phase 1: Heat hexes (Tasks 7–10), Checkpoint B
+- [x] UI revamp and map look v2 (`../planui.md`): light theme, Standard basemap, res-10 slab, rainbow ramp
 
-### Checkpoint A: Foundation
-- [ ] Tests, lint and build pass; 3D map with a deck.gl layer renders
+### Phase 2: Pivot cleanup
+- [ ] Task 11: Docs: rewrite PLAN.md for the new direction
+- [ ] Task 12: Store refactor: drop timeline state, add selection and actions
+- [ ] Task 13: Layout refactor: remove timeline UI and intervention dropdown
+- [ ] Task 13b: Drop 6am/7pm temperatures from the data
 
-### Phase 1: Heat hexes (70 min)
-- [x] Task 7: Pipeline scaffold, boundary, H3 grid
-- [x] Task 8: Heat Watch ingest and area-weighted join
-- [x] Task 9: hexes.json writer and /api/hexes
-- [x] Task 10: Heat hex layer, color ramp, tooltip
+### Checkpoint C: Clean base
 
-### Checkpoint B: Heat on the map
+### Phase 3: Selection (highest risk)
+- [ ] Task 14: Intervention catalog and cooling coefficients
+- [ ] Task 15: Geometry helpers (footprint area, building → hex)
+- [ ] Task 16: Building selection spike (Standard featureset)
+- [ ] Task 17: Building selection and highlight
+- [ ] Task 18: Area selection on hexes
 
-### Phase 2: Landsat and timeline (125 min, highest risk)
-- [ ] Task 11: Landsat STAC search spike
-- [ ] Task 12: Temperature conversion and cloud mask
-- [ ] Task 13: Yearly median composites
-- [ ] Task 14: Zonal stats onto hexes
-- [ ] Task 15: Colorized yearly PNG overlays (stretch)
-- [ ] Task 16: Timeline playback logic
-- [ ] Task 17: Timeline UI
-- [ ] Task 18: Year-driven recolor and raster overlay
+### Checkpoint D: Select a building or an area
 
-### Checkpoint C: Heat animates over years
+### Phase 4: Cooling model
+- [ ] Task 19: Cooling model (`applyActions`)
+- [ ] Task 20: Heat layer driven by adjusted temperatures
 
-### Phase 3: Selection, metrics, charts (60 min)
-- [ ] Task 19: /api/hex/[id]
-- [ ] Task 20: Series transform library
-- [ ] Task 21: Hex click selection
-- [ ] Task 22: City vs hex line chart
-- [ ] Task 23: Delta chart and metric cards
+### Checkpoint E: Actions cool the map (via test hook)
 
-### Checkpoint D: Click → charts
+### Phase 5: Action UI and visuals
+- [ ] Task 21: Action panel for the current selection
+- [ ] Task 22: Active interventions list (remove, undo, reset)
+- [ ] Task 23: Roof markers on treated buildings
+- [ ] Task 24: Change view (ΔT) and legend
 
-### Phase 4: Context layers (73 min)
-- [ ] Task 24: Canopy per hex
-- [ ] Task 25: Social vulnerability per hex
-- [ ] Task 26: Parking share per hex (stretch; drops cool pavement if cut)
-- [ ] Task 27: Layer registry
-- [ ] Task 28: Layers panel and rendering
+### Checkpoint F: Core loop complete (MVP)
 
-### Checkpoint E: Context layers
+### Phase 6: Impact summary
+- [ ] Task 25: Impact metrics
+- [ ] Task 26: Impact cards
 
-### Phase 5: Scoring (90 min)
-- [ ] Task 29: Roofs ingest and hex aggregation
-- [ ] Task 30: Solar potential per hex
-- [ ] Task 31: Scoring library
-- [ ] Task 32: Intervention selector recolors map
-- [ ] Task 33: Hex recommendation card
-- [ ] Task 34: Methodology tab
+### Checkpoint G: Impact shown
 
-### Checkpoint F: Recommendations (MVP core complete)
+### Phase 7: Stretch
+- [ ] Task 27: Suitability hint for the selected building (canopy / roof size)
+- [ ] Task 28: Shareable scenario URL
+- [ ] Task 29: Free-form area drawing
 
-### Phase 6: What-if simulator (55 min, stretch)
-- [ ] Task 35: Cooling coefficients
-- [ ] Task 36: What-if calculation
-- [ ] Task 37: Simulate panel
-- [ ] Task 38: Delta layer and result metrics
-
-### Checkpoint G: Simulator
-
-### Phase 7: Per-building scores (70 min, stretch)
-- [ ] Task 39: Building scores in Python plus shared fixture
-- [ ] Task 40: Python / TypeScript parity test
-- [ ] Task 41: Building export and delivery
-- [ ] Task 42: Data-driven extrusion coloring
-- [ ] Task 43: Building click popup
-
-### Checkpoint H: Buildings
-
-### Phase 8: Polish and deploy (70 min)
-- [ ] Task 44: Visual polish (stretch)
-- [ ] Task 45: Loading, empty, error states and accessibility
-- [ ] Task 46: Playwright smoke test
-- [ ] Task 47: Deploy to Vercel
-- [ ] Task 48: Backup demo video and README
+### Phase 8: Polish and deploy
+- [ ] Task 30: Loading, empty, error states and accessibility
+- [ ] Task 31: Playwright smoke test of the core loop
+- [ ] Task 32: Deploy to Vercel
+- [ ] Task 33: README and backup demo video
 
 ### Checkpoint Final
 
-## Schedule reality check
-Summing the task estimates gives about 11.7 hours, more than the 9 available. The 8.5-hour figure in ../PLAN.md was optimistic. Estimates are my guesses and especially uncertain for the Landsat and data-join tasks.
-
-| Scope | Phases | Approx. time |
-|---|---|---|
-| MVP only (skip Task 15, 26, 44 and Phases 6-7) | 0-5 + Tasks 45-48 | about 9.0 h |
-| MVP + what-if | add Phase 6 | about 10 h |
-| Everything | all | about 11.7 h |
-
-Suggested path: build through Checkpoint F, then Phase 6, then Phase 8 deploy tasks. Do Phase 7 only if more than ~90 minutes remain. Because the MVP alone is tight, decide at Checkpoint C (about 4.5 h in): if Landsat is behind, switch to every-other-year composites.
+## Order of work
+Build through Checkpoint F (the core loop), deploy (Task 32) so the URL is known, then Phase 6, then the rest of Phase 8. Phase 7 only after Checkpoint G.
 
 ## Risks and Mitigations
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Landsat composites slow or messy (clouds, asset names, reprojection) | High | Spike in Task 11 first; time-box Phase 2; fall back to every-other-year or fewer years |
-| deck.gl interleaved layering with 3D buildings misbehaves | Medium | Spike in Task 6 right after the map works; fall back to overlaid (non-interleaved) mode |
-| Source datasets change shape or are hard to download (Heat Watch hexes, canopy, NREL PV) | High | Download raw files in the first hour; cache in `pipeline/data/raw/`; documented proxies for PV and flat roofs |
-| Scope exceeds 9 hours | High | Tiering above; cut order: Phase 7, Task 44, Task 15, Task 26 (and cool pavement), then Phase 6 |
-| Mapbox token exposed or map-load overage | Medium | URL-restrict the token; keep map mounted once; monitor usage in the Mapbox dashboard |
-| Cooling coefficients overstated | Medium | Cite sources, show ranges, label every estimate approximate |
-| Venue wifi fails during the demo | Medium | Backup video (Task 48); test deployed URL early |
+| Standard's building featureset doesn't return usable footprints or heights (tile-clipped, missing `height`) | High | Spike first (Task 16). Fallback: downtown-only footprint GeoJSON (Analyze Boston), with Standard buildings kept for looks |
+| Realistic cooling from one building is ~0.1 °F, invisible on a 6.7 °F ramp | High | Fixed baseline domain plus a Change view on its own ΔT scale (Task 24); area actions produce larger effects; never inflate coefficients to look better |
+| Cooling coefficients overstated or unsourced | Medium | Every coefficient cited with a range (Task 14); "estimate" labels in UI; method notes in README |
+| Recomputing the cooling for 8,044 hexes on every action is slow | Low | Pure function over only the affected cells (ring radius ≤ 3); memoized; test the runtime |
+| Box-drag selection fights map panning | Medium | Shift + drag for the box, plain drag pans; documented in the UI |
+| Map-load overage / token exposure | Medium | Unchanged: URL-restricted token, single map instance (verified: one style request per load) |
+| Scope exceeds what's left of the hackathon | High | Cut order: Phase 7, Task 26, Task 23 roof markers, Task 18 box-drag (keep click selection) |
 
 ## Open Questions
-- Which exact Analyze Boston / MassGIS layer has canopy %, and which roof layer has a usable flat-roof indicator? (Resolve in Tasks 24 and 29; record in ../PLAN.md.)
-- Any hackathon-provided data, judging rubric, or required demo format?
-- Keep cool pavement, or cut it with Task 26?
+- Which cooling coefficients to use per action (Task 14 researches and cites them; expect EPA Heat Island Compendium and peer-reviewed field studies).
