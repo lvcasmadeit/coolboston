@@ -61,7 +61,7 @@ Every number in the app is an estimate and is labelled as one.
 - [ ] Review with human: are effect sizes readable, or does the Change view need more work?
 
 ### Phase 6: Act panel and layout
-- [ ] Task 27: Act panel
+- [x] Task 27: Act panel
 - [ ] Task 28: Applied actions list
 - [ ] Task 29: Treated roof markers
 - [ ] Task 30: Metric cards

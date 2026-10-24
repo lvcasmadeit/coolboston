@@ -1,7 +1,8 @@
+import { ActPanel } from "@/components/ActPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TABS = [
-  { id: "act", label: "Act", placeholder: "Click a building, or use the area tool, then choose a cooling action (Task 21)." },
+  { id: "act", label: "Act", placeholder: null },
   { id: "layers", label: "Layers", placeholder: "Layer toggles and opacity." },
   { id: "method", label: "Method", placeholder: "Cooling model, coefficients and data sources." },
 ] as const;
@@ -19,7 +20,7 @@ export function RightPanel() {
         </TabsList>
         {TABS.map((t) => (
           <TabsContent key={t.id} value={t.id} className="min-h-0 overflow-y-auto pt-3 text-sm text-muted-foreground">
-            {t.placeholder}
+            {t.id === "act" ? <ActPanel /> : t.placeholder}
           </TabsContent>
         ))}
       </Tabs>

@@ -280,18 +280,20 @@ Notes: one layer (`heat-hexes`) serves both modes through `lib/heatView.ts`, so 
 
 ## Phase 6: Act panel and layout
 
-### Task 27: Act panel [MVP, M]
+### Task 27: Act panel [MVP, M] (done)
 **Description:** Selection details and action buttons, each with its cost range and effect, as in the agreed layout.
 
 **Acceptance criteria:**
-- [ ] Building selected: roof area, height and hex base temperature. Buttons for solar, green roof, cool building, green walls, and green roof + solar. Each shows its cost range, with "not quantified" where applicable.
-- [ ] Area selected: cell count and acres. A street-trees button states its canopy effect.
-- [ ] Nothing selected: instructions.
-- [ ] One roof action per building: other roof buttons are disabled with the reason. Green walls stay available with any roof action. The combined option counts as one roof action.
+- [x] Building selected: roof area, height and hex base temperature. Buttons for solar, green roof, cool building, green walls, and green roof + solar. Each shows its cost range, with "not quantified" where applicable.
+- [x] Area selected: cell count and acres. A street-trees button states its canopy effect.
+- [x] Nothing selected: instructions.
+- [x] One roof action per building: other roof buttons are disabled with the reason. Green walls stay available with any roof action. The combined option counts as one roof action.
 
 **Verification:**
-- [ ] `npm test`: available actions per selection kind and the roof rule.
-- [ ] Manual check: apply, then try a second roof action on the same building.
+- [x] `npm test`: available actions per selection kind and the roof rule.
+- [x] Manual check: apply, then try a second roof action on the same building.
+
+Notes: `components/ActPanel.tsx`, `lib/availableActions.ts`, `lib/format.ts`. Each button shows its capital cost range and its air effect at the hex. A second application of the same action is also disabled ("Already applied."). Browser check: a 129 m² roof shows all five actions; after green roof, the other roof actions are disabled with the reason and green walls stays enabled; an area shows street trees (−0.13 °F per hex). Green walls price at $380k–$1.1M on that small building: the sourced cost ($95–265/ft², mostly indoor systems) over the lowest 8 m of the facade.
 
 **Dependencies:** Tasks 19, 22, 23, 24, 25
 **Files likely touched:** `web/components/ActPanel.tsx`, `web/components/RightPanel.tsx`, `web/lib/availableActions.ts`, `web/lib/availableActions.test.ts`
