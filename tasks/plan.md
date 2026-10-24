@@ -14,12 +14,12 @@ Tasks are tracked in `tasks/todo.md` (markdown checklist).
 ## Task List
 
 ### Phase 0: Foundation (90 min)
-- [ ] Task 1: Repo scaffold
-- [ ] Task 2: Next.js app and tooling
-- [ ] Task 3: Zustand store with core state
-- [ ] Task 4: Dashboard layout shell
-- [ ] Task 5: 3D Mapbox map, client-only
-- [ ] Task 6: deck.gl interleaved overlay spike
+- [x] Task 1: Repo scaffold
+- [x] Task 2: Next.js app and tooling
+- [x] Task 3: Zustand store with core state
+- [x] Task 4: Dashboard layout shell
+- [x] Task 5: 3D Mapbox map, client-only
+- [x] Task 6: deck.gl interleaved overlay spike
 
 ### Checkpoint A: Foundation
 - [ ] Tests, lint and build pass; 3D map with a deck.gl layer renders

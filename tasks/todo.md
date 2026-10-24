@@ -17,12 +17,12 @@ Conventions
 **Description:** Initialize the repo skeleton so every later task has a place to put files.
 
 **Acceptance criteria:**
-- [ ] `git init` done; `web/`, `pipeline/`, `tasks/` exist.
-- [ ] `.gitignore` ignores `node_modules`, `.next`, `.venv`, `__pycache__`, `.env*.local`, `pipeline/cache/`, `.env`.
-- [ ] `.env.example` contains `NEXT_PUBLIC_MAPBOX_TOKEN=`.
+- [x] `git init` done; `web/`, `pipeline/`, `tasks/` exist.
+- [x] `.gitignore` ignores `node_modules`, `.next`, `.venv`, `__pycache__`, `.env*.local`, `pipeline/cache/`, `.env`.
+- [x] `.env.example` contains `NEXT_PUBLIC_MAPBOX_TOKEN=`.
 
 **Verification:**
-- [ ] `git status` shows no secrets or build output tracked.
+- [x] `git status` shows no secrets or build output tracked.
 
 **Dependencies:** None
 **Files likely touched:** `.gitignore`, `.env.example`
@@ -31,15 +31,15 @@ Conventions
 **Description:** Create the Next.js app (App Router, TypeScript, Tailwind) and install the tooling used by every later task.
 
 **Acceptance criteria:**
-- [ ] `web/` runs with `npm run dev` and shows the default page.
-- [ ] shadcn/ui initialised; Vitest configured with a path alias matching `tsconfig`.
-- [ ] Dependencies installed with pinned (exact) versions: `mapbox-gl`, `react-map-gl`, `deck.gl` (plus `@deck.gl/mapbox`, `@deck.gl/geo-layers`, `@deck.gl/layers`), `zustand`, `recharts`, `vitest`.
-- [ ] One trivial passing Vitest test proves the runner works.
+- [x] `web/` runs with `npm run dev` and shows the default page.
+- [x] shadcn/ui initialised; Vitest configured with a path alias matching `tsconfig`.
+- [x] Dependencies installed with pinned (exact) versions: `mapbox-gl`, `react-map-gl`, `deck.gl` (plus `@deck.gl/mapbox`, `@deck.gl/geo-layers`, `@deck.gl/layers`), `zustand`, `recharts`, `vitest`.
+- [x] One trivial passing Vitest test proves the runner works.
 
 **Verification:**
-- [ ] `npm test` passes
-- [ ] `npm run build` succeeds
-- [ ] `npm run lint` passes
+- [x] `npm test` passes
+- [x] `npm run build` succeeds
+- [x] `npm run lint` passes
 
 **Dependencies:** Task 1
 **Files likely touched:** `web/package.json`, `web/vitest.config.ts`, `web/tsconfig.json`, `web/components.json`, `web/lib/smoke.test.ts`
@@ -48,12 +48,12 @@ Conventions
 **Description:** One store holds the state the whole UI shares, so later tasks only read and write it.
 
 **Acceptance criteria:**
-- [ ] State: `year` (default 2025), `isPlaying` (false), `speed` (1), `intervention` (default `green-roof`), `selectedHexId` (null), `layers` (map of id → `{visible, opacity}`).
-- [ ] Actions: `setYear`, `play`, `pause`, `setSpeed`, `setIntervention`, `selectHex`, `toggleLayer`, `setLayerOpacity`.
-- [ ] `setYear` clamps to 2013-2025; `setLayerOpacity` clamps to 0-1.
+- [x] State: `year` (default 2025), `isPlaying` (false), `speed` (1), `intervention` (default `green-roof`), `selectedHexId` (null), `layers` (map of id → `{visible, opacity}`).
+- [x] Actions: `setYear`, `play`, `pause`, `setSpeed`, `setIntervention`, `selectHex`, `toggleLayer`, `setLayerOpacity`.
+- [x] `setYear` clamps to 2013-2025; `setLayerOpacity` clamps to 0-1.
 
 **Verification:**
-- [ ] Tests pass: defaults, clamping, `toggleLayer`, `selectHex(null)` clears.
+- [x] Tests pass: defaults, clamping, `toggleLayer`, `selectHex(null)` clears.
 
 **Dependencies:** Task 2
 **Files likely touched:** `web/lib/store.ts`, `web/lib/store.test.ts`, `web/lib/types.ts`
@@ -62,14 +62,14 @@ Conventions
 **Description:** FireTrace-style frame: top bar, center map area, right panel with tabs, bottom timeline area, all with placeholder content.
 
 **Acceptance criteria:**
-- [ ] CSS grid layout fills the viewport with no page scroll: top bar, map slot, right panel (~320px), bottom panel (~220px).
-- [ ] Right panel has tabs: Layers, Analysis, Simulate, Methodology (placeholders).
-- [ ] Top bar shows the app name and an intervention dropdown (wired to the store).
-- [ ] Dark theme; layout holds from 1280px up.
+- [x] CSS grid layout fills the viewport with no page scroll: top bar, map slot, right panel (~320px), bottom panel (~220px).
+- [x] Right panel has tabs: Layers, Analysis, Simulate, Methodology (placeholders).
+- [x] Top bar shows the app name and an intervention dropdown (wired to the store).
+- [x] Dark theme; layout holds from 1280px up.
 
 **Verification:**
-- [ ] `npm run build` succeeds
-- [ ] Manual check: resize the window, confirm no overflow and tabs switch.
+- [x] `npm run build` succeeds
+- [x] Manual check: resize the window, confirm no overflow and tabs switch.
 
 **Dependencies:** Task 3
 **Files likely touched:** `web/app/layout.tsx`, `web/app/page.tsx`, `web/components/TopBar.tsx`, `web/components/RightPanel.tsx`, `web/components/BottomPanel.tsx`
@@ -78,14 +78,14 @@ Conventions
 **Description:** Boston in 3D inside the map slot. The map is mounted once so it is not recreated on re-render (each creation is billed as a map load).
 
 **Acceptance criteria:**
-- [ ] `MapView` loaded via `dynamic(() => import(...), { ssr: false })`.
-- [ ] Classic dark style (not Standard), centered near `[-71.0589, 42.3601]`, pitch 60, zoom ~12.5.
-- [ ] A `fill-extrusion` layer extrudes buildings using `height` from the vector tiles; Mapbox attribution visible.
-- [ ] Missing token shows a readable error message instead of a blank page.
+- [x] `MapView` loaded via `dynamic(() => import(...), { ssr: false })`.
+- [x] Classic dark style (not Standard), centered near `[-71.0589, 42.3601]`, pitch 60, zoom ~12.5.
+- [x] A `fill-extrusion` layer extrudes buildings using `height` from the vector tiles; Mapbox attribution visible.
+- [x] Missing token shows a readable error message instead of a blank page.
 
 **Verification:**
-- [ ] `npm run build` succeeds (no `window is not defined`)
-- [ ] Manual check: pan, rotate, tilt work; reloading dev server does not spawn extra maps (check the console).
+- [x] `npm run build` succeeds (no `window is not defined`)
+- [x] Manual check: pan, rotate, tilt work; reloading dev server does not spawn extra maps (check the console).
 
 **Dependencies:** Task 4
 **Files likely touched:** `web/components/MapView.tsx`, `web/components/MapClient.tsx`, `web/app/page.tsx`
@@ -94,20 +94,28 @@ Conventions
 **Description:** Prove deck.gl layers render correctly beneath/among the 3D buildings before building on it.
 
 **Acceptance criteria:**
-- [ ] `MapboxOverlay` in interleaved mode attached to the map.
-- [ ] A test `ScatterplotLayer` or `H3HexagonLayer` with 3 hard-coded cells renders in Boston.
-- [ ] Layer draws below building extrusions using `beforeId`/`slot`; recorded in a code comment with the working setting.
+- [x] `MapboxOverlay` in interleaved mode attached to the map.
+- [x] A test `ScatterplotLayer` or `H3HexagonLayer` with 3 hard-coded cells renders in Boston.
+- [x] Layer draws below building extrusions using `beforeId`/`slot`; recorded in a code comment with the working setting.
 
 **Verification:**
-- [ ] Manual check: tilt the map; hexes sit on the ground and buildings occlude them correctly.
+- [x] Manual check: tilt the map; hexes sit on the ground and buildings occlude them correctly.
 
 **Dependencies:** Task 5
 **Files likely touched:** `web/components/MapView.tsx`, `web/components/DeckOverlay.tsx`
 
 ### Checkpoint A: After Tasks 1-6
-- [ ] `npm test`, `npm run lint`, `npm run build` all pass
-- [ ] 3D Boston renders inside the dashboard frame with a deck.gl layer on it
+- [x] `npm test`, `npm run lint`, `npm run build` all pass
+- [x] 3D Boston renders inside the dashboard frame with a deck.gl layer on it
 - [ ] Review with human before proceeding
+- [ ] Visual check against real Mapbox tiles (needs NEXT_PUBLIC_MAPBOX_TOKEN in web/.env.local)
+
+Notes from Phase 0:
+- Tokens are checked for the pk. prefix; sk. tokens are rejected so they never ship to the browser.
+- deck.gl overlay is a per-map singleton (not react-map-gl useControl); useControl raced under React StrictMode ("WebGL context already attached") and rendered nothing in dev.
+- Deck mounts only after the 3d-buildings layer exists (`WhenLayerExists`), because addLayer with a missing beforeId throws.
+- Layering verified offline with a stubbed style + synthetic building tiles: hexes draw beneath extrusions and are occluded by them, in dev and prod.
+- `@playwright/test` installed early (needed for Task 46; used now for screenshots).
 
 ---
 
