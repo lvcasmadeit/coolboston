@@ -19,18 +19,27 @@ describe("checkMapboxToken", () => {
 });
 
 describe("BOSTON_VIEW", () => {
-  it("is a pitched 3D view centered on Boston", () => {
-    expect(BOSTON_VIEW.longitude).toBeCloseTo(-71.06, 1);
-    expect(BOSTON_VIEW.latitude).toBeCloseTo(42.36, 1);
-    expect(BOSTON_VIEW.pitch).toBe(60);
+  it("is a close, pitched view over Downtown so towers read as 3D on load", () => {
+    expect(BOSTON_VIEW.longitude).toBeCloseTo(-71.06, 2);
+    expect(BOSTON_VIEW.latitude).toBeCloseTo(42.3555, 3);
+    // Standard draws 3D buildings only from zoom 15 (3d-building minzoom).
+    expect(BOSTON_VIEW.zoom).toBeGreaterThanOrEqual(15);
+    expect(BOSTON_VIEW.pitch).toBe(52);
+    expect(BOSTON_VIEW.bearing).toBe(-15);
   });
 });
 
 describe("basemap", () => {
-  it("uses Mapbox Standard in the faded day theme with 3D buildings on", () => {
+  it("uses Mapbox Standard in the default day theme with 3D buildings on", () => {
     expect(MAP_STYLE).toBe("mapbox://styles/mapbox/standard");
-    expect(BASEMAP_CONFIG.theme).toBe("faded");
+    expect(BASEMAP_CONFIG.theme).toBe("default");
     expect(BASEMAP_CONFIG.lightPreset).toBe("day");
     expect(BASEMAP_CONFIG.show3dBuildings).toBe(true);
+    expect(BASEMAP_CONFIG.show3dFacades).toBe(false);
+  });
+
+  it("has deep navy water and near-white buildings, like the reference", () => {
+    expect(BASEMAP_CONFIG.colorWater).toBe("#1F4A6E");
+    expect(BASEMAP_CONFIG.colorBuildings).toBe("#F3F2EF");
   });
 });
