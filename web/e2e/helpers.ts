@@ -31,7 +31,7 @@ export class App {
 
   /** Load the page and wait for the map, its tiles and the coloured heat layer. */
   async open() {
-    await this.page.goto("/");
+    await this.page.goto("/map");
     await this.page.waitForFunction(() => {
       const map = (window as W).__coolboston?.map;
       return (
