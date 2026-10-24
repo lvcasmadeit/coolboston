@@ -4,12 +4,7 @@ import { cn } from "@/lib/utils";
 
 export type SitePage = "home" | "about";
 
-const NAV_LINKS: { href: string; label: string; page?: SitePage }[] = [
-  { href: "/map", label: "Explore" },
-  { href: "/map", label: "Simulate" },
-  { href: "/#learn", label: "Learn" },
-  { href: "/about", label: "About", page: "about" },
-];
+const NAV_LINKS: { href: string; label: string; page?: SitePage }[] = [{ href: "/about", label: "About", page: "about" }];
 
 /** Header for the marketing pages (landing, about). The map has its own TopBar. */
 export function SiteHeader({ current }: { current: SitePage }) {
