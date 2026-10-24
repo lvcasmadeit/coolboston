@@ -217,19 +217,21 @@ Notes: a Building / Area toggle floats over the map (store `tool`). In area mode
 
 ## Phase 5: Impact model and map
 
-### Task 24: Hex impact model [MVP, M]
+### Task 24: Hex impact model [MVP, M] (done)
 **Description:** A pure function from the action list to per-hex air ΔT and surface ΔT. Share-based, no spread, additive within a hex, total share capped at 1. Formulas are in `plan.md` and cited in code comments.
 
 **Acceptance criteria:**
-- [ ] With no actions, every delta is zero.
-- [ ] One 1,000 m² cool-building roof gives about −0.22 °F air in its hex (±0.01).
-- [ ] A fully selected hex with street trees gives −0.07 °C (−0.13 °F) air.
-- [ ] Two actions in one hex add; total share is capped at 1; neighbouring hexes are unchanged.
-- [ ] Null base temperatures stay null. Solar and green walls give zero air and surface change.
-- [ ] 50 actions across 8,044 hexes run in under 20 ms.
+- [x] With no actions, every delta is zero.
+- [x] One 1,000 m² cool-building roof gives about −0.22 °F air in its hex (±0.01).
+- [x] A fully selected hex with street trees gives −0.07 °C (−0.13 °F) air.
+- [x] Two actions in one hex add; total share is capped at 1; neighbouring hexes are unchanged.
+- [x] Null base temperatures stay null. Solar and green walls give zero air and surface change.
+- [x] 50 actions across 8,044 hexes run in under 20 ms.
 
 **Verification:**
-- [ ] `npm test` covers each case above.
+- [x] `npm test` covers each case above.
+
+Notes: `lib/cooling.ts` exports `computeDeltas(actions)` (sparse map of touched hexes) and `applyDeltas(hexes, deltas)`. Actions with no effect (solar, green walls) take no share, so they do not dilute a hex's cap. Street trees' unquantified surface effect counts as 0. Hex area is the h3 average.
 
 **Dependencies:** Tasks 19, 20
 **Files likely touched:** `web/lib/cooling.ts`, `web/lib/cooling.test.ts`

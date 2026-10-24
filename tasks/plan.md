@@ -51,7 +51,7 @@ Every number in the app is an estimate and is labelled as one.
 - [ ] Review with human before proceeding
 
 ### Phase 5: Impact model and map
-- [ ] Task 24: Hex impact model
+- [x] Task 24: Hex impact model
 - [ ] Task 25: Heat-island, energy and cost metrics
 - [ ] Task 26: Air / Surface base layer and Change mode
 
