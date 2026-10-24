@@ -11,7 +11,7 @@ export interface LayerDef {
 }
 
 export const LAYERS: readonly LayerDef[] = [
-  { id: "heat", label: "Heat tiles", description: "Air or surface temperature, or Change mode", hasOpacity: true },
+  { id: "heat", label: "Heat tiles", description: "Heat Score, or its change in Change mode", hasOpacity: true },
   { id: "roofs", label: "Treated roofs", description: "Caps on buildings with an action", hasOpacity: true },
   { id: "buildings", label: "3D buildings", description: "Mapbox Standard basemap buildings", hasOpacity: false },
 ];

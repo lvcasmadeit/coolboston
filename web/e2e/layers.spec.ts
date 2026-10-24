@@ -1,37 +1,41 @@
 import { expect, test } from "./helpers";
 
-test("top-bar view controls work by keyboard and update the legend", async ({ app, page }) => {
-  const temp = page.getByRole("group", { name: "Temperature" });
+test("top-bar view controls work by keyboard and update the Heat Score legend", async ({ app, page }) => {
   const mode = page.getByRole("group", { name: "View mode" });
   const legend = page.getByRole("group", { name: "Heat legend" });
 
-  await temp.getByRole("button", { name: "Surface" }).focus();
-  await page.keyboard.press("Enter");
-  await expect(temp.getByRole("button", { name: "Surface" })).toHaveAttribute("aria-pressed", "true");
-  await expect(legend).toContainText("mid-morning");
+  // The Heat Score replaced the Air/Surface toggle.
+  await expect(page.getByRole("group", { name: "Temperature" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Surface", exact: true })).toHaveCount(0);
+  await expect(legend).toContainText("Heat Score (0–100)");
+  for (const c of ["Low", "Moderate", "High", "Very High"]) await expect(legend.getByRole("list", { name: "Categories" })).toContainText(c);
+  await expect(legend).toContainText("CoolBoston index, relative to Boston, summer 2019.");
+  await expect(legend).toContainText("Air 3pm, July 2019 · Surface mid-morning, summer 2019 (not simultaneous).");
 
   await mode.getByRole("button", { name: "Change" }).focus();
   await page.keyboard.press("Space");
-  expect(await app.state()).toMatchObject({ metric: "surface", viewMode: "change" });
-  await expect(legend).toContainText("Heat-island reduction (surface)");
+  expect(await app.state()).toMatchObject({ viewMode: "change" });
+  await expect(legend).toContainText("Change in Heat Score (points), estimate");
 
-  await temp.getByRole("button", { name: "Air" }).click();
   await mode.getByRole("button", { name: "Heat" }).click();
-  expect(await app.state()).toMatchObject({ metric: "air", viewMode: "heat" });
-  await expect(legend).toContainText("Air temp, 3pm");
+  expect(await app.state()).toMatchObject({ viewMode: "heat" });
+  await expect(legend).toContainText("Heat Score (0–100)");
 });
 
 test("Layers tab: toggles and opacity sliders reach the map", async ({ app, page }) => {
   const b = await app.findBuilding(6, 25);
   await app.clickMap(b.x, b.y);
-  await app.panel.getByRole("button", { name: /^Green roof\b/ }).first().click();
+  await app.actions.getByRole("button", { name: /^Green roof\b/ }).first().click();
   await app.panel.getByRole("tab", { name: "Layers" }).click();
 
   const slider = app.panel.getByRole("slider", { name: "Heat tiles opacity" });
   await slider.focus();
-  for (let i = 0; i < 4; i++) await page.keyboard.press("ArrowLeft"); // 65% -> 45% in 5% steps
-  await expect.poll(async () => (await app.heatLayer()).opacity).toBeCloseTo(0.45, 6);
-  expect((await app.state()).layers.heat.opacity).toBeCloseTo(0.45, 6);
+  await expect.poll(async () => (await app.heatLayer()).opacity).toBeCloseTo(0.62, 6); // default
+  for (let i = 0; i < 4; i++) await page.keyboard.press("ArrowLeft"); // 5% steps, snapped to the 5% grid
+  const now = Number(await slider.getAttribute("aria-valuenow")) / 100;
+  expect(now).toBeLessThan(0.62);
+  await expect.poll(async () => (await app.heatLayer()).opacity).toBeCloseTo(now, 6);
+  expect((await app.state()).layers.heat.opacity).toBeCloseTo(now, 6);
 
   await app.panel.getByRole("checkbox", { name: /Treated roofs/ }).click();
   await expect.poll(() => app.deckLayers()).toEqual([]);

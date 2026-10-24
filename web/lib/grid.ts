@@ -8,7 +8,7 @@
  * pyproj to millimetres over Boston (lib/grid.test.ts).
  */
 import { footprintCentroid } from "@/lib/geo";
-import type { Cell, MultiPolygonCoords } from "@/lib/types";
+import type { Cell, Footprint, MultiPolygonCoords } from "@/lib/types";
 
 export const TILE_SIZE_M = 100;
 /** Area of a full (unclipped) tile. */
@@ -105,4 +105,81 @@ export function neighbourhood(id: string, r: number): string[] {
   const out: string[] = [];
   for (let di = -r; di <= r; di++) for (let dj = -r; dj <= r; dj++) out.push(tileId(i + di, j + dj));
   return out;
+}
+
+export interface TileOverlap {
+  id: string;
+  /** Footprint area inside the tile square, m² (State Plane). */
+  overlapM2: number;
+}
+
+type XY = [number, number];
+
+/** Sutherland–Hodgman clip of a ring against an axis-aligned box (correct area for any simple ring). */
+function clipToBox(ring: XY[], x0: number, y0: number, x1: number, y1: number): XY[] {
+  const edges: [(p: XY) => boolean, (a: XY, b: XY) => XY][] = [
+    [(p) => p[0] >= x0, (a, b) => [x0, a[1] + ((b[1] - a[1]) * (x0 - a[0])) / (b[0] - a[0])]],
+    [(p) => p[0] <= x1, (a, b) => [x1, a[1] + ((b[1] - a[1]) * (x1 - a[0])) / (b[0] - a[0])]],
+    [(p) => p[1] >= y0, (a, b) => [a[0] + ((b[0] - a[0]) * (y0 - a[1])) / (b[1] - a[1]), y0]],
+    [(p) => p[1] <= y1, (a, b) => [a[0] + ((b[0] - a[0]) * (y1 - a[1])) / (b[1] - a[1]), y1]],
+  ];
+  let out = ring;
+  for (const [inside, cross] of edges) {
+    const input = out;
+    out = [];
+    for (let k = 0; k < input.length; k++) {
+      const cur = input[k];
+      const prev = input[(k + input.length - 1) % input.length];
+      if (inside(cur)) {
+        if (!inside(prev)) out.push(cross(prev, cur));
+        out.push(cur);
+      } else if (inside(prev)) out.push(cross(prev, cur));
+    }
+    if (out.length === 0) break;
+  }
+  return out;
+}
+
+const shoelace = (ring: XY[]) => {
+  let s = 0;
+  for (let k = 0; k < ring.length; k++) {
+    const [ax, ay] = ring[k];
+    const [bx, by] = ring[(k + 1) % ring.length];
+    s += ax * by - bx * ay;
+  }
+  return Math.abs(s) / 2;
+};
+
+/**
+ * Tiles a footprint overlaps and the area in each (holes subtracted), largest first. Computed in
+ * State Plane metres (conformal; scale within 0.01% of 1 over Boston). Includes tiles that may not
+ * be in the data (water); callers filter.
+ */
+export function footprintTiles(f: Footprint): TileOverlap[] {
+  const polys = (f.type === "Polygon" ? [f.coordinates] : f.coordinates).map((rings) =>
+    rings.map((ring) => {
+      const pts = ring.map((p) => toStatePlane(p));
+      const [a, b] = [pts[0], pts[pts.length - 1]];
+      return a && b && a[0] === b[0] && a[1] === b[1] ? pts.slice(0, -1) : pts; // open the ring
+    }),
+  );
+  const all = polys.flat(2);
+  if (all.length === 0) return [];
+  const xs = all.map((p) => p[0]);
+  const ys = all.map((p) => p[1]);
+  const [i0, i1] = [Math.floor(Math.min(...xs) / TILE_SIZE_M), Math.floor(Math.max(...xs) / TILE_SIZE_M)];
+  const [j0, j1] = [Math.floor(Math.min(...ys) / TILE_SIZE_M), Math.floor(Math.max(...ys) / TILE_SIZE_M)];
+  const out: TileOverlap[] = [];
+  for (let i = i0; i <= i1; i++)
+    for (let j = j0; j <= j1; j++) {
+      const box = [i * TILE_SIZE_M, j * TILE_SIZE_M, (i + 1) * TILE_SIZE_M, (j + 1) * TILE_SIZE_M] as const;
+      let area = 0;
+      for (const [outer, ...holes] of polys) {
+        if (!outer) continue;
+        area += shoelace(clipToBox(outer, ...box));
+        for (const h of holes) area -= shoelace(clipToBox(h, ...box));
+      }
+      if (area > 0.01) out.push({ id: tileId(i, j), overlapM2: area });
+    }
+  return out.sort((a, b) => b.overlapM2 - a.overlapM2);
 }

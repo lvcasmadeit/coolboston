@@ -19,7 +19,7 @@ const feature = (over: object = {}) => ({
 });
 
 describe("toSelectedBuilding", () => {
-  it("maps id, footprint, height, roof area and cell", () => {
+  it("maps id, footprint, height, roof area and its tiles", () => {
     const b = toSelectedBuilding(feature());
     expect(b).not.toBeNull();
     expect(b!.id).toBe(117853075);
@@ -27,7 +27,8 @@ describe("toSelectedBuilding", () => {
     expect(b!.heightM).toBe(210.5);
     expect(b!.roofAreaM2).toBeGreaterThan(800);
     expect(b!.roofAreaM2).toBeLessThan(1000);
-    expect(b!.cell).toBe(tileIdAt(footprintCentroid({ type: "Polygon", coordinates: [RING] })));
+    expect(b!.primaryTile).toBe(tileIdAt(footprintCentroid({ type: "Polygon", coordinates: [RING] })));
+    expect(b!.tiles).toEqual([{ id: b!.primaryTile, overlapM2: expect.closeTo(b!.roofAreaM2, -1) }]);
   });
 
   it.each([

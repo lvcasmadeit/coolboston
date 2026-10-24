@@ -3,7 +3,7 @@ import { createRoofLayer, ROOF_COLORS, ROOF_OFFSET_M, roofMarkers } from "@/comp
 import { BUILDING_INTERVENTIONS, type Action, type BuildingIntervention, type SelectedBuilding } from "@/lib/types";
 
 const RING = [[-71.06, 42.35], [-71.059, 42.35], [-71.059, 42.351], [-71.06, 42.35]];
-const B = (heightM: number | null): SelectedBuilding => ({ id: 1, footprint: { type: "Polygon", coordinates: [RING] }, heightM, roofAreaM2: 900, cell: "c" });
+const B = (heightM: number | null): SelectedBuilding => ({ id: 1, footprint: { type: "Polygon", coordinates: [RING] }, heightM, roofAreaM2: 900, primaryTile: "c", tiles: [{ id: "c", overlapM2: 900 }] });
 const on = (intervention: BuildingIntervention, heightM: number | null = 30): Action => ({ id: intervention, intervention, target: { kind: "building", building: B(heightM) } });
 
 describe("roof markers", () => {

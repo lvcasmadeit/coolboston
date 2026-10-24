@@ -1,44 +1,47 @@
 import { CHANGE_RAMP, rampCss } from "@/lib/colors";
-import { formatTemp, type Range } from "@/lib/heat";
-import type { Metric, ViewMode } from "@/lib/types";
-
-const TITLES: Record<Metric, { title: string; source: string }> = {
-  air: { title: "Air temp, 3pm, July 2019", source: "Source: Heat Watch (CAPA, Museum of Science)" },
-  surface: {
-    title: "Surface temp, summer 2019, mid-morning",
-    source: "Source: Landsat 7/8 median, ~11 a.m. EDT (USGS). 2nd–98th percentile shown.",
-  },
-};
+import { scoreRampCss } from "@/lib/heatScore";
+import { SCORE_CATEGORIES, SCORE_INPUT_LABELS } from "@/lib/heatScoreConfig";
+import type { ViewMode } from "@/lib/types";
 
 interface LegendProps {
-  metric: Metric;
   mode: ViewMode;
-  range: Range;
-  /** Largest % heat-island reduction (Change mode). */
-  maxPct: number;
+  /** Largest Heat Score reduction in points (Change mode). */
+  maxDrop: number;
 }
 
-/** Map legend for the current metric and view mode, overlaid in a map corner. */
-export function Legend({ metric, mode, range, maxPct }: LegendProps) {
-  const t = TITLES[metric];
+/** Map legend for the Heat Score or its change, overlaid in a map corner. */
+export function Legend({ mode, maxDrop }: LegendProps) {
   const change = mode === "change";
   return (
     <div
       role="group"
       aria-label="Heat legend"
-      className="pointer-events-none absolute bottom-9 left-2 w-56 rounded-md border border-border bg-card/90 px-3 py-2 text-xs shadow"
+      className="pointer-events-none absolute bottom-9 left-2 w-60 rounded-md border border-border bg-card/90 px-3 py-2 text-xs shadow"
     >
-      <p className="mb-1 font-medium text-foreground">
-        {change ? `Heat-island reduction (${metric === "air" ? "air" : "surface"}), estimate` : t.title}
-      </p>
-      <div aria-hidden className="h-2 rounded-sm" style={{ background: rampCss(change ? CHANGE_RAMP : undefined) }} />
-      <div className="mt-1 flex justify-between text-muted-foreground">
-        <span>{change ? "0%" : formatTemp(range.min)}</span>
-        <span>{change ? (maxPct > 0 ? `${maxPct.toFixed(maxPct < 1 ? 2 : 1)}%` : "no actions") : formatTemp(range.max)}</span>
-      </div>
+      <p className="mb-1 font-medium text-foreground">{change ? "Change in Heat Score (points), estimate" : "Heat Score (0–100)"}</p>
+      <div aria-hidden className="h-2 rounded-sm" style={{ background: change ? rampCss(CHANGE_RAMP) : scoreRampCss() }} />
+      {change ? (
+        <div className="mt-1 flex justify-between text-muted-foreground">
+          <span>0</span>
+          <span>{maxDrop > 0 ? `−${maxDrop.toFixed(maxDrop < 1 ? 2 : 1)}` : "no actions"}</span>
+        </div>
+      ) : (
+        <ul aria-label="Categories" className="relative mt-1 h-3.5 text-[10px] text-muted-foreground">
+          {SCORE_CATEGORIES.map((c) => (
+            <li key={c.label} className="absolute top-0 border-l border-muted-foreground/50 pl-0.5 leading-none" style={{ left: `${c.min}%` }}>
+              {c.label}
+            </li>
+          ))}
+        </ul>
+      )}
       <p className="mt-1 text-[10px] text-muted-foreground">
-        {change ? "Grey: unaffected, or heat island ≤ 0.5 °F (n/a)." : t.source}
+        {change ? "Grey: unaffected, or no data." : "CoolBoston index, relative to Boston, summer 2019."}
       </p>
+      {!change && (
+        <p className="text-[10px] text-muted-foreground">
+          {SCORE_INPUT_LABELS.air} · {SCORE_INPUT_LABELS.surface} (not simultaneous).
+        </p>
+      )}
     </div>
   );
 }

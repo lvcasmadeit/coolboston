@@ -9,7 +9,7 @@ import type { Cell } from "@/lib/types";
 interface HeatFillProps {
   cells: Cell[];
   view: Omit<HeatView, "opacity">;
-  maxPct: number;
+  maxDrop: number;
   visible: boolean;
   opacity: number;
 }
@@ -19,10 +19,10 @@ interface HeatFillProps {
  * ground, under the 3D buildings. The source is created once; views and actions only update
  * feature state for the tiles whose colour changed, and opacity is one paint property.
  */
-export function HeatFill({ cells, view, maxPct, visible, opacity }: HeatFillProps) {
+export function HeatFill({ cells, view, maxDrop, visible, opacity }: HeatFillProps) {
   const { current: mapRef } = useMap();
   const data = useMemo(() => tileFeatures(cells), [cells]);
-  const colors = useMemo(() => tileFillColors(cells, view, maxPct), [cells, view, maxPct]);
+  const colors = useMemo(() => tileFillColors(cells, view, maxDrop), [cells, view, maxDrop]);
   const applied = useRef<string[] | null>(null);
 
   useEffect(() => {

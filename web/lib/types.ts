@@ -23,8 +23,10 @@ export interface SelectedBuilding {
   /** null when the tile has no height for this building. */
   heightM: number | null;
   roofAreaM2: number;
-  /** Tile id ("{i}_{j}", lib/grid.ts) containing the footprint centroid; may be outside the data grid. */
-  cell: string;
+  /** Tiles the footprint overlaps, largest overlap first (lib/grid.ts footprintTiles); may include tiles not in the data. */
+  tiles: { id: string; overlapM2: number }[];
+  /** The tile with the largest overlap (else the centroid's tile): centre of the air spread and "tile" readouts. */
+  primaryTile: string;
 }
 
 export type Selection =
@@ -43,9 +45,6 @@ export type Action =
 export type NewAction = Action extends infer A ? (A extends Action ? Omit<A, "id"> : never) : never;
 
 export type ViewMode = "heat" | "change";
-
-/** Base temperature shown on the map. */
-export type Metric = "air" | "surface";
 
 /** Map click mode: select buildings, or select tiles (area tool). */
 export type SelectTool = "building" | "area";

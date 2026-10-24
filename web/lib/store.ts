@@ -1,9 +1,9 @@
 import { createStore, useStore } from "zustand";
+import { SCORE_LAYER_OPACITY } from "@/lib/heatScoreConfig";
 import type {
   Action,
   LayerId,
   LayerState,
-  Metric,
   NewAction,
   SelectTool,
   SelectedBuilding,
@@ -16,7 +16,6 @@ export interface DashboardState {
   /** Applied actions, oldest first. */
   actions: Action[];
   viewMode: ViewMode;
-  metric: Metric;
   tool: SelectTool;
   layers: Record<LayerId, LayerState>;
   /** Latest request to move the map; `seq` increases so repeat requests still fire. */
@@ -34,7 +33,6 @@ export interface DashboardState {
   undo: () => void;
   resetActions: () => void;
   setViewMode: (mode: ViewMode) => void;
-  setMetric: (metric: Metric) => void;
   setTool: (tool: SelectTool) => void;
   focusOn: (lngLat: [number, number]) => void;
   toggleLayer: (id: LayerId) => void;
@@ -43,7 +41,7 @@ export interface DashboardState {
 
 /** Defaults for the layers in lib/layers.ts. */
 export const DEFAULT_LAYERS: Record<LayerId, LayerState> = {
-  heat: { visible: true, opacity: 0.65 },
+  heat: { visible: true, opacity: SCORE_LAYER_OPACITY },
   roofs: { visible: true, opacity: 0.9 },
   buildings: { visible: true, opacity: 1 },
 };
@@ -59,7 +57,6 @@ export function createDashboardStore(initialLayers: Record<LayerId, LayerState> 
     selection: null,
     actions: [],
     viewMode: "heat",
-    metric: "air",
     tool: "building",
     layers: structuredClone(initialLayers),
     focus: null,
@@ -85,7 +82,6 @@ export function createDashboardStore(initialLayers: Record<LayerId, LayerState> 
     undo: () => set((s) => ({ actions: s.actions.slice(0, -1) })),
     resetActions: () => set({ actions: [] }),
     setViewMode: (viewMode) => set({ viewMode }),
-    setMetric: (metric) => set({ metric }),
     setTool: (tool) => set({ tool }),
     focusOn: (lngLat) => set((s) => ({ focus: { lngLat, seq: (s.focus?.seq ?? 0) + 1 } })),
     toggleLayer: (id) =>

@@ -7,7 +7,7 @@ import type { Action, CellTemps, SelectedBuilding } from "@/lib/types";
 const CELL = tileIdAt([-71.06, 42.3555]);
 const byId = new Map<string, CellTemps>([[CELL, { id: CELL, temp3pm: 93, surface: 105 }]]);
 const baseline = { air: 91, surface: 95 };
-const B: SelectedBuilding = { id: 1, footprint: { type: "Polygon", coordinates: [] }, heightM: 20, roofAreaM2: 1500, cell: CELL };
+const B: SelectedBuilding = { id: 1, footprint: { type: "Polygon", coordinates: [] }, heightM: 20, roofAreaM2: 1500, primaryTile: CELL, tiles: [{ id: CELL, overlapM2: 1500 }] };
 const sel = { kind: "building" as const, building: B };
 const green: Action = { id: "g", intervention: "green-roof", target: { kind: "building", building: B } };
 

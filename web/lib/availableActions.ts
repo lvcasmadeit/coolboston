@@ -15,15 +15,22 @@ export const actionsOnBuilding = (actions: readonly Action[], id: string | numbe
 
 /**
  * One roof action per building (green roof + solar counts as one). Green walls can sit alongside
- * any roof action, once. Street trees are always available for an area.
+ * any roof action, once. Urban trees are always available for an area.
+ * A building outside the data grid (`outsideGrid`) gets no cooling actions: there is no tile to cool.
  */
-export function availableActions(selection: Selection, actions: readonly Action[]): Offer[] {
+export const OUTSIDE_GRID = "Outside the data grid: no tile here to cool.";
+
+const cools = (spec: InterventionSpec) =>
+  (spec.airCoefficient.deltaFPerShare ?? 0) !== 0 || (spec.surfaceChange.deltaFPerShare ?? 0) !== 0;
+
+export function availableActions(selection: Selection, actions: readonly Action[], { outsideGrid = false } = {}): Offer[] {
   if (!selection) return [];
   if (selection.kind === "area") return areaActions().map((spec) => ({ spec, enabled: true, reason: null }));
   const applied = actionsOnBuilding(actions, selection.building.id);
   const roof = applied.find((a) => CATALOG[a.intervention].roofAction);
   return buildingActions().map((spec) => {
     if (applied.some((a) => a.intervention === spec.id)) return { spec, enabled: false, reason: "Already applied." };
+    if (outsideGrid && cools(spec)) return { spec, enabled: false, reason: OUTSIDE_GRID };
     if (spec.roofAction && roof)
       return { spec, enabled: false, reason: `One roof action per building: this roof has ${CATALOG[roof.intervention].label}.` };
     return { spec, enabled: true, reason: null };

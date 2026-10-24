@@ -7,7 +7,7 @@ const cells: Cell[] = [{ id: "2363_9011", landAreaM2: 10_000, coords: null, temp
 const roof: Action = {
   id: "a",
   intervention: "green-roof",
-  target: { kind: "building", building: { id: 1, footprint: { type: "Polygon", coordinates: [[[-71.06, 42.35], [-71.059, 42.35], [-71.059, 42.351], [-71.06, 42.35]]] }, heightM: 20, roofAreaM2: 900, cell: cells[0].id } },
+  target: { kind: "building", building: { id: 1, footprint: { type: "Polygon", coordinates: [[[-71.06, 42.35], [-71.059, 42.35], [-71.059, 42.351], [-71.06, 42.35]]] }, heightM: 20, roofAreaM2: 900, primaryTile: cells[0].id, tiles: [{ id: cells[0].id, overlapM2: 900 }] } },
 };
 
 function inputs(store: ReturnType<typeof createDashboardStore>): DeckLayerInputs {

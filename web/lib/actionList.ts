@@ -8,6 +8,9 @@ import type { Action, ActionTarget } from "@/lib/types";
 
 export interface ActionRow {
   id: string;
+  /** What the action targets: a building or an area of tiles. */
+  kind: ActionTarget["kind"];
+  intervention: Action["intervention"];
   label: string;
   target: string;
   cost: string;
@@ -32,6 +35,8 @@ const targetLabel = (t: ActionTarget) =>
 export function actionRows(actions: readonly Action[]): ActionRow[] {
   return [...actions].reverse().map((a) => ({
     id: a.id,
+    kind: a.target.kind,
+    intervention: a.intervention,
     label: CATALOG[a.intervention].label,
     target: targetLabel(a.target),
     cost: formatEstimate(capitalCost(a), formatUsdRange),

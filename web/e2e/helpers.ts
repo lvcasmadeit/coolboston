@@ -1,4 +1,5 @@
 import { expect, test as base, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
 import { hasMapboxToken } from "../playwright.config";
 
 /** Mapbox Standard's buildings featureset (see lib/buildings.ts). */
@@ -18,8 +19,14 @@ export interface PickedBuilding {
 export class App {
   constructor(readonly page: Page) {}
 
+  /** Right pane: metrics, charts, layers. */
   get panel() {
     return this.page.getByRole("complementary", { name: "Dashboard controls" });
+  }
+
+  /** Left pane: interventions to apply, edit mode, applied actions. */
+  get actions() {
+    return this.page.getByRole("complementary", { name: "Interventions" });
   }
 
   /** Load the page and wait for the map, its tiles and the coloured heat layer. */
@@ -68,6 +75,43 @@ export class App {
     return found!;
   }
 
+  /** Distinct buildings minH–maxH m tall in view, in scan order (up to `limit`). */
+  async findBuildings(minH: number, maxH: number, limit = 40): Promise<PickedBuilding[]> {
+    return this.page.evaluate(
+      ([minH, maxH, T, limit]) => {
+        const m = (window as W).__coolboston!.map;
+        const out: { x: number; y: number; id: number | string; height: number }[] = [];
+        const seen = new Set<number | string>();
+        for (let y = 120; y < 450 && out.length < limit; y += 12)
+          for (let x = 250; x < 750 && out.length < limit; x += 12) {
+            const f = m.queryRenderedFeatures([x, y], { target: T })[0];
+            const h = f?.properties.height;
+            if (f && h >= minH && h <= maxH && !seen.has(f.id)) {
+              seen.add(f.id);
+              out.push({ x, y, id: f.id, height: h });
+            }
+          }
+        return out;
+      },
+      [minH, maxH, BUILDINGS, limit] as const,
+    );
+  }
+
+  /** Select a minH–maxH m building whose tile's 3pm air is over `minF` above the citywide mean (heat-island % not n/a). */
+  async selectHotBuilding(minH: number, maxH: number, minF = 0.6): Promise<PickedBuilding> {
+    const cells: { id: string; temp3pm: number | null }[] = JSON.parse(readFileSync("data/cells.json", "utf8")).cells;
+    const air = new Map(cells.map((c) => [c.id, c.temp3pm]));
+    const known = cells.flatMap((c) => (c.temp3pm === null ? [] : [c.temp3pm]));
+    const mean = known.reduce((a, v) => a + v, 0) / known.length;
+    for (const b of await this.findBuildings(minH, maxH)) {
+      await this.clickMap(b.x, b.y);
+      const sel = (await this.state()).selection;
+      const t = sel?.kind === "building" ? air.get(sel.building.primaryTile) : null;
+      if (t != null && t - mean > minF) return b;
+    }
+    throw new Error(`no ${minH}-${maxH} m building in view on a tile more than ${minF} °F above the mean`);
+  }
+
   /** Map pixel of a [lng, lat]. */
   project(lngLat: [number, number]) {
     return this.page.evaluate((ll) => {
@@ -87,10 +131,9 @@ export class App {
       return {
         selection: s.selection as
           | null
-          | { kind: "building"; building: { id: number | string; cell: string; roofAreaM2: number } }
+          | { kind: "building"; building: { id: number | string; primaryTile: string; tiles: { id: string; overlapM2: number }[]; roofAreaM2: number } }
           | { kind: "area"; cells: string[] },
         actions: s.actions.map((a: any) => a.intervention) as string[],
-        metric: s.metric as string,
         viewMode: s.viewMode as string,
         layers: s.layers as Record<string, { visible: boolean; opacity: number }>,
       };

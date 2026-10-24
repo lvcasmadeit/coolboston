@@ -4,9 +4,8 @@ test("cost-vs-effect chart: empty state, one point per action, tooltip with roof
   const chart = page.getByRole("figure", { name: "Cost versus effect" });
   await expect(chart).toContainText("Apply an action");
 
-  const b = await app.findBuilding(6, 25);
-  await app.clickMap(b.x, b.y);
-  await app.panel.getByRole("region", { name: "Cooling actions" }).getByRole("button", { name: /^Green roof\b/ }).first().click();
+  await app.selectHotBuilding(6, 120); // heat island > 0.5 °F, so the point is plotted (not n/a)
+  await app.actions.getByRole("region", { name: "Cooling actions" }).getByRole("button", { name: /^Green roof\b/ }).first().click();
 
   const dots = chart.locator(".recharts-scatter-symbol");
   await expect(dots).toHaveCount(1);
@@ -20,7 +19,7 @@ test("cost-vs-effect chart: empty state, one point per action, tooltip with roof
   await expect(page.getByRole("region", { name: "Impact" })).toContainText("all actions");
   await expect(dots).toHaveCount(1);
 
-  await app.panel.getByRole("region", { name: "Applied actions" }).getByRole("button", { name: "Reset" }).click();
+  await app.actions.getByRole("region", { name: "Applied actions" }).getByRole("button", { name: "Reset" }).click();
   await expect(chart).toContainText("Apply an action");
 });
 
@@ -32,8 +31,8 @@ test("before-and-after chart: empty states, bars move with actions", async ({ ap
   await app.clickMap(b.x, b.y);
   await expect(chart).toContainText("Apply an action to this selection");
 
-  const actions = app.panel.getByRole("region", { name: "Cooling actions" });
-  await actions.getByRole("button", { name: /^Cool building/ }).click();
+  const actions = app.actions.getByRole("region", { name: "Cooling actions" });
+  await actions.getByRole("button", { name: /^Cool roof/ }).click();
   const air = chart.getByLabel(/^Air, 3pm: /);
   await expect(air).toBeVisible();
   const label1 = await air.getAttribute("aria-label");
@@ -41,7 +40,7 @@ test("before-and-after chart: empty states, bars move with actions", async ({ ap
   await expect(chart.locator(".recharts-bar-rectangle")).not.toHaveCount(0);
 
   // A second action on the same tile (green walls has no cooling, so remove and switch roof)
-  await app.panel.getByRole("region", { name: "Applied actions" }).getByRole("button", { name: "Undo" }).click();
+  await app.actions.getByRole("region", { name: "Applied actions" }).getByRole("button", { name: "Undo" }).click();
   await expect(chart).toContainText("Apply an action to this selection");
   await actions.getByRole("button", { name: /^Green roof\b/ }).first().click();
   await expect.poll(() => chart.getByLabel(/^Air, 3pm: /).getAttribute("aria-label")).not.toBe(label1);

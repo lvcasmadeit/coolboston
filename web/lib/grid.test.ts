@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { footprintAreaM2 } from "@/lib/geo";
-import { TILE_AREA_M2, cellCentre, cellPolygons, fromStatePlane, parseTileId, tileCentre, tileId, tileIdAt, tileRing, toStatePlane } from "@/lib/grid";
+import type { Footprint } from "@/lib/types";
+import { TILE_AREA_M2, cellCentre, footprintTiles, cellPolygons, fromStatePlane, parseTileId, tileCentre, tileId, tileIdAt, tileRing, toStatePlane } from "@/lib/grid";
 
 // pyproj 3.8.0, EPSG:4326 -> EPSG:26986 (always_xy), as used by the pipeline.
 const REFERENCE: [[number, number], [number, number]][] = [
@@ -66,5 +67,48 @@ describe("cell geometry", () => {
     // footprintCentroid's planar cross products lose ~1e-5° to cancellation at these magnitudes.
     expect(lng).toBeCloseTo(-71.0595, 4);
     expect(lat).toBeCloseTo(42.3605, 4);
+  });
+});
+
+/** A rectangle in State Plane metres, as a lng/lat footprint (with an optional hole). */
+function rect(x0: number, y0: number, x1: number, y1: number, hole?: [number, number, number, number]): Footprint {
+  const ring = (a: number, b: number, c: number, d: number) =>
+    [[a, b], [c, b], [c, d], [a, d], [a, b]].map((p) => fromStatePlane(p));
+  return { type: "Polygon", coordinates: hole ? [ring(x0, y0, x1, y1), ring(...hole)] : [ring(x0, y0, x1, y1)] };
+}
+const total = (o: { overlapM2: number }[]) => o.reduce((a, t) => a + t.overlapM2, 0);
+
+describe("footprintTiles", () => {
+  it("a footprint inside one tile overlaps only that tile, by its own area", () => {
+    const o = footprintTiles(rect(236_310, 901_110, 236_340, 901_150));
+    expect(o.map((t) => t.id)).toEqual(["2363_9011"]);
+    expect(o[0].overlapM2).toBeCloseTo(1200, 1);
+  });
+
+  it("straddling two tiles splits the area, largest first", () => {
+    const o = footprintTiles(rect(236_380, 901_110, 236_420, 901_150));
+    expect(o.map((t) => t.id).sort()).toEqual(["2363_9011", "2364_9011"]);
+    expect(o[0].overlapM2).toBeCloseTo(800, 1);
+    expect(o[1].overlapM2).toBeCloseTo(800, 1);
+  });
+
+  it("straddling four tiles; overlaps sum to the footprint area within 0.5%", () => {
+    const f = rect(236_370, 901_170, 236_460, 901_240);
+    const o = footprintTiles(f);
+    expect(o.map((t) => t.id).sort()).toEqual(["2363_9011", "2363_9012", "2364_9011", "2364_9012"]);
+    expect(o[0]).toEqual({ id: "2364_9012", overlapM2: expect.closeTo(60 * 40, 1) });
+    expect(Math.abs(total(o) / footprintAreaM2(f) - 1)).toBeLessThan(0.005);
+  });
+
+  it("subtracts holes", () => {
+    const o = footprintTiles(rect(236_310, 901_110, 236_390, 901_190, [236_330, 901_130, 236_350, 901_150]));
+    expect(o[0].overlapM2).toBeCloseTo(80 * 80 - 20 * 20, 1);
+  });
+
+  it("handles a concave (L-shaped) footprint across a tile edge", () => {
+    const L = [[236_380, 901_110], [236_440, 901_110], [236_440, 901_130], [236_400, 901_130], [236_400, 901_170], [236_380, 901_170], [236_380, 901_110]];
+    const o = footprintTiles({ type: "Polygon", coordinates: [L.map((p) => fromStatePlane(p))] });
+    expect(total(o)).toBeCloseTo(60 * 20 + 20 * 40, 0);
+    expect(o.find((t) => t.id === "2363_9011")!.overlapM2).toBeCloseTo(20 * 60, 0);
   });
 });

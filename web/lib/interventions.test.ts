@@ -68,17 +68,24 @@ describe("intervention catalog", () => {
     expect(COOL_ROOF_ALBEDO_CHANGE).toBe(0.3);
     // -0.61 °C × 3 = -1.83 °C = -3.294 °F per unit share
     expect(CATALOG["cool-building"].airCoefficient.deltaFPerShare).toBeCloseTo(-3.294, 3);
-    expect(CATALOG["street-trees"].airCoefficient.deltaFPerShare).toBeCloseTo(-0.126, 3);
+    expect(CATALOG["street-trees"].airCoefficient.deltaFPerShare).toBeCloseTo(-0.378, 3); // −0.07 °C per +0.1 canopy × 3
+    expect(CATALOG["street-trees"].surfaceChange.deltaFPerShare).toBeCloseTo(-9.75, 9); // −32.5 °F × 0.3 shaded
     expect(CATALOG["green-roof"].airCoefficient.deltaFPerShare).toBe(-5);
     expect(CATALOG["green-roof"].surfaceChange.deltaFPerShare).toBe(-56);
     expect(CATALOG["cool-building"].surfaceChange.deltaFPerShare).toBe(-55);
   });
 
-  it("solar and green walls claim no air or surface cooling", () => {
-    for (const id of ["solar", "green-walls"] as const) {
-      expect(CATALOG[id].airCoefficient.deltaFPerShare).toBe(0);
-      expect(CATALOG[id].surfaceChange.deltaFPerShare).toBe(0);
-    }
+  it("solar and green walls claim modest, labelled cooling", () => {
+    expect(CATALOG.solar.airCoefficient.deltaFPerShare).toBeCloseTo(-0.36, 9);
+    expect(CATALOG.solar.surfaceChange.deltaFPerShare).toBe(-15);
+    expect(CATALOG["green-walls"].airCoefficient.deltaFPerShare).toBeCloseTo(-0.9, 9);
+    expect(CATALOG["green-walls"].surfaceChange.deltaFPerShare).toBe(-10);
+    for (const id of ["solar", "green-walls"] as const) expect(CATALOG[id].surfaceChange.basis).toMatch(/Assumption/);
+  });
+
+  it("labels: Urban trees and Cool roof", () => {
+    expect(CATALOG["street-trees"].label).toBe("Urban trees");
+    expect(CATALOG["cool-building"].label).toBe("Cool roof");
   });
 
   it("green walls energy is not quantified", () => {
@@ -87,6 +94,6 @@ describe("intervention catalog", () => {
 
   it("converts per-ft² costs to per-m²", () => {
     expect(CATALOG["green-roof"].costPerUnit[0].central).toBeCloseTo(18 * 10.7639, 2);
-    expect(CATALOG["street-trees"].costPerUnit[0].central).toBeCloseTo(0.672, 3);
+    expect(CATALOG["street-trees"].costPerUnit[0].central).toBeCloseTo((400 / 59.5) * 0.3, 9); // $400 ÷ 59.5 m² × 0.30 canopy
   });
 });

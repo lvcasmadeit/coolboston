@@ -130,21 +130,32 @@ const SRC = {
     citation: "EIA Electric Power Monthly Table 5.6.B, Massachusetts commercial, YTD June 2026",
     url: "https://www.eia.gov/electricity/monthly/epm_table_grapher.cfm?t=epmt_5_6_b",
   },
+  epaTrees: {
+    citation: "US EPA, Using Trees and Vegetation to Reduce Heat Islands",
+    url: "https://www.epa.gov/heatislands/using-trees-and-vegetation-reduce-heat-islands",
+  },
+  masson2014: {
+    citation: "Masson et al. (2014), Solar panels reduce both global warming and urban heat island, Front. Environ. Sci. 2:14",
+    url: "https://doi.org/10.3389/fenvs.2014.00014",
+  },
+  perini2011: {
+    citation: "Perini et al. (2011), Vertical greening systems and the effect on air flow and temperature on the building envelope, Build. Environ. 46(11)",
+    url: "https://doi.org/10.1016/j.buildenv.2011.05.009",
+  },
   usfsNE: {
     citation: "USDA Forest Service, Northeast Community Tree Guide (PSW-GTR-202, 2007)",
     url: "https://www.fs.usda.gov/psw/publications/documents/psw_gtr202/psw_gtr202.pdf",
   },
 } as const satisfies Record<string, Source>;
 
-const NO_EFFECT: Effect = { deltaFPerShare: 0, basis: "No air or surface cooling claimed." };
-
 const GREEN_ROOF_COST = perFt2(10, 18, 30, "$/m² roof");
 const COOL_ROOF_COST = perFt2(1.5, 3, 5, "$/m² roof");
 const GREEN_WALL_COST = perFt2(95, 165, 265, "$/m² wall");
 const SOLAR_COST: CostLine = { low: 2.6, central: 3.35, high: 4.1, unit: "$/W" };
-// $300 / $400 / $450 per tree ÷ 59.5 m² crown × 0.10 canopy gain over the selected ground.
+// $300 / $400 / $450 per tree ÷ 59.5 m² crown × the canopy gain over the selected ground.
 const TREE_CROWN_M2 = 59.5;
-const TREE_CANOPY_GAIN = 0.1;
+/** Canopy fraction added over the selected ground (assumption: dense urban planting). */
+export const TREE_CANOPY_GAIN = 0.3;
 const TREE_COST: CostLine = {
   low: (300 / TREE_CROWN_M2) * TREE_CANOPY_GAIN,
   central: (400 / TREE_CROWN_M2) * TREE_CANOPY_GAIN,
@@ -159,6 +170,16 @@ const GREEN_ROOF_AIR: Effect = {
 const GREEN_ROOF_SURFACE: Effect = {
   deltaFPerShare: -56,
   basis: "Roof surface up to 56 °F cooler than a conventional roof (EPA, peak summer).",
+};
+
+/** Panels shade the roof and export part of the sunlight as electricity (the rest still becomes heat). */
+const SOLAR_AIR: Effect = {
+  deltaFPerShare: cToF(-0.2),
+  basis: "Up to -0.2 °C daytime air with widespread rooftop PV (Masson et al. 2014, Paris); used as an upper-bound proxy at tile scale.",
+};
+const SOLAR_SURFACE: Effect = {
+  deltaFPerShare: -15,
+  basis: "Assumption: the roof shaded under the panels runs cooler. Panel tops themselves run hot, so a satellite may see less of this.",
 };
 
 const SOLAR_ENERGY: Energy = {
@@ -178,11 +199,11 @@ export const CATALOG: Record<Intervention, InterventionSpec> = {
     appliesTo: "building",
     roofAction: true,
     costPerUnit: [SOLAR_COST],
-    airCoefficient: NO_EFFECT,
-    surfaceChange: NO_EFFECT,
+    airCoefficient: SOLAR_AIR,
+    surfaceChange: SOLAR_SURFACE,
     energy: SOLAR_ENERGY,
-    sources: [SRC.tts2024, SRC.gagnon2016, SRC.pvwatts, SRC.eia],
-    note: "Generates electricity; no cooling effect is claimed.",
+    sources: [SRC.tts2024, SRC.gagnon2016, SRC.pvwatts, SRC.eia, SRC.masson2014],
+    note: "Generates electricity. Cooling comes from shading the roof; it is small and an estimate.",
   },
   "green-roof": {
     id: "green-roof",
@@ -198,7 +219,7 @@ export const CATALOG: Record<Intervention, InterventionSpec> = {
   },
   "cool-building": {
     id: "cool-building",
-    label: "Cool building (roof)",
+    label: "Cool roof",
     appliesTo: "building",
     roofAction: true,
     costPerUnit: [COOL_ROOF_COST],
@@ -220,10 +241,16 @@ export const CATALOG: Record<Intervention, InterventionSpec> = {
     appliesTo: "building",
     roofAction: false,
     costPerUnit: [GREEN_WALL_COST],
-    airCoefficient: NO_EFFECT,
-    surfaceChange: NO_EFFECT,
+    airCoefficient: {
+      deltaFPerShare: cToF(-0.5),
+      basis: "Assumption: about -0.5 °C air next to a greened facade from shading and evapotranspiration (Perini et al. 2011 range).",
+    },
+    surfaceChange: {
+      deltaFPerShare: -10,
+      basis: "Assumption: greened walls run several °C cooler (Perini et al. 2011); a satellite sees little of a wall, so a reduced tile value is used.",
+    },
     energy: { kind: "not-quantified", reason: "No per m² source for a temperate climate." },
-    sources: [SRC.greenWallCost],
+    sources: [SRC.greenWallCost, SRC.perini2011],
     note: `Can be added alongside any roof action. Covers the lowest ${GREEN_WALL_COVER_HEIGHT_M} m of the facade (assumption). Costs are mostly for indoor systems (low confidence).`,
   },
   "green-roof-solar": {
@@ -241,17 +268,20 @@ export const CATALOG: Record<Intervention, InterventionSpec> = {
   },
   "street-trees": {
     id: "street-trees",
-    label: "Street trees",
+    label: "Urban trees",
     appliesTo: "area",
     roofAction: false,
     costPerUnit: [TREE_COST],
     airCoefficient: {
-      deltaFPerShare: cToF(-0.07),
-      basis: "-0.07 °C per +0.1 canopy fraction (Smith et al. 2025); +0.10 canopy over the selected share.",
+      deltaFPerShare: cToF(-0.07 * (TREE_CANOPY_GAIN / 0.1)),
+      basis: `-0.07 °C per +0.1 canopy fraction (Smith et al. 2025) × assumed +${TREE_CANOPY_GAIN.toFixed(2)} canopy over the selected share.`,
     },
-    surfaceChange: { deltaFPerShare: null, basis: "Not quantified." },
-    energy: { kind: "not-quantified", reason: "Building energy effect of street trees not sourced." },
-    sources: [SRC.smith2025, SRC.usfsNE],
+    surfaceChange: {
+      deltaFPerShare: -32.5 * TREE_CANOPY_GAIN,
+      basis: `Shaded surfaces run 20-45 °F cooler (EPA; midpoint 32.5 °F) × the +${TREE_CANOPY_GAIN.toFixed(2)} canopy (shaded share).`,
+    },
+    energy: { kind: "not-quantified", reason: "Building energy effect of urban trees not sourced." },
+    sources: [SRC.smith2025, SRC.epaTrees, SRC.usfsNE],
     note: "Planting cost in 2007 dollars; one tree ≈ 59.5 m² mature crown.",
   },
 };

@@ -8,9 +8,9 @@ const LAYERS = {
 };
 
 describe("default layers", () => {
-  it("shows heat tiles at 65% opacity", () => {
-    expect(DEFAULT_LAYERS.heat).toEqual({ visible: true, opacity: 0.65 });
-    expect(createDashboardStore().getState().layers.heat.opacity).toBe(0.65);
+  it("shows heat tiles at 62% opacity", () => {
+    expect(DEFAULT_LAYERS.heat).toEqual({ visible: true, opacity: 0.62 });
+    expect(createDashboardStore().getState().layers.heat.opacity).toBe(0.62);
   });
 });
 
@@ -21,7 +21,8 @@ const BUILDING: SelectedBuilding = {
   footprint: { type: "Polygon", coordinates: [[[-71.06, 42.35], [-71.059, 42.35], [-71.059, 42.351], [-71.06, 42.35]]] },
   heightM: 30,
   roofAreaM2: 900,
-  cell: CELL_A,
+  primaryTile: CELL_A,
+  tiles: [{ id: CELL_A, overlapM2: 900 }],
 };
 
 let store: ReturnType<typeof createDashboardStore>;
@@ -36,7 +37,7 @@ describe("dashboard store", () => {
     expect(s.actions).toEqual([]);
     expect(s.viewMode).toBe("heat");
     expect(s.tool).toBe("building");
-    expect(s.metric).toBe("air");
+    expect("metric" in s).toBe(false); // the Heat Score replaced the Air/Surface toggle
     expect(s.layers).toEqual(LAYERS);
   });
 
@@ -112,11 +113,6 @@ describe("dashboard store", () => {
     store.getState().focusOn([-71, 42]);
     store.getState().focusOn([-71, 42]);
     expect(store.getState().focus).toEqual({ lngLat: [-71, 42], seq: 2 });
-  });
-
-  it("sets the metric", () => {
-    store.getState().setMetric("surface");
-    expect(store.getState().metric).toBe("surface");
   });
 
   it("sets the selection tool", () => {

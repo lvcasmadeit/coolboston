@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { heatModel } from "@/lib/heatModel";
+import { heatScore } from "@/lib/heatScore";
+import { createDashboardStore } from "@/lib/store";
 import type { CellTemps } from "@/lib/types";
 
 const cells: CellTemps[] = [
@@ -9,11 +11,13 @@ const cells: CellTemps[] = [
 ];
 
 describe("heatModel", () => {
-  it("builds lookup, baseline and ranges from the base data", () => {
+  it("builds lookup, baseline and base scores from the base data", () => {
     const m = heatModel(cells)!;
     expect(m.byId.get("b")).toBe(cells[1]);
     expect(m.baseline).toEqual({ air: 91, surface: 105 });
-    expect(m.ranges).toEqual({ air: { min: 90, max: 92 }, surface: { min: 100, max: 110 } });
+    expect(m.scores.get("a")).toBe(heatScore(90, 100));
+    expect(m.scores.get("b")).toBeNull();
+    expect(m.scores.get("c")).toBeNull();
   });
 
   it("is memoised per array, so callers share one instance", () => {
@@ -21,7 +25,18 @@ describe("heatModel", () => {
     expect(heatModel([...cells])).not.toBe(heatModel(cells));
   });
 
-  it("is null without any air or surface data", () => {
-    expect(heatModel([{ id: "x", temp3pm: null, surface: null }])).toBeNull();
+  it("returns the same model and scores across unrelated store changes", () => {
+    const m = heatModel(cells)!;
+    const store = createDashboardStore();
+    store.getState().setViewMode("change");
+    store.getState().setLayerOpacity("heat", 0.3);
+    store.getState().addAction({ intervention: "street-trees", target: { kind: "area", cells: ["a"] } });
+    const again = heatModel(cells)!;
+    expect(again).toBe(m);
+    expect(again.scores).toBe(m.scores);
+  });
+
+  it("is null when no tile has a score", () => {
+    expect(heatModel([{ id: "x", temp3pm: 90, surface: null }])).toBeNull();
   });
 });

@@ -12,15 +12,18 @@ import { HeatHover } from "@/components/HeatHover";
 import { Legend } from "@/components/Legend";
 import { MapFocus } from "@/components/MapFocus";
 import { TestHookMap } from "@/components/TestHookMap";
-import { buildDeckLayers } from "@/components/layers/buildLayers";
 import { ToolToggle } from "@/components/ToolToggle";
+import { buildDeckLayers } from "@/components/layers/buildLayers";
 import { useHeatModel } from "@/components/useHeatModel";
-import { computeDeltas } from "@/lib/cooling";
-import { maxChangePct, type HeatView } from "@/lib/heatView";
+import { computeDeltas, type Deltas } from "@/lib/cooling";
+import { maxScoreDrop, type HeatView } from "@/lib/heatView";
 import { layerSetting } from "@/lib/layers";
 import { BASEMAP_CONFIG, BOSTON_VIEW, MAP_STYLE } from "@/lib/mapConfig";
 import { useDashboard } from "@/lib/store";
 import { installTestHook } from "@/lib/testHook";
+
+// `Map` here is react-map-gl's component.
+const NO_DELTAS: Deltas = new globalThis.Map();
 
 interface MapViewProps {
   token: string;
@@ -32,24 +35,20 @@ export default function MapView({ token, children }: MapViewProps) {
   const layerState = useDashboard((s) => s.layers);
   const heat = layerSetting(layerState, "heat");
   const actions = useDashboard((s) => s.actions);
-  const metric = useDashboard((s) => s.metric);
   const mode = useDashboard((s) => s.viewMode);
 
   useEffect(installTestHook, []);
 
-  // Fixed base model (lookup, baseline, colour ranges), shared with the panels.
+  // Fixed base model (lookup, baseline, base scores), shared with the panels.
   const base = data.status === "ready" ? data.model : null;
   const cells = base?.cells ?? null;
   const byId = base?.byId ?? null;
-  const deltas = useMemo(() => computeDeltas(actions), [actions]);
+  const deltas = useMemo(() => (byId ? computeDeltas(actions, byId) : NO_DELTAS), [actions, byId]);
   const view = useMemo<Omit<HeatView, "opacity"> | null>(
-    () => base && { metric, mode, deltas, baseline: base.baseline, ranges: base.ranges },
-    [base, metric, mode, deltas],
+    () => base && { mode, deltas, scores: base.scores },
+    [base, mode, deltas],
   );
-  const maxPct = useMemo(
-    () => (base ? maxChangePct(base.byId, metric, deltas, base.baseline) : 0),
-    [base, metric, deltas],
-  );
+  const maxDrop = useMemo(() => (base ? maxScoreDrop(base.byId, deltas, base.scores) : 0), [base, deltas]);
   const areaCells = useDashboard((s) => (s.selection?.kind === "area" ? s.selection.cells : null));
   const layers = useMemo(
     () => buildDeckLayers({ byId, actions, areaCells, layers: layerState }),
@@ -68,7 +67,7 @@ export default function MapView({ token, children }: MapViewProps) {
       reuseMaps
       style={{ width: "100%", height: "100%" }}
     >
-      {cells && view && <HeatFill cells={cells} view={view} maxPct={maxPct} visible={heat.visible} opacity={heat.opacity} />}
+      {cells && view && <HeatFill cells={cells} view={view} maxDrop={maxDrop} visible={heat.visible} opacity={heat.opacity} />}
       <DeckOverlay layers={layers} />
       {byId && view && <HeatHover byId={byId} view={view} enabled={heat.visible} />}
       <BuildingSelection />
@@ -79,7 +78,7 @@ export default function MapView({ token, children }: MapViewProps) {
       <ToolToggle />
       <NavigationControl position="top-left" visualizePitch />
       <ScaleControl position="bottom-right" unit="imperial" />
-      {base && <Legend metric={metric} mode={mode} range={base.ranges[metric]} maxPct={maxPct} />}
+      {base && <Legend mode={mode} maxDrop={maxDrop} />}
       {data.status === "error" && (
         <p role="alert" className="absolute top-2 left-1/2 -translate-x-1/2 rounded-md bg-destructive px-3 py-1 text-xs text-white">
           Could not load heat data: {data.message}

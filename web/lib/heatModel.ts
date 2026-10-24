@@ -1,30 +1,29 @@
 /**
- * The fixed base model built once from the cell data: lookup by id, citywide baseline means and
- * per-metric colour domains. Never recomputed after actions. Pure.
+ * The fixed base model built once from the cell data: lookup by id, citywide baseline means and the
+ * base Heat Score per tile. Never recomputed after actions. Pure.
  */
-import { quantileRange, valueRange, type Range } from "@/lib/heat";
+import { heatScore } from "@/lib/heatScore";
 import { computeBaseline, type Baseline } from "@/lib/impact";
-import type { Cell, CellTemps, Metric } from "@/lib/types";
+import type { Cell, CellTemps } from "@/lib/types";
+
+/** Base (before-action) Heat Score per tile id, unrounded; null where an input is missing. */
+export type Scores = ReadonlyMap<string, number | null>;
 
 export interface HeatModel<C extends CellTemps = Cell> {
   cells: C[];
   byId: ReadonlyMap<string, C>;
   baseline: Baseline;
-  /** Air: min–max. Surface: 2nd–98th percentile (raw extremes wash the ramp out). */
-  ranges: Record<Metric, Range>;
+  scores: Scores;
 }
 
 const cache = new WeakMap<CellTemps[], HeatModel<CellTemps> | null>();
 
-/** Model for `cells`, memoised per array so every caller shares one instance. Null without data. */
+/** Model for `cells`, memoised per array so every caller shares one instance. Null if no tile has a score. */
 export function heatModel<C extends CellTemps>(cells: C[]): HeatModel<C> | null {
   if (cache.has(cells)) return cache.get(cells) as HeatModel<C> | null;
-  const air = valueRange(cells.map((h) => h.temp3pm));
-  const surface = quantileRange(cells.map((h) => h.surface));
-  const model =
-    air && surface
-      ? { cells, byId: new Map(cells.map((h) => [h.id, h])), baseline: computeBaseline(cells), ranges: { air, surface } }
-      : null;
+  const scores = new Map(cells.map((h) => [h.id, heatScore(h.temp3pm, h.surface)]));
+  const any = [...scores.values()].some((s) => s !== null);
+  const model = any ? { cells, byId: new Map(cells.map((h) => [h.id, h])), baseline: computeBaseline(cells), scores } : null;
   cache.set(cells, model);
   return model;
 }

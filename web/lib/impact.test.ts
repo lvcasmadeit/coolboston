@@ -24,7 +24,8 @@ const B = (roofAreaM2: number, heightM: number | null = 20): SelectedBuilding =>
   footprint: { type: "Polygon", coordinates: [RING] },
   heightM,
   roofAreaM2,
-  cell: CELL,
+  primaryTile: CELL,
+  tiles: [{ id: CELL, overlapM2: roofAreaM2 }],
 });
 const on = (intervention: BuildingIntervention, b: SelectedBuilding): Action => ({ id: "x", intervention, target: { kind: "building", building: b } });
 const v = (e: Estimate) => {

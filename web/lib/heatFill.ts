@@ -41,9 +41,9 @@ export function tileFeatures(cells: Cell[]): FeatureCollection<MultiPolygon, Til
 export const rgbaCss = ([r, g, b, a]: RGBA) => `rgba(${r}, ${g}, ${b}, ${Math.round((a / 255) * 1000) / 1000})`;
 
 /** CSS colour per cell (same order as `cells`) for the view, at full layer opacity. */
-export function tileFillColors(cells: readonly Cell[], view: Omit<HeatView, "opacity">, maxPct: number): string[] {
+export function tileFillColors(cells: readonly Cell[], view: Omit<HeatView, "opacity">, maxDrop: number): string[] {
   const v = { ...view, opacity: 1 };
-  return cells.map((c) => rgbaCss(fillColor(c, v, maxPct)));
+  return cells.map((c) => rgbaCss(fillColor(c, v, maxDrop)));
 }
 
 /** Indices whose colour differs from the last applied colours (all of them the first time). */

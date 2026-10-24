@@ -6,7 +6,7 @@ import type { SelectedBuilding } from "@/lib/types";
 
 const CELL = tileIdAt([-71.06, 42.3555]);
 const RING = [[-71.0602, 42.3554], [-71.05984, 42.3554], [-71.05984, 42.35567], [-71.0602, 42.35567], [-71.0602, 42.3554]];
-const B: SelectedBuilding = { id: 7, footprint: { type: "Polygon", coordinates: [RING] }, heightM: 20, roofAreaM2: 912.4, cell: CELL };
+const B: SelectedBuilding = { id: 7, footprint: { type: "Polygon", coordinates: [RING] }, heightM: 20, roofAreaM2: 912.4, primaryTile: CELL, tiles: [{ id: CELL, overlapM2: 912.4 }] };
 
 describe("actionRows", () => {
   it("derives rows from the store and follows remove, undo and reset", () => {
@@ -17,7 +17,7 @@ describe("actionRows", () => {
     s.addAction({ intervention: "green-walls", target: { kind: "building", building: B } });
 
     const rows = actionRows(store.getState().actions);
-    expect(rows.map((r) => r.label)).toEqual(["Green walls", "Street trees", "Green roof"]); // newest first
+    expect(rows.map((r) => r.label)).toEqual(["Green walls", "Urban trees", "Green roof"]); // newest first
     expect(rows[2]).toMatchObject({ id: a, target: "Building, 912 m² roof" });
     expect(rows[2].cost).toMatch(/^\$[\d.]+k–\$[\d.]+k$/);
     expect(rows[1].target).toBe("Area, 1 tile");

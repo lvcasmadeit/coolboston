@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { availableActions } from "@/lib/availableActions";
+import { OUTSIDE_GRID, availableActions } from "@/lib/availableActions";
 import type { Action, BuildingIntervention, SelectedBuilding } from "@/lib/types";
 
-const B = (id: number): SelectedBuilding => ({ id, footprint: { type: "Polygon", coordinates: [] }, heightM: 20, roofAreaM2: 900, cell: "c" });
+const B = (id: number): SelectedBuilding => ({ id, footprint: { type: "Polygon", coordinates: [] }, heightM: 20, roofAreaM2: 900, primaryTile: "c", tiles: [{ id: "c", overlapM2: 900 }] });
 const on = (intervention: BuildingIntervention, id = 1): Action => ({ id: `${intervention}-${id}`, intervention, target: { kind: "building", building: B(id) } });
 const enabled = (offers: ReturnType<typeof availableActions>) => offers.filter((o) => o.enabled).map((o) => o.spec.id);
 
@@ -43,5 +43,13 @@ describe("availableActions", () => {
 
   it("actions on another building do not count", () => {
     expect(enabled(availableActions({ kind: "building", building: B(2) }, [on("green-roof", 1)]))).toHaveLength(5);
+  });
+
+  it("disables cooling actions for a building outside the data grid", () => {
+    const offers = availableActions({ kind: "building", building: B(9) }, [], { outsideGrid: true });
+    const by = Object.fromEntries(offers.map((o) => [o.spec.id, o]));
+    // Every building action now cools, so none applies outside the grid.
+    for (const id of ["solar", "green-roof", "cool-building", "green-walls", "green-roof-solar"])
+      expect(by[id]).toMatchObject({ enabled: false, reason: OUTSIDE_GRID });
   });
 });

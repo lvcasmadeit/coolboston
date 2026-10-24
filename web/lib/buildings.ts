@@ -1,6 +1,6 @@
 /** Mapbox Standard `buildings` featureset -> SelectedBuilding. Verified by the Task 21 spike. */
 import { footprintAreaM2, footprintCentroid } from "@/lib/geo";
-import { tileIdAt } from "@/lib/grid";
+import { footprintTiles, tileIdAt } from "@/lib/grid";
 import type { Footprint, SelectedBuilding } from "@/lib/types";
 
 export const BUILDINGS_TARGET = { featuresetId: "buildings", importId: "basemap" } as const;
@@ -27,11 +27,13 @@ export function toSelectedBuilding(f: BuildingFeatureLike): SelectedBuilding | n
   const footprint = { type: g.type, coordinates: g.coordinates } as Footprint;
   const roofAreaM2 = footprintAreaM2(footprint);
   if (!(roofAreaM2 > 0)) return null;
+  const tiles = footprintTiles(footprint);
   return {
     id: f.id,
     footprint,
     heightM: positiveNumber(f.properties?.height),
     roofAreaM2,
-    cell: tileIdAt(footprintCentroid(footprint)),
+    tiles,
+    primaryTile: tiles[0]?.id ?? tileIdAt(footprintCentroid(footprint)),
   };
 }

@@ -4,6 +4,8 @@ import { computeDeltas } from "@/lib/cooling";
 import { capitalCost, energyEstimate, heatIslandChangePct } from "@/lib/impact";
 import { selectionMetrics } from "@/lib/metrics";
 import type { Action, CellTemps, SelectedBuilding } from "@/lib/types";
+import { CATALOG } from "@/lib/interventions";
+const TREE_AIR = CATALOG["street-trees"].airCoefficient.deltaFPerShare!; // +0.30 canopy: −0.21 °C
 
 const CELL = tileIdAt([-71.06, 42.3555]);
 const [N1, N2] = neighbourhood(CELL, 1).filter((c) => c !== CELL);
@@ -19,7 +21,8 @@ const B = (id: number, roofAreaM2 = 1500): SelectedBuilding => ({
   footprint: { type: "Polygon", coordinates: [[[-71.0602, 42.3554], [-71.05984, 42.3554], [-71.05984, 42.35567], [-71.0602, 42.3554]]] },
   heightM: 20,
   roofAreaM2,
-  cell: CELL,
+  primaryTile: CELL,
+  tiles: [{ id: CELL, overlapM2: roofAreaM2 }],
 });
 const v = (r: { kind: string; value?: { central: number } }) => r.value!.central;
 
@@ -31,12 +34,14 @@ describe("selectionMetrics", () => {
     expect(m.change).toBeNull();
   });
 
-  it("a green roof: hex air and surface change, heat-island %, cost, energy, peak-summer roof change", () => {
+  it("a green roof: tile air and surface change, heat-island %, cost, energy, peak-summer roof change", () => {
     const a: Action = { id: "a", intervention: "green-roof", target: { kind: "building", building: B(1) } };
     const m = selectionMetrics({ kind: "building", building: B(1) }, [a], byId, baseline);
-    const d = computeDeltas([a]).get(CELL)!;
+    const d = computeDeltas([a], byId).get(CELL)!;
     expect(m.change!.airDeltaF).toBeCloseTo(d.air, 9);
-    expect(m.change!.airDeltaF).toBeCloseTo((-5 * 1500) / TILE_AREA_M2, 9);
+    // Air spreads over the neighbourhood tiles present in the data: CELL, N1, N2.
+    expect(m.change!.airDeltaF).toBeCloseTo((-5 * 1500) / (3 * TILE_AREA_M2), 9);
+    expect(m.change!.surfaceDeltaF).toBeCloseTo((-56 * 1500) / TILE_AREA_M2, 9);
     expect(m.change!.surfaceDeltaF).toBeCloseTo(d.surface, 9);
     expect(m.change!.heatIslandPct).toBeCloseTo(heatIslandChangePct(2, 2 + d.air)!, 9);
     expect(m.change!.totals.capital.central).toBeCloseTo(v(capitalCost(a) as never), 6);
@@ -45,20 +50,21 @@ describe("selectionMetrics", () => {
     expect(m.change!.roofSurfaceF).toBe(-56);
   });
 
-  it("hex temperatures include other buildings' actions in the hex, but cost covers this building only", () => {
+  it("tile temperatures include other buildings' actions nearby, but cost covers this building only", () => {
     const mine: Action = { id: "a", intervention: "cool-building", target: { kind: "building", building: B(1) } };
     const other: Action = { id: "b", intervention: "green-roof", target: { kind: "building", building: B(2) } };
     const m = selectionMetrics({ kind: "building", building: B(1) }, [mine, other], byId, baseline);
-    expect(m.change!.airDeltaF).toBeCloseTo(computeDeltas([mine, other]).get(CELL)!.air, 9);
+    expect(m.change!.airDeltaF).toBeCloseTo(computeDeltas([mine, other], byId).get(CELL)!.air, 9);
     expect(m.change!.totals.capital.central).toBeCloseTo(v(capitalCost(mine) as never), 6);
     expect(m.change!.roofSurfaceF).toBe(-55);
   });
 
-  it("solar alone: no temperature change and no roof surface change", () => {
+  it("solar alone: a small air change and the shaded-roof surface change", () => {
     const a: Action = { id: "s", intervention: "solar", target: { kind: "building", building: B(1) } };
     const c = selectionMetrics({ kind: "building", building: B(1) }, [a], byId, baseline).change!;
-    expect(c.airDeltaF).toBe(0);
-    expect(c.roofSurfaceF).toBeNull();
+    expect(c.airDeltaF!).toBeLessThan(0);
+    expect(c.airDeltaF!).toBeGreaterThan(-0.1);
+    expect(c.roofSurfaceF).toBe(-15);
     expect(c.energyNotQuantified).toBe(false);
   });
 
@@ -69,7 +75,8 @@ describe("selectionMetrics", () => {
     expect(m.level).toBe("area mean");
     expect(m.before.air).toBe(92.5); // N2 has no air data
     expect(m.before.surface).toBeCloseTo(101, 9);
-    expect(m.change!.airDeltaF).toBeCloseTo(-0.126 / 2, 3);
+    // N1 is treated; CELL, its neighbour, gets half of N1's change as spillover. N2 has no air data.
+    expect(m.change!.airDeltaF).toBeCloseTo((TREE_AIR + TREE_AIR / 2) / 2, 9);
     expect(m.change!.roofSurfaceF).toBeNull();
     expect(selectionMetrics({ kind: "area", cells: [CELL] }, [trees], byId, baseline).change).toBeNull();
   });

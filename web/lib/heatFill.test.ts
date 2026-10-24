@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { changedIndices, rgbaCss, tileFeatures, tileFillColors } from "@/lib/heatFill";
+import { heatScore, scoreColor } from "@/lib/heatScore";
 import type { HeatView } from "@/lib/heatView";
 import type { Cell } from "@/lib/types";
 
@@ -9,11 +10,9 @@ const cells: Cell[] = [
   { id: "2364_9011", landAreaM2: 4_000, coords: [[RING]], temp3pm: null, surface: 90 },
 ];
 const view: Omit<HeatView, "opacity"> = {
-  metric: "air",
   mode: "heat",
   deltas: new Map(),
-  baseline: { air: 91, surface: 100 },
-  ranges: { air: { min: 88, max: 94 }, surface: { min: 80, max: 110 } },
+  scores: new Map(),
 };
 
 describe("tileFeatures", () => {
@@ -31,10 +30,11 @@ describe("tileFeatures", () => {
 });
 
 describe("tileFillColors", () => {
-  it("colours at full opacity (layer opacity is a paint property) and leaves missing data transparent", () => {
+  it("colours at full opacity (layer opacity is a paint property) and draws missing data neutral grey", () => {
     const [hot, missing] = tileFillColors(cells, view, 0);
     expect(hot).toMatch(/^rgba\(\d+, \d+, \d+, 1\)$/);
-    expect(missing).toBe("rgba(0, 0, 0, 0)");
+    expect(missing).toBe(rgbaCss(scoreColor(null)));
+    expect(hot).toBe(rgbaCss(scoreColor(heatScore(94, 100))));
   });
 
   it("formats alpha as a 0–1 fraction", () => {

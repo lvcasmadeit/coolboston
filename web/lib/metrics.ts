@@ -56,10 +56,10 @@ export function selectionMetrics(
   byId: ReadonlyMap<string, CellTemps>,
   baseline: Baseline,
 ): SelectionMetrics {
-  const cells = selection.kind === "building" ? [selection.building.cell] : selection.cells;
+  const cells = selection.kind === "building" ? [selection.building.primaryTile] : selection.cells;
   const tiles = cells.map((c) => byId.get(c)).filter((h): h is CellTemps => !!h);
   // Every action counts towards a tile's temperature, including ones on other buildings in it.
-  const deltas = computeDeltas(actions);
+  const deltas = computeDeltas(actions, byId);
   const cond = (after: boolean): Conditions => {
     const air = meanOf(tiles.map((h) => (h.temp3pm === null ? null : h.temp3pm + (after ? (deltas.get(h.id)?.air ?? 0) : 0))));
     const surface = meanOf(tiles.map((h) => (h.surface === null ? null : h.surface + (after ? (deltas.get(h.id)?.surface ?? 0) : 0))));

@@ -13,7 +13,8 @@ const B = (id: number, heightM: number | null = 20): SelectedBuilding => ({
   footprint: { type: "Polygon", coordinates: [[[-71.0602, 42.3554], [-71.05984, 42.3554], [-71.05984, 42.35567], [-71.0602, 42.3554]]] },
   heightM,
   roofAreaM2: 1500,
-  cell: CELL,
+  primaryTile: CELL,
+  tiles: [{ id: CELL, overlapM2: 1500 }],
 });
 const green: Action = { id: "g", intervention: "green-roof", target: { kind: "building", building: B(1) } };
 const solar: Action = { id: "s", intervention: "solar", target: { kind: "building", building: B(2) } };
@@ -44,10 +45,10 @@ describe("tradeoffPoints", () => {
     expect(pts[1].heatIslandPct).toBeCloseTo(alone.heatIslandPct!, 9);
   });
 
-  it("solar has 0% change and no roof surface change; trees have no roof surface change", () => {
+  it("solar has a small change and its shaded-roof surface; trees have no roof surface change", () => {
     const [s, t] = tradeoffPoints([solar, trees], byId, baseline);
-    expect(s.heatIslandPct).toBe(0);
-    expect(s.roofSurfaceF).toBeNull();
+    expect(s.heatIslandPct!).toBeGreaterThan(0);
+    expect(s.roofSurfaceF).toBe(-15);
     expect(t.roofSurfaceF).toBeNull();
   });
 
