@@ -92,3 +92,102 @@ Standard has no `composite` source, so our own `3d-buildings` fill-extrusion lay
 - [x] `npm test`, `npm run lint`, `npm run typecheck`, `npm run build` pass
 - [x] Light UI + Standard map + 50% hexes verified with screenshots
 - [ ] Review with human before Phase 2
+
+---
+
+# Part 2: Map look v2 (match the reference mockup)
+
+Goal: make the map read like the reference screenshot: a fine grid of heat tiles raised into a translucent slab that swallows low-rise blocks while towers punch through, on a basemap with deep-blue water, white buildings and a closer downtown camera.
+
+Status: **decisions made (section 7); implementing V1–V5.**
+
+## 5. What the reference shows vs. what we have
+
+| Element | Reference | Now | Gap |
+|---|---|---|---|
+| Tiles | ~50–80 m cells, seamless | H3 res 9, edge 201 m, 1,147 cells | 2.6× too coarse |
+| Tile height | uniform slab ~15–20 m; low-rise inside it is tinted, towers stick out | flat (0 m) | needs extrusion + correct draw order |
+| Ramp | blue → cyan → yellow → orange → red, fixed 85–115 °F **surface** temp | amber → maroon over data min/max (87.8–94.2 °F **air** temp) | ramp and range belong to Landsat (Phase 2) |
+| Water | deep navy blue | pale `#C9DCE3` | config change |
+| Buildings | white/light gray, glassy towers | cream `#EDE6D8` | config change |
+| Camera | zoom ~14.5, pitch ~50, centered on Downtown | zoom 12.5, pitch 60, wider | `BOSTON_VIEW` |
+| Ground outside tiles | photo-like | flat cream | out of scope (see 6.4) |
+
+The reference is an illustrated mockup (green roofs and solar panels are painted in), so the target is the overall impression, not a pixel match.
+
+## 6. Plan
+
+### 6.1 Smaller tiles (M1)
+Move the grid to **H3 res 10**: edge 76 m, 8,044 cells over Boston (measured). Res 11 (29 m, 56,461 cells) is finer than Landsat's native 100 m thermal resolution, so it would show false precision and push `hexes.json` past ~5 MB once yearly values are added.
+
+Honesty caveat: the Heat Watch source hexes are ~25 ha, so at res 10 each source hex just repeats across ~17 cells and the map looks blocky, not fine. Smaller tiles only gain real detail from Landsat (Phase 2). Options:
+- **(a) Recommended:** switch to res 10 now; accept blocky Heat Watch until Landsat lands in Phase 2.
+- (b) Keep res 9 for Heat Watch, use res 10 only for Landsat (two grids; more complexity in scoring).
+- (c) Use the Heat Watch modeled rasters (CAPA publishes area-wide rasters; the OSF repo is the likely source, **not yet verified**) for real sub-hex detail now.
+
+Change: `RESOLUTION = 10` in `grid.py`; re-run `build_hexes`. The `hexes.json` contract does not change (ids stay strings). Expected size ~550 KB (7× today's 81 KiB).
+
+### 6.2 Raised tile slab (M2)
+`H3HexagonLayer` with `extruded: true`, constant `getElevation` = **18 m** (above triple-deckers and brownstones at ~10–17 m, well under downtown towers at 100 m+). Optionally scale height slightly with temperature later; the reference uses a flat slab.
+
+Draw order decides the look (needs a spike, ~20 min):
+- Slab drawn **after** Standard's `3d-building`: low-rise inside the slab gets tinted by the translucent top/sides, towers rise above it untouched. This is the reference look.
+- Slab drawn **before** buildings while writing depth: building parts inside the slab fail the depth test and vanish, so the slab looks like an opaque plate.
+- Spike: confirm where deck's `middle` group lands relative to `3d-building` (index 155 of the basemap import's 190 layers); if before it, try `slot: "top"` (risk: covers labels) or `depthWriteEnabled: false` on the slab so buildings still draw inside it.
+- Drop the `depthBias` once the slab is raised, since its top face is no longer coplanar with the ground. Re-check the 14/390 → 351/390 draw count to confirm.
+- Translucent extrusions show their inner side walls through the top face; check it at 50% opacity, and fall back to `material: false` or 0.6 opacity if it looks muddy.
+
+### 6.3 Ramp (M3)
+The reference ramp is a blue → red rainbow over a fixed 85–115 °F surface-temperature range. That fits **Landsat** (wide range) but not Heat Watch (6 °F spread: it would all render yellow). Plan:
+- Keep amber → maroon for Heat Watch now.
+- In Phase 2, add a diverging `LST_RAMP` (Turbo-like, perceptually ordered; avoid raw jet) on a fixed range shared across years, and make it the default layer.
+
+### 6.4 Basemap (M4)
+Stay on **Mapbox Standard**. I checked **Standard Satellite** (photo ground like the reference): it has no `3d-building` layer and no water or building color config (only `lightPreset`), so it can't do the slab-and-towers look.
+
+Config changes on Standard:
+```ts
+colorWater: "#1F4A6E",      // deep navy (reference harbor)
+colorBuildings: "#F3F2EF",  // near-white towers
+show3dFacades: true,        // window detail where Mapbox has it (mostly near landmarks)
+theme: "default",           // "faded" desaturates everything, incl. the navy water. Verify both.
+```
+Keep land cream so the app chrome still matches; place labels stay on (the reference labels neighborhoods).
+
+### 6.5 Camera (M5)
+`BOSTON_VIEW` → center `[-71.0600, 42.3555]`, zoom **14.3**, pitch **52**, bearing **-15**. Tighter on Downtown so towers read as 3D on first load.
+
+## 7. Decisions
+
+| # | Question | Decision |
+|---|---|---|
+| M1 | Tile size | **Res 10 now**, option (a). Approved; blocky until Phase 2. |
+| M2 | Slab height | **Flat 18 m.** Approved. |
+| M3 | Rainbow ramp | **Now**, overriding the proposal: blue → red rainbow on Heat Watch, over the data min/max until Landsat's fixed range in Phase 2. Replaces amber → maroon (D2). |
+| M4 | Theme | **`default`**; `faded` dropped (replaces D3). |
+| M5 | Camera | **Closer Downtown view** (6.5). Approved. |
+
+## 8. Tasks
+
+### V1: Draw-order spike [S, do first]
+- [ ] 18 m extruded slab on the current res-9 data; screenshots for both draw orders; pick the setting that tints low-rise and leaves towers untouched. No commit unless it works.
+
+### V2: H3 res 10 [S]
+- [ ] `RESOLUTION = 10`; pipeline tests still pass; `hexes.json` regenerated and size noted; `/api/hexes` and the map still load.
+
+### V3: Raised slab [M]
+- [ ] Extruded heat layer with the V1 setting, 18 m, 50% fill alpha; `HeatLayer.test.ts` covers `extruded` and elevation.
+- [ ] Verify: tilted downtown screenshot shows towers above the slab; hover tooltip still works.
+
+### V4: Basemap and camera [S]
+- [ ] Water, buildings, facades, theme (M4), `BOSTON_VIEW` (M5); `mapConfig.test.ts` updated.
+- [ ] Verify: screenshot next to the reference.
+
+### V4b: Rainbow ramp [S]
+- [ ] `HEAT_RAMP` → blue → cyan → yellow → orange → red; colors tests still pass; legend follows.
+
+### V5: Docs [S]
+- [ ] PLAN.md and todo.md: grid resolution, slab, Phase 2 `LST_RAMP` note.
+
+### Checkpoint V
+- [ ] All checks pass; side-by-side screenshot with the reference; review with human.
