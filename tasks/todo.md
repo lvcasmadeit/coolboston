@@ -236,17 +236,19 @@ Notes: `lib/cooling.ts` exports `computeDeltas(actions)` (sparse map of touched 
 **Dependencies:** Tasks 19, 20
 **Files likely touched:** `web/lib/cooling.ts`, `web/lib/cooling.test.ts`
 
-### Task 25: Heat-island, energy and cost metrics [MVP, M]
+### Task 25: Heat-island, energy and cost metrics [MVP, M] (done)
 **Description:** Baseline citywide mean over valid hexes, heat-island °F and percentage change, energy offset, and capital cost range for each action and for the total.
 
 **Acceptance criteria:**
-- [ ] Baseline mean is computed once from valid hexes (7,908 cells) and is fixed while actions change.
-- [ ] `H = T − mean`. The percentage is `(H_before − H_after) ÷ H_before × 100`, and n/a when `H_before ≤ 0.5 °F`. A 2.0 → 1.9 °F example gives 5%.
-- [ ] Solar energy = usable area × kW per m² × yield (Task 14 inputs), shown as a range. Dollar values use the electricity rate. "Not quantified" passes through as text.
-- [ ] Capital cost = quantity × unit cost range. The combined action's cost is the sum of its parts.
+- [x] Baseline mean is computed once from valid hexes (7,908 cells) and is fixed while actions change.
+- [x] `H = T − mean`. The percentage is `(H_before − H_after) ÷ H_before × 100`, and n/a when `H_before ≤ 0.5 °F`. A 2.0 → 1.9 °F example gives 5%.
+- [x] Solar energy = usable area × kW per m² × yield (Task 14 inputs), shown as a range. Dollar values use the electricity rate. "Not quantified" passes through as text.
+- [x] Capital cost = quantity × unit cost range. The combined action's cost is the sum of its parts.
 
 **Verification:**
-- [ ] `npm test`: the examples above, plus the n/a boundary at exactly 0.5 °F.
+- [x] `npm test`: the examples above, plus the n/a boundary at exactly 0.5 °F.
+
+Notes: `lib/impact.ts`. Ranges combine low×low, central×central, high×high. Solar usable share follows Gagnon's size classes (small < 5,000 ft², large > 25,000 ft²). Roof kWh savings are valued at the commercial rate. Green walls need a wall area, so I added an explicit assumption (catalog `GREEN_WALL_COVER_HEIGHT_M = 10`): the lowest 10 m of the outer facade, from a new `footprintPerimeterM`; unknown height gives "not quantified". Baseline covers both air and surface means.
 
 **Dependencies:** Tasks 14, 18, 19, 24
 **Files likely touched:** `web/lib/impact.ts`, `web/lib/impact.test.ts`

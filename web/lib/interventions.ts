@@ -82,6 +82,9 @@ const cToF = (dc: number) => (dc * 9) / 5;
 /** Assumption, not sourced: albedo gain of a cool roof coating. Levinson & Akbari 2010 use 0.35. */
 export const COOL_ROOF_ALBEDO_CHANGE = 0.3;
 
+/** Assumption, not sourced: a green wall covers the lowest 10 m of the whole outer facade. */
+export const GREEN_WALL_COVER_HEIGHT_M = 10;
+
 const SRC = {
   smith2025: {
     citation: "Smith et al. 2025, Communications Earth & Environment 6:507",
@@ -221,7 +224,7 @@ export const CATALOG: Record<Intervention, InterventionSpec> = {
     surfaceChange: NO_EFFECT,
     energy: { kind: "not-quantified", reason: "No per m² source for a temperate climate." },
     sources: [SRC.greenWallCost],
-    note: "Can be added alongside any roof action. Costs are mostly for indoor systems (low confidence).",
+    note: `Can be added alongside any roof action. Covers the lowest ${GREEN_WALL_COVER_HEIGHT_M} m of the facade (assumption). Costs are mostly for indoor systems (low confidence).`,
   },
   "green-roof-solar": {
     id: "green-roof-solar",

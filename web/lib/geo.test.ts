@@ -1,6 +1,6 @@
 import { getResolution, isValidCell, latLngToCell } from "h3-js";
 import { describe, expect, it } from "vitest";
-import { HEX_AREA_M2, buildingCell, footprintAreaM2, footprintCentroid } from "@/lib/geo";
+import { HEX_AREA_M2, buildingCell, footprintAreaM2, footprintCentroid, footprintPerimeterM } from "@/lib/geo";
 import type { Footprint } from "@/lib/types";
 
 // ~100 m × 100 m square centred near Downtown Crossing.
@@ -41,6 +41,13 @@ describe("footprintAreaM2", () => {
       coordinates: [SQUARE.coordinates, [square(LNG + 0.01, LAT, dLng, dLat)]],
     };
     expect(footprintAreaM2(multi) / footprintAreaM2(SQUARE)).toBeCloseTo(2, 3);
+  });
+});
+
+describe("footprintPerimeterM", () => {
+  it("a ~100 m square has a ~400 m perimeter (closed ring, no double count)", () => {
+    expect(footprintPerimeterM(SQUARE)).toBeGreaterThan(396);
+    expect(footprintPerimeterM(SQUARE)).toBeLessThan(404);
   });
 });
 

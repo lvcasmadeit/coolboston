@@ -52,7 +52,7 @@ Every number in the app is an estimate and is labelled as one.
 
 ### Phase 5: Impact model and map
 - [x] Task 24: Hex impact model
-- [ ] Task 25: Heat-island, energy and cost metrics
+- [x] Task 25: Heat-island, energy and cost metrics
 - [ ] Task 26: Air / Surface base layer and Change mode
 
 ### Checkpoint E: After Tasks 24–26
@@ -116,6 +116,7 @@ Phase 3 first, because the catalog needs its inputs and the surface layer needs 
 | Electricity rate, residential | 30.19¢/kWh, Massachusetts, year to date through June 2026 | EIA *Electric Power Monthly* Table 5.6.B. https://www.eia.gov/electricity/monthly/epm_table_grapher.cfm?t=epmt_5_6_b | Found. Replaces the earlier 29.35¢ palmetto.com figure. High confidence. |
 | Electricity rate, commercial | 24.66¢/kWh, Massachusetts, year to date through June 2026 (23.08¢ for the same period of 2025) | EIA *Electric Power Monthly* Table 5.6.B (same URL) | Found. High confidence. Used for buildings. |
 | Cool roof air coefficient | −0.61 °C per +0.1 surface albedo, afternoon | Smith et al. 2025, *Communications Earth & Environment* 6:507 | Found. Regional regression, not a per-building test. |
+| Green wall area | Outer perimeter × min(height, 10 m) | Assumption (Task 25) | Labelled as an assumption. |
 | Roof albedo change for a cool coating | 0.3 | Assumption | Labelled as an assumption until sourced. |
 | Tree canopy air coefficient | −0.07 °C per +0.1 canopy fraction | Smith et al. 2025 | Found. |
 | Green roof air proxy | up to −5 °F citywide | EPA "Using Green Roofs" (2019 snapshot) | Proxy and upper bound. The current EPA page gives "up to 20 °F nearby", which is not used. |

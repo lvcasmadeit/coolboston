@@ -37,6 +37,22 @@ export function footprintAreaM2(f: Footprint): number {
   return polygons(f).reduce((a, p) => a + polygonAreaM2(p), 0);
 }
 
+const haversineM = ([lng1, lat1]: number[], [lng2, lat2]: number[]) => {
+  const a =
+    Math.sin(rad(lat2 - lat1) / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(rad(lng2 - lng1) / 2) ** 2;
+  return 2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(a));
+};
+
+/** Outer perimeter in m (holes ignored: courtyard walls are not counted). */
+export function footprintPerimeterM(f: Footprint): number {
+  let total = 0;
+  for (const [outer] of polygons(f)) {
+    if (!outer) continue;
+    for (let i = 0; i < outer.length; i++) total += haversineM(outer[i], outer[(i + 1) % outer.length]);
+  }
+  return total;
+}
+
 /** Area-weighted planar centroid [lng, lat] (holes subtracted). Accurate enough at building scale. */
 export function footprintCentroid(f: Footprint): [number, number] {
   let a = 0;
