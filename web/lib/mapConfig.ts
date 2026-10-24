@@ -11,6 +11,8 @@ export const BASEMAP_CONFIG = {
   colorWater: "#1F4A6E",
   colorGreenspace: "#D7E3C8",
   colorBuildings: "#F3F2EF",
+  // Selected building (feature state `select` on the buildings featureset): sage accent.
+  colorBuildingSelect: "#4F7A5A",
   showPointOfInterestLabels: false,
   showLandmarkIcons: false,
   show3dBuildings: true,

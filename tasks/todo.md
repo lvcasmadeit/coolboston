@@ -172,17 +172,19 @@ Note: `HEX_AREA_M2` is the h3 average (15,047 m²). A downtown Boston cell measu
 **Dependencies:** Task 20
 **Files likely touched:** `web/components/MapView.tsx`, `tasks/plan.md`
 
-### Task 22: Building selection and highlight [MVP, M]
+### Task 22: Building selection and highlight [MVP, M] (done)
 **Description:** Click a building to select it, with a feature-state highlight.
 
 **Acceptance criteria:**
-- [ ] A click sets `selection = { kind: "building", building: { id, footprint, heightM, roofAreaM2, cell } }`. A missing height is null, not zero.
-- [ ] The selected building is highlighted (feature state `select`, sage). Clicking another moves it; Escape or empty ground clears it.
-- [ ] A building click takes priority over a hex click. The hex hover tooltip still works.
+- [x] A click sets `selection = { kind: "building", building: { id, footprint, heightM, roofAreaM2, cell } }`. A missing height is null, not zero.
+- [x] The selected building is highlighted (feature state `select`, sage). Clicking another moves it; Escape or empty ground clears it.
+- [x] A building click takes priority over a hex click. The hex hover tooltip still works.
 
 **Verification:**
-- [ ] `npm test`: feature-to-building mapping, including a missing height.
-- [ ] Manual check: select, reselect, Escape; no console errors.
+- [x] `npm test`: feature-to-building mapping, including a missing height.
+- [x] Manual check: select, reselect, Escape; no console errors.
+
+Notes: implemented in `components/BuildingSelection.tsx` with `map.addInteraction` (building click returns true so the ground handler does not fire) and a store subscription that keeps feature state in sync. Highlight colour is `colorBuildingSelect: #4F7A5A`. Verified in the browser: select a 210 m tower, reselect a low-rise, empty ground clears, Escape clears, hex tooltip still works, no console errors. Known limitation: towers drawn as Standard 3D models (glassy landmark towers) get the `select` state but do not change colour; extruded buildings do. There is no hex click yet (Task 23), so the priority rule is trivially met.
 
 **Dependencies:** Tasks 12, 21
 **Files likely touched:** `web/components/MapView.tsx`, `web/lib/buildings.ts`, `web/lib/buildings.test.ts`

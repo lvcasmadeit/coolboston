@@ -42,4 +42,8 @@ describe("basemap", () => {
     expect(BASEMAP_CONFIG.colorWater).toBe("#1F4A6E");
     expect(BASEMAP_CONFIG.colorBuildings).toBe("#F3F2EF");
   });
+
+  it("highlights the selected building in sage", () => {
+    expect(BASEMAP_CONFIG.colorBuildingSelect).toBe("#4F7A5A");
+  });
 });

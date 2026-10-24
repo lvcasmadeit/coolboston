@@ -4,6 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import type { PickingInfo } from "@deck.gl/core";
 import { useMemo } from "react";
 import Map, { NavigationControl, ScaleControl } from "react-map-gl/mapbox";
+import { BuildingSelection } from "@/components/BuildingSelection";
 import { DeckOverlay } from "@/components/DeckOverlay";
 import { Legend } from "@/components/Legend";
 import { createHeatLayer } from "@/components/layers/HeatLayer";
@@ -58,6 +59,7 @@ export default function MapView({ token, children }: MapViewProps) {
       style={{ width: "100%", height: "100%" }}
     >
       <DeckOverlay layers={layers} getTooltip={getTooltip} />
+      <BuildingSelection />
       <NavigationControl position="top-left" visualizePitch />
       <ScaleControl position="bottom-right" unit="imperial" />
       {range && <Legend range={range} />}
