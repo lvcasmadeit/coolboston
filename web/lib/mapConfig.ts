@@ -1,5 +1,20 @@
-/** Classic style (not Mapbox Standard) so building extrusions can be styled from our data. */
-export const MAP_STYLE = "mapbox://styles/mapbox/dark-v11";
+/** Mapbox Standard basemap. Its 3D buildings can't be recolored from our data; per-building scores
+ *  will need our own building tileset (planui.md 3.4). */
+export const MAP_STYLE = "mapbox://styles/mapbox/standard";
+
+/** Standard config (planui.md 3.1): faded theme in day light, tinted to the app's cream palette. */
+export const BASEMAP_CONFIG = {
+  theme: "faded",
+  lightPreset: "day",
+  colorLand: "#F4EFE4",
+  colorWater: "#C9DCE3",
+  colorGreenspace: "#D7E3C8",
+  colorBuildings: "#EDE6D8",
+  showPointOfInterestLabels: false,
+  showLandmarkIcons: false,
+  show3dBuildings: true,
+  show3dTrees: true,
+} as const;
 
 export const BOSTON_VIEW = {
   longitude: -71.0589,
@@ -8,9 +23,6 @@ export const BOSTON_VIEW = {
   pitch: 60,
   bearing: -17,
 } as const;
-
-/** Id of our 3D building layer. Data overlays are inserted before it so buildings draw on top. */
-export const BUILDINGS_LAYER_ID = "3d-buildings";
 
 export type TokenCheck = { ok: true; token: string } | { ok: false; reason: string };
 

@@ -3,14 +3,13 @@
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { PickingInfo } from "@deck.gl/core";
 import { useMemo } from "react";
-import Map, { Layer, NavigationControl, ScaleControl } from "react-map-gl/mapbox";
+import Map, { NavigationControl, ScaleControl } from "react-map-gl/mapbox";
 import { DeckOverlay } from "@/components/DeckOverlay";
 import { Legend } from "@/components/Legend";
 import { createHeatLayer } from "@/components/layers/HeatLayer";
 import { useHexes } from "@/components/useHexes";
-import { WhenLayerExists } from "@/components/WhenLayerExists";
 import { formatTemp, valueRange } from "@/lib/heat";
-import { BOSTON_VIEW, BUILDINGS_LAYER_ID, MAP_STYLE } from "@/lib/mapConfig";
+import { BASEMAP_CONFIG, BOSTON_VIEW, MAP_STYLE } from "@/lib/mapConfig";
 import { DEFAULT_LAYERS, useDashboard } from "@/lib/store";
 import type { Hex } from "@/lib/types";
 
@@ -50,6 +49,7 @@ export default function MapView({ token, children }: MapViewProps) {
     <Map
       mapboxAccessToken={token}
       mapStyle={MAP_STYLE}
+      config={{ basemap: BASEMAP_CONFIG }}
       initialViewState={BOSTON_VIEW}
       maxPitch={75}
       // Reuse the underlying mapbox-gl instance across remounts (incl. React StrictMode in dev),
@@ -57,24 +57,7 @@ export default function MapView({ token, children }: MapViewProps) {
       reuseMaps
       style={{ width: "100%", height: "100%" }}
     >
-      <Layer
-        id={BUILDINGS_LAYER_ID}
-        type="fill-extrusion"
-        source="composite"
-        source-layer="building"
-        filter={["==", ["get", "extrude"], "true"]}
-        minzoom={12}
-        paint={{
-          "fill-extrusion-color": "#3a3f4b",
-          "fill-extrusion-height": ["get", "height"],
-          "fill-extrusion-base": ["get", "min_height"],
-          "fill-extrusion-opacity": 0.85,
-        }}
-      />
-      {/* Mount deck only after its beforeId anchor exists in the style. */}
-      <WhenLayerExists id={BUILDINGS_LAYER_ID}>
-        <DeckOverlay layers={layers} getTooltip={getTooltip} />
-      </WhenLayerExists>
+      <DeckOverlay layers={layers} getTooltip={getTooltip} />
       <NavigationControl position="top-left" visualizePitch />
       <ScaleControl position="bottom-right" unit="imperial" />
       {range && <Legend range={range} />}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BOSTON_VIEW, checkMapboxToken } from "@/lib/mapConfig";
+import { BASEMAP_CONFIG, BOSTON_VIEW, checkMapboxToken, MAP_STYLE } from "@/lib/mapConfig";
 
 describe("checkMapboxToken", () => {
   it("rejects a missing or blank token", () => {
@@ -23,5 +23,14 @@ describe("BOSTON_VIEW", () => {
     expect(BOSTON_VIEW.longitude).toBeCloseTo(-71.06, 1);
     expect(BOSTON_VIEW.latitude).toBeCloseTo(42.36, 1);
     expect(BOSTON_VIEW.pitch).toBe(60);
+  });
+});
+
+describe("basemap", () => {
+  it("uses Mapbox Standard in the faded day theme with 3D buildings on", () => {
+    expect(MAP_STYLE).toBe("mapbox://styles/mapbox/standard");
+    expect(BASEMAP_CONFIG.theme).toBe("faded");
+    expect(BASEMAP_CONFIG.lightPreset).toBe("day");
+    expect(BASEMAP_CONFIG.show3dBuildings).toBe(true);
   });
 });

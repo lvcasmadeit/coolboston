@@ -7,10 +7,10 @@ import { useMap } from "react-map-gl/mapbox";
 /**
  * Per-layer props understood by MapboxOverlay in interleaved mode. deck.gl supports these at
  * runtime but doesn't export the type, so pass it as a layer's extra-props generic:
- * `new H3HexagonLayer<Datum, InterleavedLayerProps>({ beforeId: ..., ... })`.
+ * `new H3HexagonLayer<Datum, InterleavedLayerProps>({ slot: "middle", ... })`.
  */
 export type InterleavedLayerProps = {
-  beforeId?: string;
+  /** Mapbox Standard slot. Layers in the same slot keep their style order, bottom < middle < top. */
   slot?: "bottom" | "middle" | "top";
 };
 
@@ -24,10 +24,7 @@ const overlays = new WeakMap<MapInstance, MapboxOverlay>();
 
 /**
  * deck.gl rendered *inside* the Mapbox WebGL context (interleaved), so deck layers share the
- * depth buffer with Mapbox's 3D buildings and can be ordered among Mapbox layers.
- *
- * Layering rule (verified in Task 6): give ground-level data layers `beforeId: BUILDINGS_LAYER_ID`
- * so they draw beneath the building extrusions and buildings occlude them when the map is pitched.
+ * depth buffer with the basemap's 3D buildings. Layers are placed by slot.
  */
 export function DeckOverlay(props: Omit<MapboxOverlayProps, "interleaved">) {
   const { current: mapRef } = useMap();
