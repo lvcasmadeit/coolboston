@@ -48,15 +48,15 @@ Checkpoint C passed (46 web tests, 13 pipeline tests, typecheck, lint, build, 12
 
 ## Phase 3: Inputs and surface data
 
-### Task 14: Source the remaining inputs [MVP, XS]
+### Task 14: Source the remaining inputs [MVP, XS] (done)
 **Description:** Fill the open rows of the inputs table in `plan.md`: energy per m² for green roof, cool roof and green walls; street-tree planting cost per m²; current commercial rooftop solar cost in Massachusetts; usable roof share and panel kW per m²; commercial electricity rate; Boston PV yield (optional). Use primary or high-trust sources. Record any input with no source as "not quantified".
 
 **Acceptance criteria:**
-- [ ] Every open row has a value (low / central / high with unit and year), a source URL, and a confidence, or "not quantified".
-- [ ] Only `tasks/plan.md` changes.
+- [x] Every open row has a value (low / central / high with unit and year), a source URL, and a confidence, or "not quantified".
+- [x] Only `tasks/plan.md` changes.
 
 **Verification:**
-- [ ] Manual check: every row has a source URL or "not quantified".
+- [x] Manual check: every row has a source URL or "not quantified".
 
 **Dependencies:** None
 **Files likely touched:** `tasks/plan.md`
