@@ -23,7 +23,7 @@ User-visible result: the heat layer is a flat grid of 100 m squares under the 3D
 ### Inputs onto tiles
 
 - **Air (`temp3pm`):** the area-weighted mean of the Heat Watch 3pm hexes that overlap the tile's land polygon. This reuses `join.area_weighted_mean`. There is no interpolation. Tiles within one 25 ha source hex share its value, and the Method tab says so. `null` if no sampled source overlaps.
-- **Surface (`surface`):** the mean of the valid Landsat composite pixels (30 m) whose centres fall in the tile's land polygon. `null` if none.
+- **Surface (`surface`):** the mean of the valid Landsat composite pixels (30 m) whose centres fall in the tile's land polygon. If there are none (mostly coastal slivers smaller than a pixel), it uses pixels centred anywhere in the full 100 m square. `null` if that is empty too.
 - Missing stays `null`, never 0 (conventions.md).
 
 ### Data contract: `web/data/cells.json`, schema v4

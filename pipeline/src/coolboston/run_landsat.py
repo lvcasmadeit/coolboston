@@ -1,12 +1,15 @@
-"""Summer Landsat surface temperature per H3 cell -> pipeline/cache/surface_<year>.json.
+"""Summer Landsat surface temperature per cell -> the gitignored pipeline/cache/.
 
 Run: uv run python -m coolboston.run_landsat
-Values are °F, mid-morning (about 11:15 a.m. EDT, see landsat.py). Output stays in the
-gitignored cache; build_hexes.py reads it.
+Values are °F, mid-morning (about 11:15 a.m. EDT, see landsat.py).
+  surface_<year>.tif         the composite on the 30 m grid; reused on later runs (no network)
+  surface_tiles_<year>.json  per 100 m tile (SPEC-square-grid)
+  surface_<year>.json        per H3 cell, read by build_hexes.py until Task 41 retires it
 """
 
 import json
 import os
+from datetime import date
 from pathlib import Path
 
 import numpy as np
@@ -17,10 +20,10 @@ from rasterio.warp import Resampling, reproject, transform_bounds
 from rasterio.windows import from_bounds
 
 from coolboston.composite import nan_median, usable
-from coolboston.grid import boston_cells
+from coolboston.grid import boston_cells, boston_tiles
 from coolboston.landsat import BOSTON_BBOX, Scene, search_scenes
 from coolboston.lst import celsius_to_f, masked_celsius
-from coolboston.zonal import pixel_cells, zonal_mean
+from coolboston.zonal import pixel_cells, tile_surface_mean, zonal_mean
 
 CACHE_DIR = Path(__file__).resolve().parents[2] / "cache"
 # Common 30 m grid in UTM 19N, Landsat's native projection and pixel size over Boston.
@@ -34,6 +37,14 @@ os.environ.setdefault("GDAL_HTTP_MAX_RETRY", "3")
 
 def cache_path(year: int) -> Path:
     return CACHE_DIR / f"surface_{year}.json"
+
+
+def tiles_cache_path(year: int) -> Path:
+    return CACHE_DIR / f"surface_tiles_{year}.json"
+
+
+def composite_path(year: int) -> Path:
+    return CACHE_DIR / f"surface_{year}.tif"
 
 
 def target_grid() -> tuple[rasterio.Affine, tuple[int, int]]:
@@ -67,7 +78,8 @@ def scene_on_grid(scene: Scene, transform, shape) -> np.ndarray:
     return out
 
 
-def run(year: int = 2019) -> Path:
+def build_composite(year: int) -> tuple[np.ndarray, int]:
+    """Median °F composite of the summer's usable scenes on the common grid (needs network)."""
     scenes = search_scenes(year)
     transform, shape = target_grid()
     grids = []
@@ -75,18 +87,59 @@ def run(year: int = 2019) -> Path:
         g = scene_on_grid(s, transform, shape)
         print(f"  {s.id}: {np.isfinite(g).mean():.0%} valid pixels in the Boston box")
         grids.append(g)
-    composite_f = celsius_to_f(nan_median(grids, year))
+    return celsius_to_f(nan_median(grids, year)), len(usable(grids))
+
+
+def write_composite(path: Path, composite_f: np.ndarray, scenes: int) -> None:
+    transform, shape = target_grid()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    profile = dict(driver="GTiff", width=shape[1], height=shape[0], count=1, dtype="float32",
+                   crs=GRID_CRS, transform=transform, nodata=np.nan, compress="deflate")
+    with rasterio.open(path, "w", **profile) as dst:
+        dst.write(composite_f.astype(np.float32), 1)
+        dst.update_tags(scenes=str(scenes))
+
+
+def read_composite(path: Path) -> tuple[np.ndarray, int]:
+    with rasterio.open(path) as src:
+        return src.read(1).astype(np.float64), int(src.tags()["scenes"])
+
+
+def load_composite(year: int) -> tuple[np.ndarray, int]:
+    path = composite_path(year)
+    if path.exists():
+        print(f"using cached composite {path} (no network)")
+        return read_composite(path)
+    composite_f, scenes = build_composite(year)
+    write_composite(path, composite_f, scenes)
+    return composite_f, scenes
+
+
+def _rounded(per_cell: dict[str, float | None]) -> dict[str, float | None]:
+    return {c: (None if v is None else round(v, 2)) for c, v in per_cell.items()}
+
+
+def _write(path: Path, year: int, scenes: int, out: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    meta = {"year": year, "scenes": scenes, "run_date": date.today().isoformat()}
+    path.write_text(json.dumps({**meta, "surface_f": out}, allow_nan=False))
+    covered = sum(v is not None for v in out.values())
+    print(f"{path.name}: {covered} of {len(out)} cells have a surface value ({covered / len(out):.2%})")
+
+
+def run(year: int = 2019) -> Path:
+    composite_f, scenes = load_composite(year)
+    transform, shape = target_grid()
+    print(f"{scenes} usable scenes")
+
+    tiles = boston_tiles()
+    per_tile = tile_surface_mean(composite_f, transform, GRID_CRS, tiles)
+    _write(tiles_cache_path(year), year, scenes, _rounded(per_tile))
 
     cells = boston_cells()
     per_cell = zonal_mean(composite_f, pixel_cells(transform, shape, GRID_CRS), cells)
-    out = {c: (None if v is None else round(v, 2)) for c, v in per_cell.items()}
-
-    path = cache_path(year)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"year": year, "scenes": len(usable(grids)), "surface_f": out}, allow_nan=False))
-    covered = sum(v is not None for v in out.values())
-    print(f"{len(usable(grids))} usable scenes; {covered} of {len(cells)} cells have a surface value")
-    return path
+    _write(cache_path(year), year, scenes, _rounded(per_cell))
+    return tiles_cache_path(year)
 
 
 if __name__ == "__main__":

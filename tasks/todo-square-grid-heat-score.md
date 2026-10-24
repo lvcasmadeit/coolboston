@@ -41,7 +41,7 @@ Notes: `square_tiles` and `tile_coordinates` in `grid.py`, added alongside the H
 
 **Estimated scope:** Small–Medium
 
-### Task 40: Surface temperature on tiles, composite raster cached [M]
+### Task 40: Surface temperature on tiles, composite raster cached [M] (done)
 
 **Description:**
 - `run_landsat` writes the composite °F raster to `pipeline/cache/surface_2019.tif` (gitignored), so later runs reuse it without the network.
@@ -49,13 +49,15 @@ Notes: `square_tiles` and `tile_coordinates` in `grid.py`, added alongside the H
 - The cache JSON is keyed by tile id.
 
 **Acceptance criteria:**
-- [ ] A unit test assigns pixels to tiles on a synthetic transform: interior pixels, edge pixels outside the clip, and NaN pixels skipped.
-- [ ] The real run gives `surface` for at least 99% of tiles. It records the scene count (9) and the run date in the cache.
-- [ ] A second run with the `.tif` present does no network calls (checked by log line).
+- [x] A unit test assigns pixels to tiles on a synthetic transform: interior pixels, edge pixels outside the clip, and NaN pixels skipped.
+- [x] The real run gives `surface` for at least 99% of tiles. It records the scene count (9) and the run date in the cache.
+- [x] A second run with the `.tif` present does no network calls (checked by log line).
 
 **Verification:**
-- [ ] `uv run pytest -q tests/test_zonal.py tests/test_composite.py`
-- [ ] `uv run python -m coolboston.run_landsat` prints the coverage. This needs network: stop and report if the SAS token or STAC fails.
+- [x] `uv run pytest -q tests/test_zonal.py tests/test_composite.py`
+- [x] `uv run python -m coolboston.run_landsat` prints the coverage. This needs network: stop and report if the SAS token or STAC fails.
+
+Notes: The composite is cached as `pipeline/cache/surface_2019.tif` (float32, deflate, scene count in a tag). A second run logs "using cached composite … (no network)". `zonal.tile_surface_mean` uses pixels centred on a tile's land. 236 tiles, mostly coastal slivers under one 30 m pixel, had none, so they fall back to pixels centred anywhere in their full 100 m square (unit-tested). Coverage: 13,547 of 13,562 tiles (99.89%). The H3 cache `surface_2019.json` is still written for `build_hexes` until Task 41. Pytest: 38 passed.
 
 **Dependencies:** Task 39
 
