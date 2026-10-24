@@ -1,5 +1,11 @@
 import { HEXES_SCHEMA_VERSION, type Hex, type HexesFile } from "@/lib/types";
 
+/**
+ * Hex data URL, keyed by schema version. The response is cached for an hour, so a fixed URL would
+ * keep serving a cached old-schema file to new client code after a schema bump.
+ */
+export const HEXES_URL = `/api/hexes?v=${HEXES_SCHEMA_VERSION}`;
+
 export class HexDataError extends Error {
   override name = "HexDataError";
 }

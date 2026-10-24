@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { HexDataError, parseHexes } from "@/lib/data";
+import { HEXES_URL, HexDataError, parseHexes } from "@/lib/data";
+import { HEXES_SCHEMA_VERSION } from "@/lib/types";
+
+describe("HEXES_URL", () => {
+  it("carries the schema version so a schema bump bypasses cached responses", () => {
+    expect(HEXES_URL).toBe(`/api/hexes?v=${HEXES_SCHEMA_VERSION}`);
+  });
+});
 
 const hex = { id: "8a2a3066037ffff", temp3pm: 91.2, surface: 101.4 };
 const doc = (hexes: unknown[], extra: object = {}) => ({ version: 3, hexes, ...extra });

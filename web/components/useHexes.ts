@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { parseHexes } from "@/lib/data";
+import { HEXES_URL, parseHexes } from "@/lib/data";
 import type { Hex } from "@/lib/types";
 
 export type HexesState =
@@ -15,9 +15,9 @@ export function useHexes(): HexesState {
 
   useEffect(() => {
     const ctrl = new AbortController();
-    fetch("/api/hexes", { signal: ctrl.signal })
+    fetch(HEXES_URL, { signal: ctrl.signal })
       .then((r) => {
-        if (!r.ok) throw new Error(`GET /api/hexes failed: ${r.status}`);
+        if (!r.ok) throw new Error(`GET ${HEXES_URL} failed: ${r.status}`);
         return r.json();
       })
       .then((json) => setState({ status: "ready", hexes: parseHexes(json).hexes }))
