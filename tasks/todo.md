@@ -272,8 +272,8 @@ Notes: one layer (`heat-hexes`) serves both modes through `lib/heatView.ts`, so 
 **Files likely touched:** `web/components/layers/HeatLayer.ts`, `web/components/layers/ChangeLayer.ts`, `web/lib/colors.ts`, `web/lib/store.ts`, `web/components/MapView.tsx`
 
 ### Checkpoint E: After Tasks 24–26
-- [ ] Tests and build pass
-- [ ] An action added through the test hook cools its hex on the map
+- [x] Tests and build pass
+- [x] An action added through the test hook cools its hex on the map
 - [ ] Review with human: are the effect sizes readable? Does Change mode need more work?
 
 ---

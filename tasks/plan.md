@@ -56,8 +56,8 @@ Every number in the app is an estimate and is labelled as one.
 - [x] Task 26: Air / Surface base layer and Change mode
 
 ### Checkpoint E: After Tasks 24–26
-- [ ] Tests and build pass
-- [ ] An action added through a test hook cools its hex on the map
+- [x] Tests and build pass
+- [x] An action added through a test hook cools its hex on the map
 - [ ] Review with human: are effect sizes readable, or does the Change view need more work?
 
 ### Phase 6: Act panel and layout
