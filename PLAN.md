@@ -37,8 +37,8 @@ Boston planners and advocates need to see where urban heat is concentrated and w
 - Free tier is 50k map loads per month. A load counts when a Map object is created, so remounts count. Keep the map mounted in the root layout and avoid re-creating it.
 - The access token ships in the browser. Restrict it by URL in the Mapbox account settings.
 - Mapbox GL JS v2+ is proprietary. The attribution must stay visible.
-- Basemap is Mapbox Standard (`theme: "faded"`, `lightPreset: "day"`, cream tints; see planui.md). Changed from the original classic-style choice in the UI revamp. Standard's own 3D buildings take one color only, so per-building scores will set `show3dBuildings: false` and draw our own building tileset as a `fill-extrusion` in a slot.
-- Use deck.gl interleaved mode so overlays layer correctly with 3D buildings. Data layers go in Standard's `middle` slot with a small negative `depthBias`; without it, ground-level hexes fail the depth test against Standard's ground and most don't draw.
+- Basemap is Mapbox Standard (`theme: "default"`, `lightPreset: "day"`, cream land, navy water, near-white buildings; see planui.md). Camera zoom must stay at or above 15, because Standard draws its 3D buildings only from there. 3D facades are off (their tiles 404 for downtown Boston). Changed from the original classic-style choice in the UI revamp. Standard's own 3D buildings take one color only, so per-building scores will set `show3dBuildings: false` and draw our own building tileset as a `fill-extrusion` in a slot.
+- Use deck.gl interleaved mode so overlays layer correctly with 3D buildings. Heat hexes are a translucent 18 m slab in Standard's `middle` slot with normal depth testing: low-rise buildings show through tinted and towers rise above it. Flat (0 m) layers in that slot need a small negative `depthBias`, or they fail the depth test against Standard's ground and most don't draw.
 - deck.gl gamma-corrects the layer `opacity` prop (0.5 composites as ~0.73). Put the requested opacity in the fill-color alpha instead.
 - The map must be client-only (`dynamic(..., { ssr: false })`).
 - Boston is flat, so the 3D effect comes from extruded buildings and camera pitch, not terrain.
@@ -55,7 +55,7 @@ flowchart LR
     B[Heat Watch hexes] --> G
     C[Canopy / SVI / Parking] --> G
     D[Buildings + NREL PV] --> BLD[buildings.geojson]
-    P --> G[H3 res-9 hex grid inputs]
+    P --> G[H3 res-10 hex grid inputs]
     P --> R[Per-year LST PNG overlays]
   end
   subgraph Next["Next.js app"]
@@ -74,7 +74,7 @@ flowchart LR
 
 ### Architecture decisions
 - **Backend:** no separate server. Offline Python scripts write JSON/GeoJSON into `web/data/`; Next.js route handlers (`app/api/*`) serve them. One app, deployable to Vercel.
-- **Grid:** H3 resolution 9 (about 0.1 km² cells, roughly 1–2k cells covering Boston). Python writes the raw inputs per hex (LST per year, canopy %, SVI, flat-roof area, roof area, PV potential, parking share).
+- **Grid:** H3 resolution 10 (76 m edges, about 0.015 km² cells, 8,044 cells covering Boston; moved from res 9 in the map revamp). Finer than res 10 would be below Landsat's native 100 m thermal resolution. Python writes the raw inputs per hex (LST per year, canopy %, SVI, flat-roof area, roof area, PV potential, parking share).
 - **Scoring in TypeScript:** the scoring formulas and weights live in `lib/scoring.ts`, a single source of truth for the map, the methodology tab, and the what-if simulator. The building-level scoring in Python must match it (parity test with shared fixtures).
 - **Score formula** (every input converted to percentile rank, 0–1; score = 100 × weighted sum):
   - Green roof = 0.40·heat + 0.25·vulnerability + 0.35·flat-roof area
@@ -110,7 +110,7 @@ Estimated total about 8.5 hours. If time runs short, cut Task 8 first, then Task
 
 ### Task 2: Pipeline foundation, hex grid, and Heat Watch heat layer (1h)
 - Objective: Generate the hex grid with Heat Watch 3pm temperature and display it on the map.
-- Guidance: `pipeline/` with uv, geopandas, h3, pytest. Boston boundary → H3 res-9 cells → area-weighted join of Heat Watch hexes → `web/data/hexes.json`. Route `GET /api/hexes`. deck.gl `H3HexagonLayer` (interleaved mode) with a temperature color ramp and hover tooltip.
+- Guidance: `pipeline/` with uv, geopandas, h3, pytest. Boston boundary → H3 res-10 cells (originally res 9) → area-weighted join of Heat Watch hexes → `web/data/hexes.json`. Route `GET /api/hexes`. deck.gl `H3HexagonLayer` (interleaved mode) with a temperature color ramp and hover tooltip. The ramp is a blue → red rainbow; in Phase 2 it moves to a fixed surface-temperature range shared across years (planui.md 6.3).
 - Tests: pytest for grid coverage and join correctness on a small fixture; Vitest for the color-ramp function.
 - Demo: Heat hexagons over the 3D city, temperature on hover.
 

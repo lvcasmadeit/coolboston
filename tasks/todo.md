@@ -79,7 +79,7 @@ Conventions
 
 **Acceptance criteria:**
 - [x] `MapView` loaded via `dynamic(() => import(...), { ssr: false })`.
-- [x] Classic dark style (not Standard) *(superseded: now Mapbox Standard, faded theme; see planui.md)*, centered near `[-71.0589, 42.3601]`, pitch 60, zoom ~12.5.
+- [x] Classic dark style (not Standard) *(superseded: now Mapbox Standard, default theme, navy water; camera zoom 15.2 / pitch 52 over Downtown; see planui.md)*, centered near `[-71.0589, 42.3601]`, pitch 60, zoom ~12.5.
 - [x] A `fill-extrusion` layer extrudes buildings using `height` from the vector tiles; Mapbox attribution visible.
 - [x] Missing token shows a readable error message instead of a blank page.
 
@@ -122,7 +122,7 @@ Notes from Phase 0:
 ## Phase 1: Heat hexes on the map (70 min)
 
 ### Task 7: Pipeline scaffold, Boston boundary, H3 grid [MVP, 15m, M]
-**Description:** Python project that generates the H3 resolution-9 cells covering Boston.
+**Description:** Python project that generates the H3 resolution-9 cells covering Boston. *(Now resolution 10, 8,044 cells; see planui.md M1.)*
 
 **Acceptance criteria:**
 - [x] `pipeline/` is a uv project (pinned versions): `geopandas`, `h3`, `shapely`, `pytest`.
@@ -170,7 +170,7 @@ Notes from Phase 0:
 **Description:** Render the hexes colored by temperature.
 
 **Acceptance criteria:**
-- [x] `H3HexagonLayer` shows all hexes, colored by `temp3pm` with a continuous ramp (cool blue → hot red; now amber → maroon per the UI revamp); `null` cells are transparent.
+- [x] `H3HexagonLayer` shows all hexes, colored by `temp3pm` with a continuous ramp (cool blue → hot red; briefly amber → maroon, now a blue → red rainbow on an 18 m translucent slab, see planui.md Part 2); `null` cells are transparent.
 - [x] Hover tooltip shows the temperature in °F, rounded to 1 decimal.
 - [x] Legend with min/max values in the Layers tab or map corner.
 
@@ -532,6 +532,7 @@ If this task is cut, drop the cool-pavement intervention everywhere (Tasks 29-34
 
 **Verification:**
 - [ ] `npm test`: color accessor uses score in score mode and LST in heat mode.
+- [ ] LST uses the rainbow `HEAT_RAMP` on a fixed range shared across years (not per-year min/max), so colors are comparable over time.
 - [ ] Manual check: choosing Solar vs Trees visibly changes the pattern.
 
 **Dependencies:** Tasks 31, 18

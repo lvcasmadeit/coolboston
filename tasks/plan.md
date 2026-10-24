@@ -8,7 +8,7 @@ Tasks are tracked in `tasks/todo.md` (markdown checklist).
 ## Architecture Decisions (summary; full rationale in ../PLAN.md)
 - Next.js App Router, client-only Mapbox GL + deck.gl (interleaved), Zustand, Recharts, Tailwind + shadcn/ui.
 - No runtime backend: offline Python (uv) writes `web/data/hexes.json`; Next route handlers serve it.
-- H3 res-9 hex grid is the unit of analysis. Scoring formulas live only in `web/lib/scoring.ts`; Python building scores are checked against it by a shared fixture.
+- H3 res-10 hex grid (originally res 9) is the unit of analysis. Scoring formulas live only in `web/lib/scoring.ts`; Python building scores are checked against it by a shared fixture.
 - Changed from ../PLAN.md: the what-if simulator (Phase 6) now comes before per-building scores (Phase 7), because the simulator needs only hex-level data and is a stronger demo moment.
 
 ## Task List
