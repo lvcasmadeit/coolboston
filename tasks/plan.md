@@ -63,7 +63,7 @@ Every number in the app is an estimate and is labelled as one.
 ### Phase 6: Act panel and layout
 - [x] Task 27: Act panel
 - [x] Task 28: Applied actions list
-- [ ] Task 29: Treated roof markers
+- [x] Task 29: Treated roof markers
 - [ ] Task 30: Metric cards
 - [ ] Task 31: Layers tab and top-bar view controls
 

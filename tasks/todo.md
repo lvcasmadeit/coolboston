@@ -315,16 +315,18 @@ Notes: `components/ActionList.tsx` (newest first, with total capital), `lib/acti
 **Dependencies:** Task 27
 **Files likely touched:** `web/components/ActionList.tsx`, `web/components/ActPanel.tsx`
 
-### Task 29: Treated roof markers [MVP, S]
+### Task 29: Treated roof markers [MVP, S] (done)
 **Description:** A deck.gl layer that caps each treated roof at its building height, coloured by intervention. Kept from the earlier plan.
 
 **Acceptance criteria:**
-- [ ] Markers appear only for building actions and are removed with their action.
-- [ ] Each intervention has a distinct colour.
+- [x] Markers appear only for building actions and are removed with their action.
+- [x] Each intervention has a distinct colour.
 
 **Verification:**
-- [ ] `npm test`: marker data derived from actions (colour, elevation).
-- [ ] Manual check: a tilted view shows the capped roof.
+- [x] `npm test`: marker data derived from actions (colour, elevation).
+- [x] Manual check: a tilted view shows the capped roof.
+
+Notes: `components/layers/RoofLayer.ts`, a flat `PolygonLayer` 0.4 m above the roof in the `middle` slot. Green walls draw as a thick outline; cool roofs are light blue because white would disappear on Standard's white roofs. Buildings with unknown height sit at ground level. Browser check: the top-down view at zoom 18.3 shows the selected roof navy with solar and white again after undo; the layer goes away when the last building action is removed. Solar navy is close to the basemap water colour; it reads fine on roofs.
 
 **Dependencies:** Tasks 22, 28
 **Files likely touched:** `web/components/layers/RoofLayer.ts`, `web/components/MapView.tsx`

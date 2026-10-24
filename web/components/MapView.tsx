@@ -10,6 +10,7 @@ import { DeckOverlay } from "@/components/DeckOverlay";
 import { Legend } from "@/components/Legend";
 import { MapFocus } from "@/components/MapFocus";
 import { createHeatLayer } from "@/components/layers/HeatLayer";
+import { createRoofLayer } from "@/components/layers/RoofLayer";
 import { createSelectionLayer } from "@/components/layers/SelectionLayer";
 import { ToolToggle } from "@/components/ToolToggle";
 import { useHexes } from "@/components/useHexes";
@@ -95,9 +96,13 @@ export default function MapView({ token, children }: MapViewProps) {
     () => (hexes && view && heatVisible ? createHeatLayer(hexes, view, maxPct) : null),
     [hexes, view, heatVisible, maxPct],
   );
+  const roofLayer = useMemo(
+    () => (actions.some((a) => a.target.kind === "building") ? createRoofLayer(actions, 0.9) : null),
+    [actions],
+  );
   const layers = useMemo(
-    () => [heatLayer, areaCells && createSelectionLayer(areaCells)].filter((l) => !!l),
-    [heatLayer, areaCells],
+    () => [heatLayer, roofLayer, areaCells && createSelectionLayer(areaCells)].filter((l) => !!l),
+    [heatLayer, roofLayer, areaCells],
   );
 
   return (
