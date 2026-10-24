@@ -1,0 +1,25 @@
+[project]
+name = "coolboston-pipeline"
+version = "0.1.0"
+description = "Offline preprocessing for CoolBoston: H3 grid, heat joins, and JSON for the web app."
+requires-python = ">=3.12"
+dependencies = [
+    "geopandas==1.2.0",
+    "h3==4.5.0",
+    "shapely==2.2.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.18,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "coolboston"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest==9.1.1",
+]
