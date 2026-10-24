@@ -348,22 +348,23 @@ Notes: `lib/metrics.ts` (`selectionMetrics`) and `components/MetricCards.tsx`, s
 **Dependencies:** Tasks 25, 27
 **Files likely touched:** `web/components/MetricCards.tsx`, `web/components/RightPanel.tsx`
 
-### Task 31: Layers tab and top-bar view controls [MVP, M]
+### Task 31: Layers tab and top-bar view controls [MVP, M] (done)
 **Description:** A Layers tab with toggles and opacity sliders, as in the screenshot, plus the view controls in the top bar.
 
 **Acceptance criteria:**
-- [ ] Toggles for the heat base layer, roof markers and buildings. Opacity sliders update the layer opacity.
-- [ ] Top bar: Air / Surface and Heat / Change controls, labelled and keyboard operable.
-- [ ] Layer state comes from the store; no other component reads it directly.
+- [x] Toggles for the heat base layer, roof markers and buildings. Opacity sliders update the layer opacity.
+- [x] Top bar: Air / Surface and Heat / Change controls, labelled and keyboard operable.
+- [x] Layer state comes from the store; no other component reads it directly.
 
 **Verification:**
-- [ ] `npm test`: store opacity and toggle changes reach the layer props.
-- [ ] Manual check: each control updates the map.
+- [x] `npm test`: store opacity and toggle changes reach the layer props.
+- [x] Manual check: each control updates the map.
+
+Notes: `lib/layers.ts` (registry), `components/layers/buildLayers.ts` (store → deck layers, unit tested), `components/LayersPanel.tsx`, `components/ViewControls.tsx`, `components/BasemapBuildings.tsx` (`show3dBuildings` config), shared `components/ui/segmented.tsx`. 3D buildings has a toggle only: Standard does not expose building opacity. The slider's `aria-label` is forwarded to its thumb (role `slider`). Verified by `e2e/layers.spec.ts`: keyboard Enter/Space on the view controls, legend text per metric and mode, heat opacity 50% → 30% by arrow keys reaches the fill alpha, roof and heat toggles add and remove deck layers, 3D buildings toggles the basemap config.
 
 **Dependencies:** Tasks 26, 29
 **Files likely touched:** `web/components/LayersPanel.tsx`, `web/components/TopBar.tsx`, `web/lib/layers.ts`, `web/lib/layers.test.ts`
 
-**Status: paused, not done.** Code is committed (layer registry, Layers tab, view controls in the top bar, 3D buildings toggle, shared `Segmented` control). Unit tests pass (155). The opacity slider's `aria-label` is forwarded to its thumb (role `slider`). Still to do: browser check of each control (keyboard and mouse). Checkpoint F has not been reached.
 
 ### Checkpoint F: Core loop complete
 - [ ] Select a building, apply green roof, see the map and metrics change, remove it, see it restore
@@ -446,7 +447,7 @@ Notes: `lib/metrics.ts` (`selectionMetrics`) and `components/MetricCards.tsx`, s
 **Dependencies:** Checkpoint F
 **Files likely touched:** `web/components/*`, `web/hooks/useHexes.ts`
 
-### Task 36: Playwright smoke test [MVP, S]
+### Task 36: Playwright smoke test [MVP, S] (harness and specs in place: `e2e/`, `npm run e2e`; token skip done)
 **Description:** One end-to-end test of the core loop.
 
 **Acceptance criteria:**

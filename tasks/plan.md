@@ -65,7 +65,7 @@ Every number in the app is an estimate and is labelled as one.
 - [x] Task 28: Applied actions list
 - [x] Task 29: Treated roof markers
 - [x] Task 30: Metric cards
-- [ ] Task 31: Layers tab and top-bar view controls
+- [x] Task 31: Layers tab and top-bar view controls
 
 ### Checkpoint F: Core loop complete
 - [ ] Select building, apply green roof, see the map and metrics change, remove it, see it restore
