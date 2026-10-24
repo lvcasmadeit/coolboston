@@ -1,24 +1,42 @@
-export const MIN_YEAR = 2013;
-export const MAX_YEAR = 2025;
+/** Cooling actions. Labels, coefficients and sources live in the catalog (Task 14). */
+export const BUILDING_INTERVENTIONS = ["green-roof", "cool-roof", "solar"] as const;
+export const AREA_INTERVENTIONS = ["trees", "cool-pavement", "depave"] as const;
+export type BuildingIntervention = (typeof BUILDING_INTERVENTIONS)[number];
+export type AreaIntervention = (typeof AREA_INTERVENTIONS)[number];
+export type Intervention = BuildingIntervention | AreaIntervention;
 
-export const INTERVENTIONS = [
-  "green-roof",
-  "cool-roof",
-  "solar",
-  "trees",
-  "cool-pavement",
-] as const;
-export type Intervention = (typeof INTERVENTIONS)[number];
+/** GeoJSON footprint, [lng, lat] coordinates. */
+export type Footprint =
+  | { type: "Polygon"; coordinates: number[][][] }
+  | { type: "MultiPolygon"; coordinates: number[][][][] };
 
-export const INTERVENTION_LABELS: Record<Intervention, string> = {
-  "green-roof": "Green roofs",
-  "cool-roof": "Cool roofs",
-  solar: "Rooftop solar",
-  trees: "Street trees",
-  "cool-pavement": "Cool pavement",
-};
+export interface SelectedBuilding {
+  /** Feature id from the Standard `buildings` featureset. */
+  id: string | number;
+  footprint: Footprint;
+  /** null when the tile has no height for this building. */
+  heightM: number | null;
+  roofAreaM2: number;
+  /** H3 res-10 cell containing the footprint centroid. */
+  cell: string;
+}
 
-export type PlaybackSpeed = 1 | 2 | 4;
+export type Selection =
+  | { kind: "building"; building: SelectedBuilding }
+  | { kind: "area"; cells: string[] }
+  | null;
+
+export type ActionTarget =
+  | { kind: "building"; building: SelectedBuilding }
+  | { kind: "area"; cells: string[] };
+
+export type Action =
+  | { id: string; intervention: BuildingIntervention; target: Extract<ActionTarget, { kind: "building" }> }
+  | { id: string; intervention: AreaIntervention; target: Extract<ActionTarget, { kind: "area" }> };
+
+export type NewAction = Action extends infer A ? (A extends Action ? Omit<A, "id"> : never) : never;
+
+export type ViewMode = "heat" | "change";
 
 export interface LayerState {
   visible: boolean;

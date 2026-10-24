@@ -1,27 +1,33 @@
 import { createStore, useStore } from "zustand";
-import {
-  MAX_YEAR,
-  MIN_YEAR,
-  type Intervention,
-  type LayerId,
-  type LayerState,
-  type PlaybackSpeed,
+import type {
+  Action,
+  LayerId,
+  LayerState,
+  NewAction,
+  SelectedBuilding,
+  Selection,
+  ViewMode,
 } from "@/lib/types";
 
 export interface DashboardState {
-  year: number;
-  isPlaying: boolean;
-  speed: PlaybackSpeed;
-  intervention: Intervention;
-  selectedHexId: string | null;
+  selection: Selection;
+  /** Applied actions, oldest first. */
+  actions: Action[];
+  viewMode: ViewMode;
   layers: Record<LayerId, LayerState>;
 
-  setYear: (year: number) => void;
-  play: () => void;
-  pause: () => void;
-  setSpeed: (speed: PlaybackSpeed) => void;
-  setIntervention: (intervention: Intervention) => void;
-  selectHex: (id: string | null) => void;
+  selectBuilding: (building: SelectedBuilding) => void;
+  /** Adds or removes one cell; starts a new area if a building was selected. */
+  toggleAreaCell: (cell: string) => void;
+  setAreaCells: (cells: string[]) => void;
+  clearSelection: () => void;
+  /** Returns the new action's id. */
+  addAction: (action: NewAction) => string;
+  removeAction: (id: string) => void;
+  /** Removes the most recent action. */
+  undo: () => void;
+  resetActions: () => void;
+  setViewMode: (mode: ViewMode) => void;
   toggleLayer: (id: LayerId) => void;
   setLayerOpacity: (id: LayerId, opacity: number) => void;
 }
@@ -34,21 +40,38 @@ export const DEFAULT_LAYERS: Record<LayerId, LayerState> = {
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
+const areaOrNull = (cells: string[]): Selection =>
+  cells.length ? { kind: "area", cells } : null;
+
 export function createDashboardStore(initialLayers: Record<LayerId, LayerState> = DEFAULT_LAYERS) {
+  let nextId = 1;
   return createStore<DashboardState>()((set) => ({
-    year: MAX_YEAR,
-    isPlaying: false,
-    speed: 1,
-    intervention: "green-roof",
-    selectedHexId: null,
+    selection: null,
+    actions: [],
+    viewMode: "heat",
     layers: structuredClone(initialLayers),
 
-    setYear: (year) => set({ year: clamp(Math.round(year), MIN_YEAR, MAX_YEAR) }),
-    play: () => set({ isPlaying: true }),
-    pause: () => set({ isPlaying: false }),
-    setSpeed: (speed) => set({ speed }),
-    setIntervention: (intervention) => set({ intervention }),
-    selectHex: (selectedHexId) => set({ selectedHexId }),
+    selectBuilding: (building) => set({ selection: { kind: "building", building } }),
+    toggleAreaCell: (cell) =>
+      set((s) => {
+        const cells = s.selection?.kind === "area" ? s.selection.cells : [];
+        return {
+          selection: areaOrNull(
+            cells.includes(cell) ? cells.filter((c) => c !== cell) : [...cells, cell],
+          ),
+        };
+      }),
+    setAreaCells: (cells) => set({ selection: areaOrNull([...new Set(cells)]) }),
+    clearSelection: () => set({ selection: null }),
+    addAction: (action) => {
+      const id = `a${nextId++}`;
+      set((s) => ({ actions: [...s.actions, { ...action, id } as Action] }));
+      return id;
+    },
+    removeAction: (id) => set((s) => ({ actions: s.actions.filter((a) => a.id !== id) })),
+    undo: () => set((s) => ({ actions: s.actions.slice(0, -1) })),
+    resetActions: () => set({ actions: [] }),
+    setViewMode: (viewMode) => set({ viewMode }),
     toggleLayer: (id) =>
       set((s) =>
         s.layers[id]
