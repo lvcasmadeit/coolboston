@@ -4,21 +4,26 @@ import { heatColor } from "@/lib/colors";
 import type { Range } from "@/lib/heat";
 import type { Hex } from "@/lib/types";
 
-/** Ground-level hexes colored by Heat Watch 3pm air temperature. Standard's "middle" slot puts them above roads and below labels. */
+/** Slab height: above triple-deckers and brownstones (~10–17 m), well under downtown towers. */
+export const SLAB_HEIGHT_M = 18;
+
+/**
+ * Heat Watch 3pm air temperature as a translucent 18 m slab of hexes. In Standard's "middle"
+ * slot with normal depth testing, low-rise buildings inside the slab show through tinted and
+ * towers rise above it (draw-order spike, planui.md V1).
+ */
 export function createHeatLayer(hexes: Hex[], range: Range, opacity: number) {
   return new H3HexagonLayer<Hex, InterleavedLayerProps>({
     id: "heat-hexes",
     slot: "middle",
-    // Standard writes depth for the ground itself, so coplanar hexes lose the depth test and
-    // only ~4% draw. A small negative bias pulls them just in front of the ground while keeping
-    // depth testing, so 3D buildings still occlude them (measured in planui U3).
-    parameters: { depthBias: -2, depthBiasSlopeScale: -2 },
     data: hexes,
     getHexagon: (d) => d.id,
     // Opacity goes in the fill alpha: deck gamma-corrects the layer `opacity` prop
     // (0.5 would composite as 0.5^(1/2.2) ≈ 0.73), but blends color alpha as-is.
     getFillColor: (d) => heatColor(d.temp3pm, range.min, range.max, Math.round(opacity * 255)),
-    extruded: false,
+    extruded: true,
+    getElevation: SLAB_HEIGHT_M,
+    elevationScale: 1,
     stroked: false,
     opacity: 1,
     pickable: true,

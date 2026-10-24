@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createHeatLayer } from "@/components/layers/HeatLayer";
+import { createHeatLayer, SLAB_HEIGHT_M } from "@/components/layers/HeatLayer";
 import type { Hex } from "@/lib/types";
 
 const hex: Hex = { id: "892a3066037ffff", temp6am: 74, temp3pm: 91, temp7pm: 84 };
@@ -27,5 +27,14 @@ describe("createHeatLayer", () => {
 
   it("recomputes fill colors when opacity changes", () => {
     expect(createHeatLayer([hex], range, 0.3).props.updateTriggers.getFillColor).toContain(0.3);
+  });
+
+  it("raises every hex into a flat 18 m slab, above low-rise and below towers", () => {
+    const layer = createHeatLayer([hex], range, 0.5);
+
+    expect(layer.props.extruded).toBe(true);
+    expect(layer.props.getElevation).toBe(SLAB_HEIGHT_M);
+    expect(SLAB_HEIGHT_M).toBe(18);
+    expect(layer.props.elevationScale).toBe(1);
   });
 });
