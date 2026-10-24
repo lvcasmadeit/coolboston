@@ -5,7 +5,12 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, Building2, ChartColumn, Layers, Leaf, Satellite, Sun } from "lucide-react";
 import skylineImage from "@/assets/coolbostonlanding.png";
-import { AssetPlaceholder } from "@/components/site/AssetPlaceholder";
+import exploreImage from "@/assets/exploreurbanheat.png";
+import interventionsImage from "@/assets/interventions.png";
+import impactImage from "@/assets/viewimpact.png";
+import greenBlockImage from "@/assets/greenblockcity.png";
+import hotBlockImage from "@/assets/hotblockcity.png";
+import { BeforeAfterSlider } from "@/components/site/BeforeAfterSlider";
 import { LaunchMapLink, SiteHeader } from "@/components/site/SiteHeader";
 
 export const metadata: Metadata = {
@@ -41,19 +46,22 @@ const STEPS = [
   {
     title: "Explore urban heat",
     body: "Visualize how heat intensity varies across Boston using measured temperature data and an interactive 3D map.",
-    asset: "Illustration: heat-coloured city grid",
+    image: exploreImage,
+    alt: "Illustration: a city block on a grid shaded from red where it is hot to blue where it is cool",
     tint: "bg-sky-100 text-sky-700",
   },
   {
     title: "Design interventions",
     body: "Select buildings or neighborhoods and experiment with green roofs, solar panels, cool roofs, and more.",
-    asset: "Illustration: building with a green roof",
+    image: interventionsImage,
+    alt: "Illustration: a greened city block with rooftops marked for green roofs, solar panels, cool roofs and trees",
     tint: "bg-emerald-100 text-primary",
   },
   {
     title: "Measure potential impact",
     body: "Compare before and after conditions to see how different interventions could reduce temperatures.",
-    asset: "Illustration: hot block becoming a cool block",
+    image: impactImage,
+    alt: "Illustration: a hot red city block beside the same block made cooler with greenery and solar panels",
     tint: "bg-orange-100 text-orange-600",
   },
 ];
@@ -187,9 +195,17 @@ export default function AboutPage() {
                 </span>
               </p>
             </div>
-            <AssetPlaceholder
-              label="Before/after slider: hot city block vs. greened city block"
-              className="mt-4 aspect-[16/10]"
+            <BeforeAfterSlider
+              label="Compare the hot city block with the greened city block"
+              before={{
+                src: hotBlockImage,
+                alt: "Illustration: a city block of brick buildings and asphalt, shaded red and orange for heat",
+              }}
+              after={{
+                src: greenBlockImage,
+                alt: "Illustration: the same block with green roofs, solar panels, climbing plants and street trees",
+              }}
+              className="mt-4"
             />
           </figure>
         </section>
@@ -236,7 +252,13 @@ export default function AboutPage() {
                     </p>
                   </div>
                 </div>
-                <AssetPlaceholder label={step.asset} className="aspect-[4/3] max-sm:ml-15" />
+                <Image
+                  src={step.image}
+                  alt={step.alt}
+                  placeholder="blur"
+                  sizes="(min-width: 640px) 14rem, 100vw"
+                  className="h-auto w-full rounded-2xl bg-white/50 ring-1 ring-slate-900/5 max-sm:ml-15 max-sm:w-[calc(100%-3.75rem)]"
+                />
               </li>
             ))}
           </ol>
