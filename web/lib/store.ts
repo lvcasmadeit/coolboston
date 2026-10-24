@@ -3,6 +3,7 @@ import type {
   Action,
   LayerId,
   LayerState,
+  Metric,
   NewAction,
   SelectTool,
   SelectedBuilding,
@@ -15,6 +16,7 @@ export interface DashboardState {
   /** Applied actions, oldest first. */
   actions: Action[];
   viewMode: ViewMode;
+  metric: Metric;
   tool: SelectTool;
   layers: Record<LayerId, LayerState>;
 
@@ -30,6 +32,7 @@ export interface DashboardState {
   undo: () => void;
   resetActions: () => void;
   setViewMode: (mode: ViewMode) => void;
+  setMetric: (metric: Metric) => void;
   setTool: (tool: SelectTool) => void;
   toggleLayer: (id: LayerId) => void;
   setLayerOpacity: (id: LayerId, opacity: number) => void;
@@ -52,6 +55,7 @@ export function createDashboardStore(initialLayers: Record<LayerId, LayerState> 
     selection: null,
     actions: [],
     viewMode: "heat",
+    metric: "air",
     tool: "building",
     layers: structuredClone(initialLayers),
 
@@ -76,6 +80,7 @@ export function createDashboardStore(initialLayers: Record<LayerId, LayerState> 
     undo: () => set((s) => ({ actions: s.actions.slice(0, -1) })),
     resetActions: () => set({ actions: [] }),
     setViewMode: (viewMode) => set({ viewMode }),
+    setMetric: (metric) => set({ metric }),
     setTool: (tool) => set({ tool }),
     toggleLayer: (id) =>
       set((s) =>

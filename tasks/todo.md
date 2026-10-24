@@ -253,18 +253,20 @@ Notes: `lib/impact.ts`. Ranges combine low×low, central×central, high×high. S
 **Dependencies:** Tasks 14, 18, 19, 24
 **Files likely touched:** `web/lib/impact.ts`, `web/lib/impact.test.ts`
 
-### Task 26: Air / Surface base layer and Change mode [MVP, M]
+### Task 26: Air / Surface base layer and Change mode [MVP, M] (done)
 **Description:** The map shows either air or surface temperature as its base, each on a fixed baseline colour ramp. Change mode colours affected hexes by their % reduction on its own scale, and fades the rest.
 
 **Acceptance criteria:**
-- [ ] Store gains `metric: "air" | "surface"`, default `air`. `viewMode` already exists.
-- [ ] Air uses the baseline air range; surface uses its own baseline range. Neither changes after actions.
-- [ ] Change mode colours affected hexes by % reduction on a 0 → max scale. Unaffected and n/a hexes are faded.
-- [ ] Layers update through `updateTriggers`; the map is never recreated.
+- [x] Store gains `metric: "air" | "surface"`, default `air`. `viewMode` already exists.
+- [x] Air uses the baseline air range; surface uses its own baseline range. Neither changes after actions.
+- [x] Change mode colours affected hexes by % reduction on a 0 → max scale. Unaffected and n/a hexes are faded.
+- [x] Layers update through `updateTriggers`; the map is never recreated.
 
 **Verification:**
-- [ ] `npm test`: domains stay fixed after actions; Change colours; n/a hexes fade.
-- [ ] Manual check through the test hook: a green roof is visible in Change mode.
+- [x] `npm test`: domains stay fixed after actions; Change colours; n/a hexes fade.
+- [x] Manual check through the test hook: a green roof is visible in Change mode.
+
+Notes: one layer (`heat-hexes`) serves both modes through `lib/heatView.ts`, so area picking keeps working; no separate ChangeLayer file. Base data stays the same array; actions, metric, mode and opacity reach deck only through `updateTriggers`. Air range is min–max; surface range is the 2nd–98th percentile (74.8–108.2 °F) because the raw extremes (46.5–130.7 °F) wash the ramp out. Change ramp is pale-to-deep blue, unaffected and n/a hexes are grey at a quarter of the slab alpha. Legend and tooltip follow the metric and mode; the surface legend says mid-morning. Test hook: `window.__coolboston.store` outside production, or with `NEXT_PUBLIC_TEST_HOOK=1` (`lib/testHook.ts`). Browser check: green roof on a 1,267 m² roof cools its hex 92.3 → 91.8 °F, heat island −36.1%; Change mode shows that hex deep blue and the rest grey; a cool roof in a hot-surface hex shows in Change/surface (30.4%); undo restores the original colour; one map canvas throughout; no console errors.
 
 **Dependencies:** Tasks 18, 24, 25
 **Files likely touched:** `web/components/layers/HeatLayer.ts`, `web/components/layers/ChangeLayer.ts`, `web/lib/colors.ts`, `web/lib/store.ts`, `web/components/MapView.tsx`

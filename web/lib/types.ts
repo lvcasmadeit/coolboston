@@ -44,6 +44,9 @@ export type NewAction = Action extends infer A ? (A extends Action ? Omit<A, "id
 
 export type ViewMode = "heat" | "change";
 
+/** Base temperature shown on the map. */
+export type Metric = "air" | "surface";
+
 /** Map click mode: select buildings, or select hexes (area tool). */
 export type SelectTool = "building" | "area";
 

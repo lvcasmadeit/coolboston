@@ -1,18 +1,20 @@
 import { H3HexagonLayer } from "@deck.gl/geo-layers";
 import type { InterleavedLayerProps } from "@/components/DeckOverlay";
-import { heatColor } from "@/lib/colors";
-import type { Range } from "@/lib/heat";
+import { fillColor, type HeatView } from "@/lib/heatView";
 import type { Hex } from "@/lib/types";
 
 /** Slab height: above triple-deckers and brownstones (~10–17 m), well under downtown towers. */
 export const SLAB_HEIGHT_M = 18;
 
 /**
- * Heat Watch 3pm air temperature as a translucent 18 m slab of hexes. In Standard's "middle"
- * slot with normal depth testing, low-rise buildings inside the slab show through tinted and
- * towers rise above it (draw-order spike, planui.md V1).
+ * The heat slab: air or surface temperature (Heat mode) or % heat-island reduction (Change mode)
+ * as a translucent 18 m slab of hexes. In Standard's "middle" slot with normal depth testing,
+ * low-rise buildings inside the slab show through tinted and towers rise above it (planui.md V1).
+ *
+ * `hexes` is the stable base data; actions arrive as `view.deltas` and only change
+ * `updateTriggers`, so deck recolours in place instead of rebuilding geometry.
  */
-export function createHeatLayer(hexes: Hex[], range: Range, opacity: number) {
+export function createHeatLayer(hexes: Hex[], view: HeatView, maxPct: number) {
   return new H3HexagonLayer<Hex, InterleavedLayerProps>({
     id: "heat-hexes",
     slot: "middle",
@@ -20,7 +22,7 @@ export function createHeatLayer(hexes: Hex[], range: Range, opacity: number) {
     getHexagon: (d) => d.id,
     // Opacity goes in the fill alpha: deck gamma-corrects the layer `opacity` prop
     // (0.5 would composite as 0.5^(1/2.2) ≈ 0.73), but blends color alpha as-is.
-    getFillColor: (d) => heatColor(d.temp3pm, range.min, range.max, Math.round(opacity * 255)),
+    getFillColor: (d) => fillColor(d, view, maxPct),
     extruded: true,
     getElevation: SLAB_HEIGHT_M,
     elevationScale: 1,
@@ -29,6 +31,8 @@ export function createHeatLayer(hexes: Hex[], range: Range, opacity: number) {
     pickable: true,
     autoHighlight: true,
     highlightColor: [255, 255, 255, 90],
-    updateTriggers: { getFillColor: [range.min, range.max, opacity] },
+    updateTriggers: {
+      getFillColor: [view.metric, view.mode, view.deltas, view.opacity, maxPct, view.ranges[view.metric].min, view.ranges[view.metric].max],
+    },
   });
 }

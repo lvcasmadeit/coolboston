@@ -32,7 +32,36 @@ export function heatColor(value: number | null, min: number, max: number, alpha 
   ];
 }
 
+/** Change mode: pale to deep blue for 0 → max % heat-island reduction. */
+export const CHANGE_RAMP: readonly RGB[] = [
+  [222, 235, 247], // #DEEBF7
+  [107, 174, 214], // #6BAED6
+  [33, 113, 181], // #2171B5
+  [8, 48, 107], // #08306B
+];
+
+/** Unaffected and n/a hexes in Change mode: faded grey. */
+export const FADED: RGB = [170, 165, 155];
+
+function rampColor(ramp: readonly RGB[], t: number, alpha: number): RGBA {
+  const pos = Math.min(1, Math.max(0, t)) * (ramp.length - 1);
+  const i = Math.min(Math.floor(pos), ramp.length - 2);
+  const f = pos - i;
+  const [a, b] = [ramp[i], ramp[i + 1]];
+  return [
+    Math.round(a[0] + (b[0] - a[0]) * f),
+    Math.round(a[1] + (b[1] - a[1]) * f),
+    Math.round(a[2] + (b[2] - a[2]) * f),
+    alpha,
+  ];
+}
+
+/** Color for a % reduction on [0, max]. */
+export function changeColor(pct: number, max: number, alpha = 255): RGBA {
+  return rampColor(CHANGE_RAMP, max > 0 ? pct / max : 0, alpha);
+}
+
 /** CSS gradient matching HEAT_RAMP, for legends. */
-export function rampCss(): string {
-  return `linear-gradient(to right, ${HEAT_RAMP.map(([r, g, b]) => `rgb(${r} ${g} ${b})`).join(", ")})`;
+export function rampCss(ramp: readonly RGB[] = HEAT_RAMP): string {
+  return `linear-gradient(to right, ${ramp.map(([r, g, b]) => `rgb(${r} ${g} ${b})`).join(", ")})`;
 }

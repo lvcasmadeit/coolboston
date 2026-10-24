@@ -2,7 +2,7 @@
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { PickingInfo } from "@deck.gl/core";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import Map, { NavigationControl, ScaleControl } from "react-map-gl/mapbox";
 import { AreaSelection } from "@/components/AreaSelection";
 import { BuildingSelection } from "@/components/BuildingSelection";
@@ -12,10 +12,14 @@ import { createHeatLayer } from "@/components/layers/HeatLayer";
 import { createSelectionLayer } from "@/components/layers/SelectionLayer";
 import { ToolToggle } from "@/components/ToolToggle";
 import { useHexes } from "@/components/useHexes";
-import { formatTemp, valueRange } from "@/lib/heat";
+import { computeDeltas } from "@/lib/cooling";
+import { formatTemp, quantileRange, valueRange, type Range } from "@/lib/heat";
+import { afterValue, baseValue, changePct, maxChangePct, type HeatView } from "@/lib/heatView";
+import { computeBaseline } from "@/lib/impact";
 import { BASEMAP_CONFIG, BOSTON_VIEW, MAP_STYLE } from "@/lib/mapConfig";
 import { DEFAULT_LAYERS, useDashboard } from "@/lib/store";
-import type { Hex } from "@/lib/types";
+import { installTestHook } from "@/lib/testHook";
+import type { Hex, Metric } from "@/lib/types";
 
 // Deck's default tooltip is dark; style it with the light tokens.
 const TOOLTIP_STYLE = {
@@ -28,8 +32,21 @@ const TOOLTIP_STYLE = {
   fontSize: "12px",
 };
 
-function getTooltip({ object }: PickingInfo<Hex>) {
-  return object ? { text: `3pm air temp: ${formatTemp(object.temp3pm)}`, style: TOOLTIP_STYLE } : null;
+const METRIC_LABEL: Record<Metric, string> = { air: "3pm air temp", surface: "Surface temp (mid-morning)" };
+
+/** Tooltip for the current view: base value, plus after value and % change when the hex is treated. */
+function makeTooltip(view: HeatView | null) {
+  return ({ object }: PickingInfo<Hex>) => {
+    if (!object || !view) return null;
+    const base = baseValue(object, view.metric);
+    const after = afterValue(object, view.metric, view.deltas);
+    let text = `${METRIC_LABEL[view.metric]}: ${formatTemp(base)}`;
+    if (base !== null && after !== null && after !== base) {
+      const pct = changePct(object, view.metric, view.deltas, view.baseline);
+      text += ` → ${formatTemp(after)} (est.)\nHeat island: ${pct === null ? "n/a" : `−${pct.toFixed(1)}%`}`;
+    }
+    return { text, style: TOOLTIP_STYLE };
+  };
 }
 
 interface MapViewProps {
@@ -42,12 +59,40 @@ export default function MapView({ token, children }: MapViewProps) {
   const heatVisible = useDashboard((s) => s.layers.heat?.visible ?? true);
   const heatOpacity = useDashboard((s) => s.layers.heat?.opacity ?? DEFAULT_LAYERS.heat.opacity);
 
+  const actions = useDashboard((s) => s.actions);
+  const metric = useDashboard((s) => s.metric);
+  const mode = useDashboard((s) => s.viewMode);
+
+  useEffect(installTestHook, []);
+
   const hexes = data.status === "ready" ? data.hexes : null;
-  const range = useMemo(() => (hexes ? valueRange(hexes.map((h) => h.temp3pm)) : null), [hexes]);
+  // Fixed baseline: computed once from the base data, never from after-action values.
+  const base = useMemo(() => {
+    if (!hexes) return null;
+    const air = valueRange(hexes.map((h) => h.temp3pm));
+    const surface = quantileRange(hexes.map((h) => h.surface));
+    if (!air || !surface) return null;
+    return {
+      ranges: { air, surface } satisfies Record<Metric, Range>,
+      baseline: computeBaseline(hexes),
+      byId: new globalThis.Map(hexes.map((h) => [h.id, h])),
+    };
+  }, [hexes]);
+  const deltas = useMemo(() => computeDeltas(actions), [actions]);
+  const view = useMemo<HeatView | null>(
+    () =>
+      base && { metric, mode, deltas, baseline: base.baseline, ranges: base.ranges, opacity: heatOpacity },
+    [base, metric, mode, deltas, heatOpacity],
+  );
+  const maxPct = useMemo(
+    () => (base ? maxChangePct(base.byId, metric, deltas, base.baseline) : 0),
+    [base, metric, deltas],
+  );
+  const getTooltip = useMemo(() => makeTooltip(view), [view]);
   const areaCells = useDashboard((s) => (s.selection?.kind === "area" ? s.selection.cells : null));
   const heatLayer = useMemo(
-    () => (hexes && range && heatVisible ? createHeatLayer(hexes, range, heatOpacity) : null),
-    [hexes, range, heatVisible, heatOpacity],
+    () => (hexes && view && heatVisible ? createHeatLayer(hexes, view, maxPct) : null),
+    [hexes, view, heatVisible, maxPct],
   );
   const layers = useMemo(
     () => [heatLayer, areaCells && createSelectionLayer(areaCells)].filter((l) => !!l),
@@ -72,7 +117,7 @@ export default function MapView({ token, children }: MapViewProps) {
       <ToolToggle />
       <NavigationControl position="top-left" visualizePitch />
       <ScaleControl position="bottom-right" unit="imperial" />
-      {range && <Legend range={range} />}
+      {base && <Legend metric={metric} mode={mode} range={base.ranges[metric]} maxPct={maxPct} />}
       {data.status === "error" && (
         <p role="alert" className="absolute top-2 left-1/2 -translate-x-1/2 rounded-md bg-destructive px-3 py-1 text-xs text-white">
           Could not load heat data: {data.message}
