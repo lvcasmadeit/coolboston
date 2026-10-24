@@ -27,3 +27,23 @@ export interface LayerState {
 }
 
 export type LayerId = string;
+
+/**
+ * Contract for web/data/hexes.json, written by pipeline/src/coolboston/build_hexes.py.
+ * Bump HEXES_SCHEMA_VERSION on both sides together when fields change.
+ */
+export const HEXES_SCHEMA_VERSION = 1;
+
+export interface Hex {
+  /** H3 resolution-9 cell index. */
+  id: string;
+  /** 2019 Heat Watch mean air temperature, °F, at 6am / 3pm / 7pm. null = no traverse data. */
+  temp6am: number | null;
+  temp3pm: number | null;
+  temp7pm: number | null;
+}
+
+export interface HexesFile {
+  version: typeof HEXES_SCHEMA_VERSION;
+  hexes: Hex[];
+}
