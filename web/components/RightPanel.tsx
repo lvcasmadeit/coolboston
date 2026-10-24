@@ -1,16 +1,15 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TABS = [
-  { id: "layers", label: "Layers", placeholder: "Layer toggles and opacity (Task 28)." },
-  { id: "analysis", label: "Analysis", placeholder: "Click a hex to see its metrics (Task 23)." },
-  { id: "simulate", label: "Simulate", placeholder: "What-if simulator (Phase 6)." },
-  { id: "methodology", label: "Method", placeholder: "Scoring formulas and data sources (Task 34)." },
+  { id: "act", label: "Act", placeholder: "Click a building, or use the area tool, then choose a cooling action (Task 21)." },
+  { id: "layers", label: "Layers", placeholder: "Layer toggles and opacity." },
+  { id: "method", label: "Method", placeholder: "Cooling model, coefficients and data sources." },
 ] as const;
 
 export function RightPanel() {
   return (
     <aside aria-label="Dashboard controls" className="flex min-h-0 flex-col border-l border-border bg-card">
-      <Tabs defaultValue="layers" className="flex min-h-0 flex-1 flex-col p-3">
+      <Tabs defaultValue="act" className="flex min-h-0 flex-1 flex-col p-3">
         <TabsList className="w-full">
           {TABS.map((t) => (
             <TabsTrigger key={t.id} value={t.id}>
