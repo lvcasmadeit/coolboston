@@ -2,7 +2,7 @@
 
 Goal: move from the dark FireTrace look to a light, warm, calm interface (off-white and cream surfaces) on the Mapbox Standard basemap, with hexes at 50% opacity. Done before Phase 2 so later UI (timeline, charts, Layers tab) is built on the new palette.
 
-Status: **decisions made (section 1); implementing U1–U5 in order, one commit each.**
+Status: **U1–U5 done; Checkpoint U awaiting review.**
 
 ---
 
@@ -66,28 +66,29 @@ Standard has no `composite` source, so our own `3d-buildings` fill-extrusion lay
 ## 4. Tasks
 
 ### U1: Hex opacity 50% [S]
-- [ ] `DEFAULT_LAYERS.heat.opacity` = 0.5 in `lib/store.ts`; store test updated.
+- [x] `DEFAULT_LAYERS.heat.opacity` = 0.5 in `lib/store.ts`; store test updated.
+- [x] Fill alpha carries the opacity, layer `opacity` stays 1: deck gamma-corrects the prop (0.5 drew as 0.73). Measured in-browser: 0.502.
 
 ### U2: Light palette tokens [M]
-- [ ] `:root` tokens from section 2; `dark` class removed from `app/layout.tsx`.
-- [ ] Top bar, right panel, bottom panel, legend, tooltip and error banner restyled on the tokens (no hard-coded dark colors left; `grep` for `bg-black`, `white/`, `dark:`).
-- [ ] Verify: screenshots at 1280×720 and 1440×900; text contrast spot-checked (AA).
+- [x] `:root` tokens from section 2; `dark` class removed from `app/layout.tsx`.
+- [x] Top bar, right panel, bottom panel, legend, tooltip and error banner restyled on the tokens (no hard-coded dark colors left; `grep` for `bg-black`, `white/`, `dark:`). *shadcn `components/ui/*` keep their `dark:` utilities; inert without the `dark` class.*
+- [x] Verify: screenshots at 1280×720 and 1440×900; text contrast spot-checked (AA).
 
 ### U3: Mapbox Standard basemap [M]
-- [ ] `MAP_STYLE` → Standard; config from 3.1 applied (via `config` on the style import or `map.setConfigProperty("basemap", ...)` on load, whichever react-map-gl 8 supports cleanly).
-- [ ] Remove the custom `3d-buildings` layer and `WhenLayerExists`; hex layer uses `slot: "middle"`.
-- [ ] `mapConfig.test.ts` updated.
-- [ ] Verify: with the real token, pitched screenshot shows cream land, 3D buildings occluding hexes, no console errors; no duplicate map loads on reload.
+- [x] `MAP_STYLE` → Standard; config from 3.1 applied (react-map-gl's `config={{ basemap }}` prop) (via `config` on the style import or `map.setConfigProperty("basemap", ...)` on load, whichever react-map-gl 8 supports cleanly).
+- [x] Remove the custom `3d-buildings` layer and `WhenLayerExists`; hex layer uses `slot: "middle"` plus `depthBias: -2` (without it only 14/390 on-screen hexes drew; with it 351/390).
+- [x] `mapConfig.test.ts` updated.
+- [x] Verify: with the real token, pitched screenshot shows cream land, 3D buildings occluding hexes, no console errors; no duplicate map loads on reload. *One style request per page load; a dev hot-reload was not separately counted.*
 
 ### U4: New heat ramp [S]
-- [ ] `HEAT_RAMP` → section 3.2 stops; `colors.test.ts` still passes (tests are stop-agnostic).
-- [ ] Verify: screenshot; coolest and hottest hexes distinguishable at 50% opacity.
+- [x] `HEAT_RAMP` → section 3.2 stops; `colors.test.ts` still passes (tests are stop-agnostic).
+- [x] Verify: screenshot; coolest and hottest hexes distinguishable at 50% opacity.
 
 ### U5: Docs [S]
-- [ ] PLAN.md decisions updated (Standard style, light theme, slot layering, building-coloring plan).
-- [ ] tasks/todo.md: Task 4 "Dark theme" and Task 5 "Classic dark style" notes amended.
+- [x] PLAN.md decisions updated (Standard style, light theme, slot layering, building-coloring plan).
+- [x] tasks/todo.md: Task 4 "Dark theme" and Task 5 "Classic dark style" notes amended.
 
 ### Checkpoint U
-- [ ] `npm test`, `npm run lint`, `npm run typecheck`, `npm run build` pass
-- [ ] Light UI + Standard map + 50% hexes verified with screenshots
+- [x] `npm test`, `npm run lint`, `npm run typecheck`, `npm run build` pass
+- [x] Light UI + Standard map + 50% hexes verified with screenshots
 - [ ] Review with human before Phase 2
