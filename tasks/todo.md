@@ -1,522 +1,467 @@
-# Task List: CoolBoston, interactive heat-island interventions
+# Task List: CoolBoston
 
-Overview, architecture, risks and index: `plan.md`. Direction changed Sat 12:33: select a building or area, apply a cooling action, see the heat map cool. Timeline, Landsat and the adoption simulator are dropped. Phases 0–1 below are the completed record.
+Overview, architecture, inputs and risks: `plan.md`. Product definition: `../PLAN.md`. Completed tasks are listed compactly; full acceptance criteria are in git history.
 
 Conventions
-- Web commands run in `web/`: tests `npm test` (Vitest, `vitest run`), build `npm run build`, lint `npm run lint`.
-- Pipeline commands run in `pipeline/`: tests `uv run pytest`.
+- Web commands run in `web/`: tests `npm test`, types `npm run typecheck`, lint `npm run lint`, build `npm run build`.
+- Pipeline commands run in `pipeline/`: tests `uv run pytest`, build data `uv run python -m coolboston.build_hexes`.
 - Tier: **MVP** = must ship, **STRETCH** = cut if behind.
-- Every task ends with a working app (or a working pipeline script). Do not start a task with a red build.
-- Scope: XS = 1 file, S = 1-2, M = 3-5. Nothing is larger than M.
+- Scope: XS = 1 file, S = 1–2, M = 3–5, L = more than 5 (split any L).
+- Every task ends with a working app or pipeline. Do not start a task on a red build.
+- Every task ends with a commit of its own. Pushes happen only when asked.
 
 ---
 
-## Phase 0: Foundation
+## Done
 
-### Task 1: Repo scaffold [MVP, XS]
-**Description:** Initialize the repo skeleton so every later task has a place to put files.
+### Phase 0: Foundation
+- [x] Task 1: Repo scaffold (8e761d6)
+- [x] Task 2: Next.js app and tooling (88b37f1)
+- [x] Task 3: Zustand store (1099ba8). Superseded by Task 12.
+- [x] Task 4: Layout shell (c8f802d). Superseded by Task 13.
+- [x] Task 5: 3D Mapbox map, client-only (4430e89)
+- [x] Task 6: deck.gl interleaved overlay (ad000d1)
+
+Checkpoint A passed.
+
+### Phase 1: Heat hexes
+- [x] Task 7: Pipeline scaffold, boundary, H3 grid (634f33e)
+- [x] Task 8: Heat Watch ingest and area-weighted join (9b15a30)
+- [x] Task 9: hexes.json writer and /api/hexes (81753c6)
+- [x] Task 10: Heat hex layer, ramp, tooltip (52bc29d)
+
+Checkpoint B passed.
+
+### UI and map revamp (`../planui.md`)
+- [x] Light theme, Mapbox Standard, 50% opacity (79329c4, 453056e, 7d9441b, 3810aeb, bf67645, 36ef80a)
+- [x] Map look v2: res 10, 18 m slab, rainbow ramp, navy water, camera (1d9d577, dc71c7c, 6e5ec2d, ff9fa00, 453f156)
+
+### Phase 2: Pivot cleanup
+- [x] Task 11: Rewrite PLAN.md for the select-and-act direction (7637b56)
+- [x] Task 12: Store holds selection, actions, view mode; timeline state removed (1bb22d4)
+- [x] Task 13: Act / Layers / Method tabs, Impact panel; intervention dropdown and Recharts removed (99cf042)
+- [x] Task 13b: hexes.json v2 is 3pm only (cc608cd)
+
+Checkpoint C passed (46 web tests, 13 pipeline tests, typecheck, lint, build, 1280×720 and 1440×900 layouts checked).
+
+---
+
+## Phase 3: Inputs and surface data
+
+### Task 14: Source the remaining inputs [MVP, XS]
+**Description:** Fill the open rows of the inputs table in `plan.md`: energy per m² for green roof, cool roof and green walls; street-tree planting cost per m²; current commercial rooftop solar cost in Massachusetts; usable roof share and panel kW per m²; commercial electricity rate; Boston PV yield (optional). Use primary or high-trust sources. Record any input with no source as "not quantified".
 
 **Acceptance criteria:**
-- [x] `git init` done; `web/`, `pipeline/`, `tasks/` exist.
-- [x] `.gitignore` ignores `node_modules`, `.next`, `.venv`, `__pycache__`, `.env*.local`, `pipeline/cache/`, `.env`.
-- [x] `.env.example` contains `NEXT_PUBLIC_MAPBOX_TOKEN=`.
+- [ ] Every open row has a value (low / central / high with unit and year), a source URL, and a confidence, or "not quantified".
+- [ ] Only `tasks/plan.md` changes.
 
 **Verification:**
-- [x] `git status` shows no secrets or build output tracked.
+- [ ] Manual check: every row has a source URL or "not quantified".
 
 **Dependencies:** None
-**Files likely touched:** `.gitignore`, `.env.example`
+**Files likely touched:** `tasks/plan.md`
 
-### Task 2: Next.js app and tooling [MVP, M]
-**Description:** Create the Next.js app (App Router, TypeScript, Tailwind) and install the tooling used by every later task.
-
-**Acceptance criteria:**
-- [x] `web/` runs with `npm run dev` and shows the default page.
-- [x] shadcn/ui initialised; Vitest configured with a path alias matching `tsconfig`.
-- [x] Dependencies installed with pinned (exact) versions: `mapbox-gl`, `react-map-gl`, `deck.gl` (plus `@deck.gl/mapbox`, `@deck.gl/geo-layers`, `@deck.gl/layers`), `zustand`, `recharts`, `vitest`.
-- [x] One trivial passing Vitest test proves the runner works.
-
-**Verification:**
-- [x] `npm test` passes
-- [x] `npm run build` succeeds
-- [x] `npm run lint` passes
-
-**Dependencies:** Task 1
-**Files likely touched:** `web/package.json`, `web/vitest.config.ts`, `web/tsconfig.json`, `web/components.json`, `web/lib/smoke.test.ts`
-
-### Task 3: Zustand store with core state [MVP, S]
-**Description:** One store holds the state the whole UI shares, so later tasks only read and write it.
+### Task 15: Landsat 2019 search and asset check [MVP, S]
+**Description:** `search_scenes(year)` queries Planetary Computer STAC (`landsat-c2-l2`) for Boston's bounding box, June 1 to August 31, 2019, cloud cover below 20%, and returns signed hrefs. Confirm the thermal and QA asset keys for Landsat 7 and Landsat 8 items.
 
 **Acceptance criteria:**
-- [x] State: `year` (default 2025), `isPlaying` (false), `speed` (1), `intervention` (default `green-roof`), `selectedHexId` (null), `layers` (map of id → `{visible, opacity}`).
-- [x] Actions: `setYear`, `play`, `pause`, `setSpeed`, `setIntervention`, `selectHex`, `toggleLayer`, `setLayerOpacity`.
-- [x] `setYear` clamps to 2013-2025; `setLayerOpacity` clamps to 0-1.
+- [ ] Query builder (bbox, dates, cloud filter) is a pure function and is tested without network.
+- [ ] Asset keys are constants; the Landsat 8 thermal key is confirmed (`lwir11` expected; `lwir` seen on Landsat 7).
+- [ ] A code comment records the overpass (about 10:12 a.m. local solar time) and says the surface values are mid-morning.
 
 **Verification:**
-- [x] Tests pass: defaults, clamping, `toggleLayer`, `selectHex(null)` clears.
-
-**Dependencies:** Task 2
-**Files likely touched:** `web/lib/store.ts`, `web/lib/store.test.ts`, `web/lib/types.ts`
-
-### Task 4: Dashboard layout shell [MVP, M]
-**Description:** FireTrace-style frame: top bar, center map area, right panel with tabs, bottom timeline area, all with placeholder content.
-
-**Acceptance criteria:**
-- [x] CSS grid layout fills the viewport with no page scroll: top bar, map slot, right panel (~320px), bottom panel (~220px).
-- [x] Right panel has tabs: Layers, Analysis, Simulate, Methodology (placeholders).
-- [x] Top bar shows the app name and an intervention dropdown (wired to the store).
-- [x] Dark theme; layout holds from 1280px up. *(Superseded by the UI revamp: light cream palette, dark mode removed. See planui.md.)*
-
-**Verification:**
-- [x] `npm run build` succeeds
-- [x] Manual check: resize the window, confirm no overflow and tabs switch.
-
-**Dependencies:** Task 3
-**Files likely touched:** `web/app/layout.tsx`, `web/app/page.tsx`, `web/components/TopBar.tsx`, `web/components/RightPanel.tsx`, `web/components/BottomPanel.tsx`
-
-### Task 5: 3D Mapbox map, client-only [MVP, M]
-**Description:** Boston in 3D inside the map slot. The map is mounted once so it is not recreated on re-render (each creation is billed as a map load).
-
-**Acceptance criteria:**
-- [x] `MapView` loaded via `dynamic(() => import(...), { ssr: false })`.
-- [x] Classic dark style (not Standard) *(superseded: now Mapbox Standard, default theme, navy water; camera zoom 15.2 / pitch 52 over Downtown; see planui.md)*, centered near `[-71.0589, 42.3601]`, pitch 60, zoom ~12.5.
-- [x] A `fill-extrusion` layer extrudes buildings using `height` from the vector tiles; Mapbox attribution visible.
-- [x] Missing token shows a readable error message instead of a blank page.
-
-**Verification:**
-- [x] `npm run build` succeeds (no `window is not defined`)
-- [x] Manual check: pan, rotate, tilt work; reloading dev server does not spawn extra maps (check the console).
-
-**Dependencies:** Task 4
-**Files likely touched:** `web/components/MapView.tsx`, `web/components/MapClient.tsx`, `web/app/page.tsx`
-
-### Task 6: deck.gl interleaved overlay spike [MVP, S]
-**Description:** Prove deck.gl layers render correctly beneath/among the 3D buildings before building on it.
-
-**Acceptance criteria:**
-- [x] `MapboxOverlay` in interleaved mode attached to the map.
-- [x] A test `ScatterplotLayer` or `H3HexagonLayer` with 3 hard-coded cells renders in Boston.
-- [x] Layer draws below building extrusions using `beforeId`/`slot`; recorded in a code comment with the working setting.
-
-**Verification:**
-- [x] Manual check: tilt the map; hexes sit on the ground and buildings occlude them correctly.
-
-**Dependencies:** Task 5
-**Files likely touched:** `web/components/MapView.tsx`, `web/components/DeckOverlay.tsx`
-
-### Checkpoint A: After Tasks 1-6
-- [x] `npm test`, `npm run lint`, `npm run build` all pass
-- [x] 3D Boston renders inside the dashboard frame with a deck.gl layer on it
-- [x] Review with human before proceeding
-- [x] Visual check against real Mapbox tiles (needs NEXT_PUBLIC_MAPBOX_TOKEN in web/.env.local)
-
-Notes from Phase 0:
-- Tokens are checked for the pk. prefix; sk. tokens are rejected so they never ship to the browser.
-- deck.gl overlay is a per-map singleton (not react-map-gl useControl); useControl raced under React StrictMode ("WebGL context already attached") and rendered nothing in dev.
-- Deck mounts only after the 3d-buildings layer exists (`WhenLayerExists`), because addLayer with a missing beforeId throws. *(Removed in the UI revamp: Standard uses slots, not beforeId.)*
-- Layering verified offline with a stubbed style + synthetic building tiles: hexes draw beneath extrusions and are occluded by them, in dev and prod.
-- `@playwright/test` installed early (needed for Task 46; used now for screenshots).
-
----
-
-## Phase 1: Heat hexes on the map
-
-### Task 7: Pipeline scaffold, Boston boundary, H3 grid [MVP, M]
-**Description:** Python project that generates the H3 resolution-9 cells covering Boston. *(Now resolution 10, 8,044 cells; see planui.md M1.)*
-
-**Acceptance criteria:**
-- [x] `pipeline/` is a uv project (pinned versions): `geopandas`, `h3`, `shapely`, `pytest`.
-- [x] `grid.py` fetches/loads the Boston boundary (Analyze Boston municipal boundary) and returns the list of H3 res-9 cell IDs whose centers fall inside it (use `h3.polygon_to_cells`).
-- [x] Output ID list is deterministic and contains no duplicates.
-
-**Verification:**
-- [x] `uv run pytest`: a small fixture polygon returns the expected cell count; all IDs are valid H3 res 9.
-- [x] Manual check: count is plausible (roughly 1-3k cells).
-
-**Dependencies:** Task 1
-**Files likely touched:** `pipeline/pyproject.toml`, `pipeline/src/grid.py`, `pipeline/tests/test_grid.py`, `pipeline/data/raw/boston_boundary.geojson`
-
-### Task 8: Heat Watch ingest and area-weighted join [MVP, M]
-**Description:** Bring the 2019 Heat Watch hexes (6am, 3pm, 7pm temperature and heat index) onto our H3 grid.
-
-**Acceptance criteria:**
-- [x] `heatwatch.py` loads the "Canopy Change Assessment: Heat Metrics" hex layer (MassGIS / Analyze Boston).
-- [x] Each H3 cell receives an area-weighted mean of the overlapping source hexes for `temp_3pm`, `temp_6am`, `temp_7pm` (°F) in the grid CRS.
-- [x] Cells with no overlap get `null`, not 0.
-
-**Verification:**
-- [x] `uv run pytest`: two overlapping fixture polygons with known values give the expected weighted mean; a non-overlapping cell is `null`.
+- [ ] `uv run pytest`: query builder tests pass.
+- [ ] Manual check: a live search prints the scene count (9 under 20% cloud on the last check).
 
 **Dependencies:** Task 7
-**Files likely touched:** `pipeline/src/heatwatch.py`, `pipeline/src/join.py`, `pipeline/tests/test_join.py`
+**Files likely touched:** `pipeline/src/coolboston/landsat.py`, `pipeline/tests/test_landsat_query.py`
 
-### Task 9: hexes.json writer and /api/hexes [MVP, M]
-**Description:** Define the data contract between pipeline and web, then serve it.
-
-**Acceptance criteria:**
-- [x] `build_hexes.py` writes `web/data/hexes.json`: `{ "version": 1, "hexes": [{ "id", "temp3pm", ... }] }`; field names documented in `web/lib/types.ts`.
-- [x] `GET /api/hexes` returns the file with `Cache-Control` set.
-- [x] Response type is validated at load time (missing/extra fields throw a clear error).
-
-**Verification:**
-- [x] `uv run pytest`: written JSON matches schema.
-- [x] `npm test`: loader rejects a malformed fixture.
-- [x] Manual check: `curl localhost:3000/api/hexes` returns data.
-
-**Dependencies:** Tasks 3, 8
-**Files likely touched:** `pipeline/src/build_hexes.py`, `web/app/api/hexes/route.ts`, `web/lib/data.ts`, `web/lib/data.test.ts`, `web/lib/types.ts`
-
-### Task 10: Heat hex layer, color ramp, tooltip [MVP, M]
-**Description:** Render the hexes colored by temperature.
+### Task 16: Landsat DN conversion and QA mask [MVP, S]
+**Description:** Pure functions that turn Landsat thermal digital numbers into °C and mask invalid pixels.
 
 **Acceptance criteria:**
-- [x] `H3HexagonLayer` shows all hexes, colored by `temp3pm` with a continuous ramp (cool blue → hot red; briefly amber → maroon, now a blue → red rainbow on an 18 m translucent slab, see planui.md Part 2); `null` cells are transparent.
-- [x] Hover tooltip shows the temperature in °F, rounded to 1 decimal.
-- [x] Legend with min/max values in the Layers tab or map corner.
+- [ ] `dn_to_celsius(dn) = dn × 0.00341802 + 149.0 − 273.15`; DN 0 becomes NaN.
+- [ ] `cloud_mask(qa)` flags fill, dilated cloud, cirrus, cloud and cloud shadow using QA_PIXEL bit positions from the Landsat Collection 2 documentation (cited in a comment). Masked pixels become NaN.
 
 **Verification:**
-- [x] `npm test`: ramp returns the first color at min, the last at max, clamps outside the range, handles null.
-- [x] Manual check: downtown/dense areas look hotter than parks.
+- [ ] `uv run pytest`: DN 44000 gives about 26.24 °C; a synthetic QA array with known bits masks exactly those pixels.
 
-**Dependencies:** Tasks 6, 9
-**Files likely touched:** `web/lib/colors.ts`, `web/lib/colors.test.ts`, `web/components/layers/HeatLayer.ts`, `web/components/Legend.tsx`
+**Dependencies:** Task 15
+**Files likely touched:** `pipeline/src/coolboston/lst.py`, `pipeline/tests/test_lst.py`
 
-### Checkpoint B: After Tasks 7-10
-- [x] `uv run pytest` and `npm test` pass; `npm run build` succeeds
-- [x] Heat hexes are visible on the 3D map with hover values
-- [x] Review with human before proceeding *(reviewed; led to the UI and map revamp in planui.md)*
+### Task 17: Summer 2019 composite and per-hex mean [MVP, M]
+**Description:** Stack the masked scenes from Tasks 15–16, take the per-pixel nan-median, clip to Boston, and compute the mean of valid pixels per H3 res-10 cell. Output goes to `pipeline/cache/` (gitignored). Runs fail loudly if fewer than two usable scenes exist.
+
+**Acceptance criteria:**
+- [ ] Nan-median composite matches fixture values; NaN pixels are ignored.
+- [ ] Per-hex mean uses only valid pixels; a cell with none is null.
+- [ ] Fewer than two usable scenes raises an error that names the year.
+- [ ] Output is written to `pipeline/cache/`, never to `web/`.
+
+**Verification:**
+- [ ] `uv run pytest`: composite, zonal mean and failure-mode fixtures pass.
+- [ ] Manual check: the run prints how many of the 7,908 air-data cells have a surface value.
+
+**Dependencies:** Tasks 7, 15, 16
+**Files likely touched:** `pipeline/src/coolboston/composite.py`, `pipeline/src/coolboston/zonal.py`, `pipeline/src/coolboston/run_landsat.py`, `pipeline/tests/test_composite.py`, `pipeline/tests/test_zonal.py`
+
+### Task 18: Surface field in hexes.json v3 [MVP, M]
+**Description:** Add `surface` (°F, 2 decimals, null allowed) to the hex contract. Bump the schema to version 3 on both sides.
+
+**Acceptance criteria:**
+- [ ] `build_hexes.py` writes `surface` in °F, rounded to 2 decimals, `allow_nan=False`; schema version is 3.
+- [ ] `Hex` type and `parseHexes` include `surface`; a v2 file is rejected with a clear error.
+- [ ] `web/data/hexes.json` is regenerated.
+
+**Verification:**
+- [ ] `uv run pytest`: writer tests pass with the new field.
+- [ ] `npm test`: loader accepts v3 and rejects v2.
+- [ ] Manual check: `curl localhost:3000/api/hexes` returns `"version":3` with `surface` values.
+
+**Dependencies:** Task 17
+**Files likely touched:** `pipeline/src/coolboston/build_hexes.py`, `pipeline/tests/test_build_hexes.py`, `web/lib/types.ts`, `web/lib/data.ts`, `web/lib/data.test.ts`, `web/data/hexes.json`
 
 ---
 
-## UI and map revamp (done)
-Tracked in `../planui.md`: light cream palette, Mapbox Standard (default theme, navy water), 50% opacity measured at 0.502, H3 res 10 (8,044 cells), 18 m translucent slab, rainbow ramp, Downtown camera at zoom 15.2. Checkpoints U and V passed.
+## Phase 4: Selection
 
----
-
-## Phase 2: Pivot cleanup
-
-### Task 11: Rewrite PLAN.md for the new direction [MVP, XS]
-**Description:** PLAN.md still describes the Landsat timeline and the adoption simulator. Make it describe the select → act → cool loop.
+### Task 19: Intervention catalog [MVP, S]
+**Description:** One module with every action: where it applies, its cost range, cooling coefficients, energy basis, surface change and its source. This is the only place these numbers live.
 
 **Acceptance criteria:**
-- [x] Goal, features, data sources and architecture match `plan.md`; Landsat, timeline and per-hex scoring are removed or moved to a short "Dropped" section with the reason.
-- [x] Mapbox/deck.gl findings (slots, 18 m slab, gamma-corrected opacity, zoom ≥ 15) are kept.
+- [ ] Building actions: solar, green roof, cool building, green walls. Combined: green roof + solar (one roof action). Area: street trees. Cool pavement and depave are absent.
+- [ ] Each entry has `id`, `label`, `appliesTo`, `costPerUnit {low, central, high, unit}`, `airCoefficient`, `surfaceChange`, `energy` (value, or "not quantified", or the solar inputs), `source` (citation with URL) and `note`.
+- [ ] Every value comes from Task 14 or is an explicitly labelled assumption (roof albedo change 0.3).
+- [ ] low ≤ central ≤ high throughout.
 
 **Verification:**
-- [x] `grep -i "timeline\|landsat\|playback" PLAN.md` only hits the "Dropped" section.
+- [ ] `npm test`: every action has a source; ranges are ordered; the combined action is green roof + solar; building and area sets are disjoint.
 
-**Dependencies:** None
-**Files likely touched:** `PLAN.md`
+**Dependencies:** Task 14
+**Files likely touched:** `web/lib/interventions.ts`, `web/lib/interventions.test.ts`, `web/lib/types.ts`
 
-### Task 12: Store refactor: drop timeline state, add selection and actions [MVP, S]
-**Description:** Replace year/playback state with the state the new loop needs.
+### Task 20: Geometry helpers [MVP, S]
+**Description:** Footprint area, the res-10 cell of a building's centroid, and the hex area. Adds `h3-js` as a direct dependency, pinned to 4.5.0 (the version deck.gl resolves).
 
 **Acceptance criteria:**
-- [x] Removed: `year`, `isPlaying`, `speed`, `setYear`, `play`, `pause`, `setSpeed`, `intervention`, `setIntervention`, `selectedHexId`/`selectHex`; `MIN_YEAR`, `MAX_YEAR`, `PlaybackSpeed` from `types.ts`.
-- [x] Added: `selection: { kind: "building", building } | { kind: "area", cells: string[] } | null`; `actions: Action[]`; `viewMode: "heat" | "change"`.
-- [x] Actions: `selectBuilding`, `toggleAreaCell`, `setAreaCells`, `clearSelection`, `addAction`, `removeAction(id)`, `undo`, `resetActions`, `setViewMode`. Action ids are unique; `undo` removes the most recent action.
-- [x] Layer state (`layers`, `toggleLayer`, `setLayerOpacity`) is unchanged.
+- [ ] `footprintAreaM2` on a ~100 m × 100 m square near Boston is within 1% of 10,000 m²; a hole subtracts its area.
+- [ ] `buildingCell` returns a valid res-10 cell.
+- [ ] `HEX_AREA_M2` comes from h3 (about 15,050 m²), not a literal.
 
 **Verification:**
-- [x] `npm test`: defaults; selecting a building replaces an area selection and vice versa; toggling a cell twice removes it; add/remove/undo/reset; old year tests deleted (not skipped).
-
-**Dependencies:** None
-**Files likely touched:** `web/lib/store.ts`, `web/lib/store.test.ts`, `web/lib/types.ts`
-
-### Task 13: Layout refactor: remove timeline UI and the intervention dropdown [MVP, M]
-**Description:** The frame should host the new loop: map, a right panel for selection and actions, and a bottom panel for impact.
-
-**Acceptance criteria:**
-- [x] Top bar: app name and location only; intervention dropdown removed.
-- [x] Right panel tabs: **Act** (selection + actions, placeholder), **Layers**, **Method**; Analysis and Simulate tabs removed.
-- [x] Bottom panel: "Impact" placeholder (no "Timeline" or "Summer 2013–2025" text).
-- [x] No component reads removed store fields.
-- [x] `recharts` uninstalled (no charts in the new direction).
-
-**Verification:**
-- [x] `npm run typecheck`, `npm run lint`, `npm run build` pass.
-- [x] Manual check: screenshots at 1280×720 and 1440×900, no overflow, tabs switch.
-
-**Dependencies:** Task 12
-**Files likely touched:** `web/components/TopBar.tsx`, `web/components/RightPanel.tsx`, `web/components/BottomPanel.tsx`
-
-### Task 13b: Drop 6am/7pm temperatures from the data [MVP, S]
-**Description:** The app is 3pm-only, so stop shipping the unused time-of-day values.
-
-**Acceptance criteria:**
-- [x] `build_hexes.py` writes only `id` and `temp3pm`; `HEXES_SCHEMA_VERSION` bumped to 2 on both sides; `Hex` type and `parseHexes` updated; `heatwatch.py` loads only the 3pm field.
-- [x] `hexes.json` regenerated.
-
-**Verification:**
-- [x] `uv run pytest` and `npm test` pass (fixtures updated; loader rejects a v1 file with a clear error).
-
-**Dependencies:** None
-**Files likely touched:** `pipeline/src/coolboston/heatwatch.py`, `pipeline/src/coolboston/build_hexes.py`, `pipeline/tests/*`, `web/lib/types.ts`, `web/lib/data.ts`, `web/lib/data.test.ts`, `web/data/hexes.json`
-
-Note: Task 13 landed before Task 12 so every commit builds (the dropdown had to stop reading `intervention` before the store dropped it). Data v2 kept 8,044 cells / 7,908 with data / 87.75–94.48 °F; file 571 → 321 KiB.
-
-### Checkpoint C: After Tasks 11-13b
-- [x] All tests pass; build succeeds; map and heat slab unchanged
-- [x] No timeline, year, time-of-day or simulator references left in `web/` (`grep -ri "year\|timeline\|playback\|6am\|7pm" web/components web/lib`)
-
----
-
-## Phase 3: Selection (highest risk)
-
-### Task 14: Intervention catalog and cooling coefficients [MVP, S]
-**Description:** One table defining every action: where it applies, how much it cools, and where the number comes from.
-
-**Acceptance criteria:**
-- [ ] `interventions.ts` lists: building actions `green-roof`, `cool-roof`, `solar`; area actions `trees`, `cool-pavement`, `depave` (impervious → green space).
-- [ ] Each entry: `id`, `label`, `appliesTo: "building" | "area"`, `coolingF: { low, central, high }` (°F air-temperature reduction at 3pm per 100% of a hex's area treated), `reachRings` (how far the effect spreads on the H3 grid), `coverage` (area actions only: the fixed share of the selected area that gets treated, justified in `note`), `source` (citation + URL), `note`.
-- [ ] Coefficients researched and cited: EPA Heat Island Compendium and at least one peer-reviewed field or modelling study per action. Solar also carries `kwhPerSqftYear` for Boston with a source.
-- [ ] No unsourced numbers; `low ≤ central ≤ high`.
-
-**Verification:**
-- [ ] `npm test`: every action has a source and valid ranges; every area action has a `coverage` in (0, 1]; building actions and area actions are disjoint and complete.
-
-**Dependencies:** None
-**Files likely touched:** `web/lib/interventions.ts`, `web/lib/interventions.test.ts`
-
-### Task 15: Geometry helpers [MVP, S]
-**Description:** Pure helpers shared by selection and the cooling model.
-
-**Acceptance criteria:**
-- [ ] `h3-js` added as a pinned direct dependency (same version deck.gl resolves, 4.5.0).
-- [ ] `footprintAreaM2(polygon | multipolygon)` (geodesic, holes subtracted); `buildingCell(polygon)` → res-10 cell of the centroid; `HEX_AREA_M2` from h3, not hard-coded.
-
-**Verification:**
-- [ ] `npm test`: a ~100 m × 100 m square near Boston ≈ 10,000 m² (±1%); a polygon with a hole subtracts it; centroid cell is valid res 10.
+- [ ] `npm test` passes.
 
 **Dependencies:** None
 **Files likely touched:** `web/lib/geo.ts`, `web/lib/geo.test.ts`, `web/package.json`
 
-### Task 16: Building selection spike [MVP, S]
-**Description:** Prove Standard's `buildings` featureset gives us what we need before building on it.
+### Task 21: Building selection spike (Mapbox featureset) [MVP, S]
+**Description:** Confirm that Standard's `buildings` featureset gives a stable id, footprint and height, and that footprints are whole rather than cut at tile edges. Decide Mapbox or the fallback.
 
 **Acceptance criteria:**
-- [ ] `map.addInteraction` click on `{ featuresetId: "buildings", importId: "basemap" }` logs the feature's id, properties and geometry type.
-- [ ] Record in a code comment: is there a stable id; is `height` present; is the footprint whole or tile-clipped (check a building on a tile edge); does feature-state `select` color the building.
-- [ ] Decision written in `plan.md`: proceed with Standard, or switch to the fallback (downtown footprint GeoJSON).
+- [ ] A click handler on `{ featuresetId: "buildings", importId: "basemap" }` logs id, properties and geometry type for five buildings, including one tall tower and one on a tile edge.
+- [ ] `plan.md` records the decision: Mapbox kept, or the downtown footprint fallback chosen, with the reason.
+- [ ] Debug code is removed or clearly marked as a spike.
 
 **Verification:**
-- [ ] Manual check: click 5 buildings including one tall tower and one on a tile edge; record results.
+- [ ] Manual check with a temporary Playwright script, deleted afterwards.
 
-**Dependencies:** Task 15
-**Files likely touched:** `web/components/MapView.tsx` (spike, may be reverted)
+**Dependencies:** Task 20
+**Files likely touched:** `web/components/MapView.tsx`, `tasks/plan.md`
 
-### Task 17: Building selection and highlight [MVP, M]
-**Description:** Click a building to select it.
+### Task 22: Building selection and highlight [MVP, M]
+**Description:** Click a building to select it, with a feature-state highlight.
 
 **Acceptance criteria:**
-- [ ] Clicking a building sets `selection = { kind: "building", building: { id, footprint, heightM, roofAreaM2, cell } }`; the building is highlighted (feature state `select`, sage `colorBuildingSelect`).
-- [ ] Clicking another building moves the highlight; Escape or clicking empty ground clears it.
-- [ ] Hex hover tooltip still works; a building click takes priority over a hex click.
+- [ ] A click sets `selection = { kind: "building", building: { id, footprint, heightM, roofAreaM2, cell } }`. A missing height is null, not zero.
+- [ ] The selected building is highlighted (feature state `select`, sage). Clicking another moves it; Escape or empty ground clears it.
+- [ ] A building click takes priority over a hex click. The hex hover tooltip still works.
 
 **Verification:**
-- [ ] `npm test`: feature → `SelectedBuilding` mapping (area, cell, missing height handled).
+- [ ] `npm test`: feature-to-building mapping, including a missing height.
 - [ ] Manual check: select, reselect, Escape; no console errors.
 
-**Dependencies:** Tasks 12, 16
+**Dependencies:** Tasks 12, 21
 **Files likely touched:** `web/components/MapView.tsx`, `web/lib/buildings.ts`, `web/lib/buildings.test.ts`
 
-### Task 18: Area selection on hexes [MVP, M]
-**Description:** Select an area as a set of hexes.
+### Task 23: Area selection on hexes [MVP, M]
+**Description:** An area tool: click a hex to select it, shift-click to add or remove, shift-drag a box to add every hex whose centre is inside the box. Plain drag still pans.
 
 **Acceptance criteria:**
-- [ ] With the area tool on: click a hex to select it, shift-click to add or remove, shift-drag a box to add every hex whose center is inside the box.
-- [ ] Selected cells draw with a thick sage outline on top of the slab.
+- [ ] Click, shift-click and box selection work with the area tool on; plain drag pans.
+- [ ] Selected cells draw with a sage outline above the slab.
 - [ ] Selecting an area clears a building selection and vice versa; Escape clears.
 
 **Verification:**
-- [ ] `npm test`: box → cells (screen-to-geo projection mocked), toggle logic.
-- [ ] Manual check: box-select a few blocks in Chinatown; plain drag still pans.
+- [ ] `npm test`: box to cells (projection mocked) and toggle logic.
+- [ ] Manual check: box-select a few blocks in Chinatown.
 
 **Dependencies:** Task 12
 **Files likely touched:** `web/components/layers/SelectionLayer.ts`, `web/lib/areaSelect.ts`, `web/lib/areaSelect.test.ts`, `web/components/MapView.tsx`
 
-### Checkpoint D: After Tasks 14-18
-- [ ] All tests pass; build succeeds
-- [ ] A building and an area can each be selected and cleared
-- [ ] Spike decision recorded; review with human before proceeding
-
----
-
-## Phase 4: Cooling model
-
-### Task 19: Cooling model [MVP, M]
-**Description:** Pure function from the action list to adjusted temperatures.
-
-**Acceptance criteria:**
-- [ ] `Action = { id, intervention, target: building | area cells }`; coverage comes from the catalog, not the action.
-- [ ] Building action: treated area = roof area; source ΔT in the building's cell = `coolingF.central × treatedArea / HEX_AREA_M2`.
-- [ ] Area action: each selected cell treated at the catalog's fixed `coverage` of its area.
-- [ ] Spread: cell at ring k ≤ `reachRings` gets `source ΔT × 0.5^k`; effects from multiple actions add; total reduction per cell capped (cap documented with its source, e.g. the largest observed park cool-island effect).
-- [ ] `applyActions(hexes, actions)` → `{ adjusted: Map<cell, temp>, delta: Map<cell, ΔT> }`; cells with null base temperature stay null; no actions → identical to base.
-- [ ] Recomputes only affected cells; < 20 ms for 50 actions on 8,044 hexes.
-
-**Verification:**
-- [ ] `npm test`: no actions = identity; one building gives the hand-computed ΔT at k=0 and halves per ring; two actions add; cap respected; null preserved; removing an action restores the values; timing test.
-
-**Dependencies:** Tasks 14, 15
-**Files likely touched:** `web/lib/cooling.ts`, `web/lib/cooling.test.ts`
-
-### Task 20: Heat layer driven by adjusted temperatures [MVP, S]
-**Description:** The slab recolors as actions are added.
-
-**Acceptance criteria:**
-- [ ] Heat layer colors by `adjusted` temperature, on a color domain fixed to the **baseline** min/max (legend shows the baseline range).
-- [ ] Memoized on the action list; `updateTriggers` so only colors update, never the map.
-- [ ] Tooltip shows "92.4 °F → 92.1 °F (−0.3 °F est.)" for affected cells.
-
-**Verification:**
-- [ ] `npm test`: domain stays at baseline after actions; tooltip formatter.
-- [ ] Manual check (via a temporary dev-only button or console hook): add a large area action and see the colors shift toward blue.
-
-**Dependencies:** Tasks 12, 19
-**Files likely touched:** `web/components/layers/HeatLayer.ts`, `web/components/MapView.tsx`, `web/lib/heat.ts`, `web/lib/heat.test.ts`
-
-### Checkpoint E: After Tasks 19-20
-- [ ] All tests pass; build succeeds
-- [ ] An action added through a test hook visibly cools the map around it
-- [ ] Review the size of effects with the human: realistic but small, or adjust the Change view first
-
----
-
-## Phase 5: Action UI and visuals
-
-### Task 21: Action panel [MVP, M]
-**Description:** The Act tab shows the selection and the actions that apply to it.
-
-**Acceptance criteria:**
-- [ ] Building selected: roof area (sq ft), height, base temperature of its hex; buttons for green roof, cool roof, solar, each with a one-line description and its estimated local ΔT before applying.
-- [ ] Area selected: cell count and area (acres); buttons for trees, cool pavement, depave, each stating the fixed share it treats (e.g. "plants trees on 25% of the area").
-- [ ] Nothing selected: instructions ("Click a building, or use the area tool").
-- [ ] Applying an action adds it to the store; a building can't receive the same action twice (button shows "Applied").
-
-**Verification:**
-- [ ] `npm test`: available actions per selection kind; duplicate prevention.
-- [ ] Manual check: apply a green roof and see the map cool.
-
-**Dependencies:** Tasks 14, 17, 18, 20
-**Files likely touched:** `web/components/ActPanel.tsx`, `web/components/RightPanel.tsx`
-
-### Task 22: Active interventions list [MVP, S]
-**Description:** See and manage what has been applied.
-
-**Acceptance criteria:**
-- [ ] List of actions (icon, label, target summary, estimated ΔT), each with a remove button; Undo and Reset all buttons.
-- [ ] Clicking an item flies the map to its target.
-
-**Verification:**
-- [ ] `npm test`: list derived from the store; remove and reset update it.
-
-**Dependencies:** Task 21
-**Files likely touched:** `web/components/ActionList.tsx`
-
-### Task 23: Roof markers on treated buildings [MVP, S]
-**Description:** Show what was done to each building.
-
-**Acceptance criteria:**
-- [ ] A deck `SolidPolygonLayer` caps each treated roof at the building's height: green for green roof, near-white for cool roof, dark blue for solar.
-- [ ] Markers draw above the slab and are removed with their action.
-
-**Verification:**
-- [ ] `npm test`: marker data derived from actions (color per intervention, elevation = height).
-- [ ] Manual check: tilted view shows the green roof on the right building.
-
-**Dependencies:** Tasks 17, 22
-**Files likely touched:** `web/components/layers/RoofLayer.ts`, `web/components/MapView.tsx`
-
-### Task 24: Change view and legend [MVP, S]
-**Description:** Make small, realistic effects visible.
-
-**Acceptance criteria:**
-- [ ] Toggle Heat / Change. Change colors only affected cells by ΔT on a blue scale from 0 to the current max ΔT; unaffected cells fade out.
-- [ ] Legend switches with the mode and labels values as estimates.
-
-**Verification:**
-- [ ] `npm test`: change-ramp domain from `delta`; zero-delta cells transparent.
-- [ ] Manual check: a single green roof is visible in Change view.
-
-**Dependencies:** Task 20
-**Files likely touched:** `web/components/layers/HeatLayer.ts`, `web/components/Legend.tsx`, `web/lib/colors.ts`
-
-### Checkpoint F: After Tasks 21-24 (MVP core loop)
-- [ ] All tests pass; build succeeds
-- [ ] Select building → green roof → map cools → remove → map restores; same for an area with trees
+### Checkpoint D: After Tasks 14–23
+- [ ] `npm test`, `npm run typecheck`, `npm run lint`, `npm run build` pass
+- [ ] Building and area selection each work and clear
+- [ ] Spike decision recorded in `plan.md`
 - [ ] Review with human before proceeding
 
 ---
 
-## Phase 6: Impact summary
+## Phase 5: Impact model and map
 
-### Task 25: Impact metrics [MVP, S]
-**Description:** Numbers that summarise the scenario.
+### Task 24: Hex impact model [MVP, M]
+**Description:** A pure function from the action list to per-hex air ΔT and surface ΔT. Share-based, no spread, additive within a hex, total share capped at 1. Formulas are in `plan.md` and cited in code comments.
 
 **Acceptance criteria:**
-- [ ] `impactSummary(hexes, result, actions)`: mean ΔT over affected cells, max ΔT, affected area (acres), roof area treated (sq ft), area treated (acres), estimated solar kWh/year.
-- [ ] Before/after mean 3pm temperature of the affected cells.
+- [ ] With no actions, every delta is zero.
+- [ ] One 1,000 m² cool-building roof gives about −0.22 °F air in its hex (±0.01).
+- [ ] A fully selected hex with street trees gives −0.07 °C (−0.13 °F) air.
+- [ ] Two actions in one hex add; total share is capped at 1; neighbouring hexes are unchanged.
+- [ ] Null base temperatures stay null. Solar and green walls give zero air and surface change.
+- [ ] 50 actions across 8,044 hexes run in under 20 ms.
 
 **Verification:**
-- [ ] `npm test`: fixture scenario gives the hand-computed values; empty scenario gives zeros.
+- [ ] `npm test` covers each case above.
 
-**Dependencies:** Task 19
+**Dependencies:** Tasks 19, 20
+**Files likely touched:** `web/lib/cooling.ts`, `web/lib/cooling.test.ts`
+
+### Task 25: Heat-island, energy and cost metrics [MVP, M]
+**Description:** Baseline citywide mean over valid hexes, heat-island °F and percentage change, energy offset, and capital cost range for each action and for the total.
+
+**Acceptance criteria:**
+- [ ] Baseline mean is computed once from valid hexes (7,908 cells) and is fixed while actions change.
+- [ ] `H = T − mean`. The percentage is `(H_before − H_after) ÷ H_before × 100`, and n/a when `H_before ≤ 0.5 °F`. A 2.0 → 1.9 °F example gives 5%.
+- [ ] Solar energy = usable area × kW per m² × yield (Task 14 inputs), shown as a range. Dollar values use the electricity rate. "Not quantified" passes through as text.
+- [ ] Capital cost = quantity × unit cost range. The combined action's cost is the sum of its parts.
+
+**Verification:**
+- [ ] `npm test`: the examples above, plus the n/a boundary at exactly 0.5 °F.
+
+**Dependencies:** Tasks 14, 18, 19, 24
 **Files likely touched:** `web/lib/impact.ts`, `web/lib/impact.test.ts`
 
-### Task 26: Impact cards [MVP, M]
-**Description:** The bottom Impact panel: numbers only, no chart.
+### Task 26: Air / Surface base layer and Change mode [MVP, M]
+**Description:** The map shows either air or surface temperature as its base, each on a fixed baseline colour ramp. Change mode colours affected hexes by their % reduction on its own scale, and fades the rest.
 
 **Acceptance criteria:**
-- [ ] Cards: Before, After, ΔT, area cooled, energy offset (solar).
-- [ ] Empty state when no actions exist.
+- [ ] Store gains `metric: "air" | "surface"`, default `air`. `viewMode` already exists.
+- [ ] Air uses the baseline air range; surface uses its own baseline range. Neither changes after actions.
+- [ ] Change mode colours affected hexes by % reduction on a 0 → max scale. Unaffected and n/a hexes are faded.
+- [ ] Layers update through `updateTriggers`; the map is never recreated.
 
 **Verification:**
-- [ ] `npm test`: cards render the `impactSummary` values.
-- [ ] Manual check: numbers update as actions are added and removed.
+- [ ] `npm test`: domains stay fixed after actions; Change colours; n/a hexes fade.
+- [ ] Manual check through the test hook: a green roof is visible in Change mode.
 
-**Dependencies:** Tasks 13, 25
-**Files likely touched:** `web/components/ImpactPanel.tsx`, `web/components/BottomPanel.tsx`
+**Dependencies:** Tasks 18, 24, 25
+**Files likely touched:** `web/components/layers/HeatLayer.ts`, `web/components/layers/ChangeLayer.ts`, `web/lib/colors.ts`, `web/lib/store.ts`, `web/components/MapView.tsx`
 
-### Checkpoint G: After Tasks 25-26
-- [ ] All tests pass; build succeeds; impact numbers match the map
-
----
-
-## Phase 7: Stretch
-
-### Task 27: Suitability hint [STRETCH, M]
-- [ ] For the selected building, a short hint ("Large flat roof in a hot hex: green roof or solar") from roof area and base heat; optional canopy % per hex from the Canopy Change Assessment.
-- [ ] `npm test`: hint rules on fixtures.
-
-### Task 28: Shareable scenario URL [STRETCH, S]
-- [ ] Actions serialise to a compact URL hash and load from it; invalid hashes are ignored safely (validated, never `eval`-ed).
-- [ ] `npm test`: round-trip; malformed input rejected.
-
-### Task 29: Free-form area drawing [STRETCH, M]
-- [ ] Polygon draw tool; cells whose centers fall inside become the area selection.
-- [ ] `npm test`: polygon → cells.
+### Checkpoint E: After Tasks 24–26
+- [ ] Tests and build pass
+- [ ] An action added through the test hook cools its hex on the map
+- [ ] Review with human: are the effect sizes readable? Does Change mode need more work?
 
 ---
 
-## Phase 8: Polish and deploy
+## Phase 6: Act panel and layout
 
-### Task 30: Loading, empty, error states and accessibility [MVP, M]
-- [ ] Loading state for hexes; error with retry; all buttons keyboard operable with visible focus and `aria-label`s; the Act panel announces applied actions (`aria-live`).
-- [ ] Verify: Tab through the page; block `/api/hexes` and see the error UI; `npm run lint`.
+### Task 27: Act panel [MVP, M]
+**Description:** Selection details and action buttons, each with its cost range and effect, as in the agreed layout.
 
-### Task 31: Playwright smoke test [MVP, S]
-- [ ] Load page → select a building (test hook) → apply green roof → tooltip/impact shows a cooler value → reset restores it. Skips with a clear message when no Mapbox token is set.
-- [ ] Verify: `npx playwright test` passes locally.
+**Acceptance criteria:**
+- [ ] Building selected: roof area, height and hex base temperature. Buttons for solar, green roof, cool building, green walls, and green roof + solar. Each shows its cost range, with "not quantified" where applicable.
+- [ ] Area selected: cell count and acres. A street-trees button states its canopy effect.
+- [ ] Nothing selected: instructions.
+- [ ] One roof action per building: other roof buttons are disabled with the reason. Green walls stay available with any roof action. The combined option counts as one roof action.
 
-### Task 32: Deploy to Vercel [MVP, S]
-- [ ] Deployed from `web/`; `NEXT_PUBLIC_MAPBOX_TOKEN` set in project settings; token URL-restricted to localhost and the production domain (ask before changing account settings).
-- [ ] Verify: production URL in a private window runs the core loop.
+**Verification:**
+- [ ] `npm test`: available actions per selection kind and the roof rule.
+- [ ] Manual check: apply, then try a second roof action on the same building.
 
-### Task 33: README and backup demo video [MVP, XS]
-- [ ] README: what it is, data sources, cooling model and its limits, how to run pipeline and web.
-- [ ] 60–90 s recording: select building → green roof → map cools → area → trees → impact panel.
+**Dependencies:** Tasks 19, 22, 23, 24, 25
+**Files likely touched:** `web/components/ActPanel.tsx`, `web/components/RightPanel.tsx`, `web/lib/availableActions.ts`, `web/lib/availableActions.test.ts`
+
+### Task 28: Applied actions list [MVP, S]
+**Description:** A list of applied actions with remove, undo and reset.
+
+**Acceptance criteria:**
+- [ ] Each item shows intervention, target and cost range.
+- [ ] Remove deletes one action; Undo removes the most recent; Reset clears all.
+- [ ] Clicking an item flies the map to its target.
+
+**Verification:**
+- [ ] `npm test`: the list is derived from the store; remove, undo and reset update it.
+- [ ] Manual check: the list matches the map.
+
+**Dependencies:** Task 27
+**Files likely touched:** `web/components/ActionList.tsx`, `web/components/ActPanel.tsx`
+
+### Task 29: Treated roof markers [MVP, S]
+**Description:** A deck.gl layer that caps each treated roof at its building height, coloured by intervention. Kept from the earlier plan.
+
+**Acceptance criteria:**
+- [ ] Markers appear only for building actions and are removed with their action.
+- [ ] Each intervention has a distinct colour.
+
+**Verification:**
+- [ ] `npm test`: marker data derived from actions (colour, elevation).
+- [ ] Manual check: a tilted view shows the capped roof.
+
+**Dependencies:** Tasks 22, 28
+**Files likely touched:** `web/components/layers/RoofLayer.ts`, `web/components/MapView.tsx`
+
+### Task 30: Metric cards [MVP, M]
+**Description:** Right-panel cards for current conditions and for each change, labelled as building-level or hex-level.
+
+**Acceptance criteria:**
+- [ ] Current conditions: air temperature (3pm, July 2019); surface temperature (summer 2019, mid-morning, hex average); heat island as °F above the citywide mean.
+- [ ] After an action: air change, surface change, heat-island % change, energy offset (kWh/yr and $/yr, as ranges) or "not quantified", capital cost range, and roof surface change for building actions, labelled peak-summer.
+- [ ] Every number carries an estimate label. Air and heat-island values for a building are shown at hex level.
+
+**Verification:**
+- [ ] `npm test`: cards match `impact.ts` output for a fixture.
+- [ ] Manual check: a green roof shows every card.
+
+**Dependencies:** Tasks 25, 27
+**Files likely touched:** `web/components/MetricCards.tsx`, `web/components/RightPanel.tsx`
+
+### Task 31: Layers tab and top-bar view controls [MVP, M]
+**Description:** A Layers tab with toggles and opacity sliders, as in the screenshot, plus the view controls in the top bar.
+
+**Acceptance criteria:**
+- [ ] Toggles for the heat base layer, roof markers and buildings. Opacity sliders update the layer opacity.
+- [ ] Top bar: Air / Surface and Heat / Change controls, labelled and keyboard operable.
+- [ ] Layer state comes from the store; no other component reads it directly.
+
+**Verification:**
+- [ ] `npm test`: store opacity and toggle changes reach the layer props.
+- [ ] Manual check: each control updates the map.
+
+**Dependencies:** Tasks 26, 29
+**Files likely touched:** `web/components/LayersPanel.tsx`, `web/components/TopBar.tsx`, `web/lib/layers.ts`, `web/lib/layers.test.ts`
+
+### Checkpoint F: Core loop complete
+- [ ] Select a building, apply green roof, see the map and metrics change, remove it, see it restore
+- [ ] The same loop works for an area with street trees
+- [ ] Deploy the current build (Task 37) so the URL is known
+- [ ] Review with human before proceeding
+
+---
+
+## Phase 7: Charts
+
+### Task 32: Recharts and cost-versus-effect chart [MVP, M]
+**Description:** Re-add Recharts pinned to 3.10.1, removed in Task 13. Add the bottom-panel scatter: x = capital cost (range), y = % heat-island change at the hex. Roof surface change appears in the tooltip.
+
+**Acceptance criteria:**
+- [ ] Recharts is pinned to the exact version in `package.json`.
+- [ ] One point per action for the current selection; the empty state shows when nothing is applied.
+- [ ] The tooltip shows the roof surface change and cost range.
+
+**Verification:**
+- [ ] `npm test`: the data transform from impact outputs.
+- [ ] `npm run build` passes.
+- [ ] Manual check: the chart matches the cards.
+
+**Dependencies:** Tasks 25, 30
+**Files likely touched:** `web/package.json`, `web/components/charts/TradeoffChart.tsx`, `web/components/BottomPanel.tsx`, `web/lib/tradeoff.ts`, `web/lib/tradeoff.test.ts`
+
+### Task 33: Before-and-after chart [MVP, S]
+**Description:** Bars for air, surface and heat island (°F), before and after, for the current selection.
+
+**Acceptance criteria:**
+- [ ] Bars update as actions are added and removed.
+- [ ] Empty state when no action is applied.
+
+**Verification:**
+- [ ] `npm test`: the transform.
+- [ ] Manual check: a green roof moves the bars.
+
+**Dependencies:** Task 32
+**Files likely touched:** `web/components/charts/BeforeAfterChart.tsx`, `web/components/BottomPanel.tsx`
+
+### Checkpoint G: Charts
+- [ ] Both charts update with actions and show an empty state with none
+- [ ] Review with human before proceeding
+
+---
+
+## Phase 8: Stretch
+
+### Task 34: Shareable scenario URL [STRETCH, S]
+**Description:** Encode the action list in the URL hash, and load it back. Malformed input is rejected and never evaluated.
+
+**Acceptance criteria:**
+- [ ] Round trip: encode, then decode, gives the same actions.
+- [ ] Malformed or unknown ids are ignored with no error shown to the user.
+
+**Verification:**
+- [ ] `npm test`: round trip and malformed inputs.
+
+**Dependencies:** Task 28
+**Files likely touched:** `web/lib/shareUrl.ts`, `web/lib/shareUrl.test.ts`
+
+---
+
+## Phase 9: Polish and deploy
+
+### Task 35: Loading, error states and accessibility [MVP, M]
+**Description:** Loading and error states, keyboard access, labels, and estimate labels everywhere.
+
+**Acceptance criteria:**
+- [ ] Skeleton while `hexes.json` loads; error with retry if the API fails.
+- [ ] Every button, slider and toggle is keyboard operable with a visible focus ring and an `aria-label`.
+- [ ] Applied-action announcements use an `aria-live` region.
+- [ ] Every estimate has an estimate label; every surface value has the mid-morning label.
+
+**Verification:**
+- [ ] Manual check: Tab through the page; block `/api/hexes` and see the error state.
+- [ ] `npm run lint` passes.
+
+**Dependencies:** Checkpoint F
+**Files likely touched:** `web/components/*`, `web/hooks/useHexes.ts`
+
+### Task 36: Playwright smoke test [MVP, S]
+**Description:** One end-to-end test of the core loop.
+
+**Acceptance criteria:**
+- [ ] Load the page, select a building (test hook), apply green roof, see a heat-island % change, remove it, see the values restore.
+- [ ] Skips with a clear message when no Mapbox token is set.
+
+**Verification:**
+- [ ] `npx playwright test` passes locally.
+
+**Dependencies:** Checkpoint F
+**Files likely touched:** `web/e2e/smoke.spec.ts`, `web/playwright.config.ts`
+
+### Task 37: Deploy to Vercel [MVP, S]
+**Description:** Deploy from `web/`. The token is URL-restricted in the Mapbox dashboard. Changing account settings needs your approval.
+
+**Acceptance criteria:**
+- [ ] `NEXT_PUBLIC_MAPBOX_TOKEN` is set in Vercel project settings, not in the repository.
+- [ ] The token is restricted to localhost and the production domain (after your approval).
+- [ ] The production URL runs the core loop.
+
+**Verification:**
+- [ ] Manual check: open the URL in a private window and run the demo path.
+
+**Dependencies:** Checkpoint F
+**Files likely touched:** `web/vercel.json` (if needed)
+
+### Task 38: README and backup demo video [MVP, XS]
+**Description:** A README that covers what the app is, its data, the impact model and its limits, and what is not quantified. Plus a 60–90 second recording.
+
+**Acceptance criteria:**
+- [ ] README: data sources, impact model formulas, cost and energy sources, the "not quantified" rule, surface timing, and how to run the pipeline and the web app.
+- [ ] Recording: select a building, apply green roof, see the map and metrics change, add street trees to an area, show the charts.
+
+**Verification:**
+- [ ] A fresh clone can run the web app from the README.
+
+**Dependencies:** Task 37
+**Files likely touched:** `README.md`
 
 ### Checkpoint Final
-- [ ] All tests pass; deployed demo runs the core loop end-to-end
+- [ ] All tests pass; deployed demo runs the core loop end to end
 - [ ] Backup video recorded
+- [ ] Every estimate labelled; every "not quantified" value shown as such
