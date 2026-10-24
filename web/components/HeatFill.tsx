@@ -23,15 +23,17 @@ export function HeatFill({ cells, view, maxDrop, visible, opacity }: HeatFillPro
   const { current: mapRef } = useMap();
   const data = useMemo(() => tileFeatures(cells), [cells]);
   const colors = useMemo(() => tileFillColors(cells, view, maxDrop), [cells, view, maxDrop]);
-  const applied = useRef<string[] | null>(null);
+  // Colours already set as feature state, per map instance: a new map (remount, StrictMode) starts empty.
+  const applied = useRef<{ map: unknown; colors: string[] } | null>(null);
 
   useEffect(() => {
     const map = mapRef?.getMap();
     if (!map) return;
     const apply = () => {
       if (!map.getSource(HEAT_FILL_ID)) return false;
-      for (const i of changedIndices(applied.current, colors)) map.setFeatureState({ source: HEAT_FILL_ID, id: i }, { color: colors[i] });
-      applied.current = colors;
+      const prev = applied.current?.map === map ? applied.current.colors : null;
+      for (const i of changedIndices(prev, colors)) map.setFeatureState({ source: HEAT_FILL_ID, id: i }, { color: colors[i] });
+      applied.current = { map, colors };
       return true;
     };
     if (apply()) return;

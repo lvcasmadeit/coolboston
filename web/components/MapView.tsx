@@ -62,9 +62,9 @@ export default function MapView({ token, children }: MapViewProps) {
       config={{ basemap: BASEMAP_CONFIG }}
       initialViewState={BOSTON_VIEW}
       maxPitch={75}
-      // Reuse the underlying mapbox-gl instance across remounts (incl. React StrictMode in dev),
-      // so remounting this component does not create, and bill, a new map load.
-      reuseMaps
+      // No `reuseMaps`: react-map-gl 8.1's reuse loops forever (page freeze) when a reused map is
+      // reused again into the same container, e.g. leaving /map and coming back. A fresh map per
+      // visit costs one Mapbox map load each time.
       style={{ width: "100%", height: "100%" }}
     >
       {cells && view && <HeatFill cells={cells} view={view} maxDrop={maxDrop} visible={heat.visible} opacity={heat.opacity} />}
