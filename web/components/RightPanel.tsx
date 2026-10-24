@@ -3,12 +3,11 @@ import { MetricsPanel } from "@/components/MetricsPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TABS = [
-  { id: "metrics", label: "Metrics", placeholder: null },
-  { id: "layers", label: "Layers", placeholder: null },
-  { id: "method", label: "Method", placeholder: "Cooling model, coefficients and data sources." },
+  { id: "metrics", label: "Metrics" },
+  { id: "layers", label: "Layers" },
 ] as const;
 
-/** Right pane: metrics and charts, map layers, method. */
+/** Right pane: metrics and charts, map layers. */
 export function RightPanel() {
   return (
     <aside aria-label="Dashboard controls" className="flex min-h-0 flex-col border-l border-border bg-card">
@@ -22,7 +21,7 @@ export function RightPanel() {
         </TabsList>
         {TABS.map((t) => (
           <TabsContent key={t.id} value={t.id} className="min-h-0 overflow-y-auto pt-3 text-sm text-muted-foreground">
-            {t.id === "metrics" ? <MetricsPanel /> : t.id === "layers" ? <LayersPanel /> : t.placeholder}
+            {t.id === "metrics" ? <MetricsPanel /> : <LayersPanel />}
           </TabsContent>
         ))}
       </Tabs>
