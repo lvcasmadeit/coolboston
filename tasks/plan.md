@@ -32,7 +32,7 @@ Every number in the app is an estimate and is labelled as one.
 
 ### Phase 3: Inputs and surface data
 - [x] Task 14: Source the remaining inputs
-- [ ] Task 15: Landsat 2019 search and asset check
+- [x] Task 15: Landsat 2019 search and asset check
 - [ ] Task 16: Landsat DN conversion and QA mask
 - [ ] Task 17: Summer 2019 composite and per-hex mean
 - [ ] Task 18: Surface field in hexes.json v3
@@ -122,7 +122,7 @@ Phase 3 first, because the catalog needs its inputs and the surface layer needs 
 | Roof surface change | Green roof up to 56 °F lower; cool roof 50–60 °F lower | EPA "Using Green Roofs" and "Using Cool Roofs" | Found. Peak-summer values, not averages. |
 | Landsat overpass time | About 10:12 a.m. local solar time (descending) | USGS and NASA | Found. Clock-time conversion for Boston is my arithmetic. |
 | Mapbox buildings featureset properties | — | Docs page cut off before the Buildings section | Unverified. Task 21 decides. |
-| Landsat 8 thermal asset key | `lwir` seen on a Landsat 7 item; `lwir11` assumed for Landsat 8 | Planetary Computer STAC | Unverified for Landsat 8. Task 15 checks. |
+| Landsat thermal asset key | `lwir` on Landsat 7, `lwir11` on Landsat 8; QA band `qa_pixel` on both | Planetary Computer STAC, live items checked 2026-10-24 (Task 15) | Verified. Boston 2019 scenes acquired 15:13–15:27 UTC (about 11:15 a.m. EDT). |
 
 ## Risks and Mitigations
 
@@ -151,5 +151,4 @@ Phase 3 first, because the catalog needs its inputs and the surface layer needs 
 
 ## Open Questions
 - Task 21: whether Mapbox's buildings layer returns footprints and heights. Decides Mapbox versus fallback.
-- Task 15: whether Landsat 8 uses `lwir11` for the thermal band.
 - Mid-morning surface values are shown with a label. Is that acceptable, or should surface be dropped from the metrics? Recommended: keep, labelled.

@@ -61,17 +61,17 @@ Checkpoint C passed (46 web tests, 13 pipeline tests, typecheck, lint, build, 12
 **Dependencies:** None
 **Files likely touched:** `tasks/plan.md`
 
-### Task 15: Landsat 2019 search and asset check [MVP, S]
+### Task 15: Landsat 2019 search and asset check [MVP, S] (done)
 **Description:** `search_scenes(year)` queries Planetary Computer STAC (`landsat-c2-l2`) for Boston's bounding box, June 1 to August 31, 2019, cloud cover below 20%, and returns signed hrefs. Confirm the thermal and QA asset keys for Landsat 7 and Landsat 8 items.
 
 **Acceptance criteria:**
-- [ ] Query builder (bbox, dates, cloud filter) is a pure function and is tested without network.
-- [ ] Asset keys are constants; the Landsat 8 thermal key is confirmed (`lwir11` expected; `lwir` seen on Landsat 7).
-- [ ] A code comment records the overpass (about 10:12 a.m. local solar time) and says the surface values are mid-morning.
+- [x] Query builder (bbox, dates, cloud filter) is a pure function and is tested without network.
+- [x] Asset keys are constants; the Landsat 8 thermal key is confirmed (`lwir11` expected; `lwir` seen on Landsat 7).
+- [x] A code comment records the overpass (about 10:12 a.m. local solar time) and says the surface values are mid-morning.
 
 **Verification:**
-- [ ] `uv run pytest`: query builder tests pass.
-- [ ] Manual check: a live search prints the scene count (9 under 20% cloud on the last check).
+- [x] `uv run pytest`: query builder tests pass.
+- [x] Manual check: a live search prints the scene count (9 under 20% cloud: 1 Landsat 8, 8 Landsat 7; acquired 15:13–15:27 UTC).
 
 **Dependencies:** Task 7
 **Files likely touched:** `pipeline/src/coolboston/landsat.py`, `pipeline/tests/test_landsat_query.py`
