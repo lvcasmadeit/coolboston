@@ -1,30 +1,22 @@
 "use client";
 
 import "mapbox-gl/dist/mapbox-gl.css";
-import { H3HexagonLayer } from "@deck.gl/geo-layers";
+import type { PickingInfo } from "@deck.gl/core";
+import { useMemo } from "react";
 import Map, { Layer, NavigationControl, ScaleControl } from "react-map-gl/mapbox";
-import { DeckOverlay, type InterleavedLayerProps } from "@/components/DeckOverlay";
+import { DeckOverlay } from "@/components/DeckOverlay";
+import { Legend } from "@/components/Legend";
+import { createHeatLayer } from "@/components/layers/HeatLayer";
+import { useHexes } from "@/components/useHexes";
 import { WhenLayerExists } from "@/components/WhenLayerExists";
+import { formatTemp, valueRange } from "@/lib/heat";
 import { BOSTON_VIEW, BUILDINGS_LAYER_ID, MAP_STYLE } from "@/lib/mapConfig";
+import { useDashboard } from "@/lib/store";
+import type { Hex } from "@/lib/types";
 
-// Task 6 spike: three hard-coded H3 res-9 cells downtown. Replaced by real hexes in Task 10.
-const SPIKE_CELLS = [
-  { id: "892a3066037ffff", color: [239, 68, 68] },
-  { id: "892a306614fffff", color: [249, 115, 22] },
-  { id: "892a3066007ffff", color: [250, 204, 21] },
-] as const;
-
-const spikeLayer = new H3HexagonLayer<(typeof SPIKE_CELLS)[number], InterleavedLayerProps>({
-  id: "spike-hexes",
-  beforeId: BUILDINGS_LAYER_ID,
-  data: SPIKE_CELLS,
-  getHexagon: (d) => d.id,
-  getFillColor: (d) => [...d.color, 170],
-  extruded: false,
-  stroked: true,
-  getLineColor: [255, 255, 255, 200],
-  lineWidthMinPixels: 1,
-});
+function getTooltip({ object }: PickingInfo<Hex>) {
+  return object ? { text: `3pm air temp: ${formatTemp(object.temp3pm)}` } : null;
+}
 
 interface MapViewProps {
   token: string;
@@ -32,6 +24,17 @@ interface MapViewProps {
 }
 
 export default function MapView({ token, children }: MapViewProps) {
+  const data = useHexes();
+  const heatVisible = useDashboard((s) => s.layers.heat?.visible ?? true);
+  const heatOpacity = useDashboard((s) => s.layers.heat?.opacity ?? 0.8);
+
+  const hexes = data.status === "ready" ? data.hexes : null;
+  const range = useMemo(() => (hexes ? valueRange(hexes.map((h) => h.temp3pm)) : null), [hexes]);
+  const layers = useMemo(
+    () => (hexes && range && heatVisible ? [createHeatLayer(hexes, range, heatOpacity)] : []),
+    [hexes, range, heatVisible, heatOpacity],
+  );
+
   return (
     <Map
       mapboxAccessToken={token}
@@ -59,10 +62,16 @@ export default function MapView({ token, children }: MapViewProps) {
       />
       {/* Mount deck only after its beforeId anchor exists in the style. */}
       <WhenLayerExists id={BUILDINGS_LAYER_ID}>
-        <DeckOverlay layers={[spikeLayer]} />
+        <DeckOverlay layers={layers} getTooltip={getTooltip} />
       </WhenLayerExists>
       <NavigationControl position="top-left" visualizePitch />
       <ScaleControl position="bottom-right" unit="imperial" />
+      {range && <Legend range={range} />}
+      {data.status === "error" && (
+        <p role="alert" className="absolute top-2 left-1/2 -translate-x-1/2 rounded-md bg-destructive px-3 py-1 text-xs text-white">
+          Could not load heat data: {data.message}
+        </p>
+      )}
       {children}
     </Map>
   );
