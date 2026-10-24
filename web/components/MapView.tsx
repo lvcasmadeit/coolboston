@@ -14,8 +14,19 @@ import { BOSTON_VIEW, BUILDINGS_LAYER_ID, MAP_STYLE } from "@/lib/mapConfig";
 import { DEFAULT_LAYERS, useDashboard } from "@/lib/store";
 import type { Hex } from "@/lib/types";
 
+// Deck's default tooltip is dark; style it with the light tokens.
+const TOOLTIP_STYLE = {
+  backgroundColor: "var(--card)",
+  color: "var(--foreground)",
+  border: "1px solid var(--border)",
+  borderRadius: "6px",
+  boxShadow: "0 1px 3px rgba(43, 41, 37, 0.15)",
+  padding: "6px 8px",
+  fontSize: "12px",
+};
+
 function getTooltip({ object }: PickingInfo<Hex>) {
-  return object ? { text: `3pm air temp: ${formatTemp(object.temp3pm)}` } : null;
+  return object ? { text: `3pm air temp: ${formatTemp(object.temp3pm)}`, style: TOOLTIP_STYLE } : null;
 }
 
 interface MapViewProps {
