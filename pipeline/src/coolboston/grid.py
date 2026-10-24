@@ -1,4 +1,4 @@
-"""Boston boundary -> H3 resolution-9 cell IDs (the grid every other dataset is joined onto)."""
+"""Boston boundary -> H3 resolution-10 cell IDs (the grid every other dataset is joined onto)."""
 
 from pathlib import Path
 from urllib.request import urlretrieve
@@ -7,7 +7,7 @@ import geopandas as gpd
 import h3
 from shapely.geometry.base import BaseGeometry
 
-RESOLUTION = 9
+RESOLUTION = 10
 
 # City of Boston Outline Boundary (Water Excluded), City of Boston GIS / Analyze Boston.
 BOUNDARY_URL = (

@@ -35,7 +35,7 @@ export type LayerId = string;
 export const HEXES_SCHEMA_VERSION = 1;
 
 export interface Hex {
-  /** H3 resolution-9 cell index. */
+  /** H3 resolution-10 cell index. */
   id: string;
   /** 2019 Heat Watch mean air temperature, °F, at 6am / 3pm / 7pm. null = no traverse data. */
   temp6am: number | null;

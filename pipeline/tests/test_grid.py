@@ -5,13 +5,18 @@ from shapely.ops import unary_union
 
 from coolboston.grid import RESOLUTION, cells_for_geometry, load_boundary
 
-# A res-9 cell near Boston City Hall (42.3601, -71.0589).
+# A grid cell near Boston City Hall (42.3601, -71.0589).
 CENTER = h3.latlng_to_cell(42.3601, -71.0589, RESOLUTION)
 
 
 def cell_polygon(cell: str) -> Polygon:
     # h3 returns (lat, lng); shapely/GeoJSON wants (lng, lat).
     return Polygon([(lng, lat) for lat, lng in h3.cell_to_boundary(cell)])
+
+
+def test_grid_is_h3_resolution_10():
+    # ~76 m edges: fine enough for Landsat's 100 m thermal pixels without false precision.
+    assert RESOLUTION == 10
 
 
 def test_single_cell_outline_returns_that_cell():
