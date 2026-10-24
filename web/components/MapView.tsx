@@ -10,6 +10,7 @@ import { BuildingSelection } from "@/components/BuildingSelection";
 import { DeckOverlay } from "@/components/DeckOverlay";
 import { Legend } from "@/components/Legend";
 import { MapFocus } from "@/components/MapFocus";
+import { TestHookMap } from "@/components/TestHookMap";
 import { buildDeckLayers } from "@/components/layers/buildLayers";
 import { ToolToggle } from "@/components/ToolToggle";
 import { useHexes } from "@/components/useHexes";
@@ -109,6 +110,7 @@ export default function MapView({ token, children }: MapViewProps) {
       <BuildingSelection />
       <MapFocus />
       <BasemapBuildings />
+      <TestHookMap />
       {hexes && <AreaSelection hexes={hexes} />}
       <ToolToggle />
       <NavigationControl position="top-left" visualizePitch />
