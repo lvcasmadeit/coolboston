@@ -77,7 +77,7 @@ describe("dashboard store", () => {
   it("adds actions with unique ids, removes, undoes and resets", () => {
     const st = store.getState();
     const a = st.addAction({ intervention: "green-roof", target: { kind: "building", building: BUILDING } });
-    const b = st.addAction({ intervention: "trees", target: { kind: "area", cells: [CELL_A] } });
+    const b = st.addAction({ intervention: "street-trees", target: { kind: "area", cells: [CELL_A] } });
     const c = st.addAction({ intervention: "solar", target: { kind: "building", building: BUILDING } });
     expect(new Set([a, b, c]).size).toBe(3);
     expect(store.getState().actions.map((x) => x.id)).toEqual([a, b, c]);
@@ -93,9 +93,9 @@ describe("dashboard store", () => {
   });
 
   it("does not reuse ids after removal", () => {
-    const a = store.getState().addAction({ intervention: "trees", target: { kind: "area", cells: [CELL_A] } });
+    const a = store.getState().addAction({ intervention: "street-trees", target: { kind: "area", cells: [CELL_A] } });
     store.getState().undo();
-    const b = store.getState().addAction({ intervention: "trees", target: { kind: "area", cells: [CELL_A] } });
+    const b = store.getState().addAction({ intervention: "street-trees", target: { kind: "area", cells: [CELL_A] } });
     expect(b).not.toBe(a);
   });
 
@@ -103,7 +103,7 @@ describe("dashboard store", () => {
     // @ts-expect-error green roof needs a building target
     store.getState().addAction({ intervention: "green-roof", target: { kind: "area", cells: [CELL_A] } });
     // @ts-expect-error trees need an area target
-    store.getState().addAction({ intervention: "trees", target: { kind: "building", building: BUILDING } });
+    store.getState().addAction({ intervention: "street-trees", target: { kind: "building", building: BUILDING } });
   });
 
   it("sets the view mode", () => {

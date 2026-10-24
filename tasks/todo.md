@@ -125,17 +125,19 @@ Checkpoint C passed (46 web tests, 13 pipeline tests, typecheck, lint, build, 12
 
 ## Phase 4: Selection
 
-### Task 19: Intervention catalog [MVP, S]
+### Task 19: Intervention catalog [MVP, S] (done)
 **Description:** One module with every action: where it applies, its cost range, cooling coefficients, energy basis, surface change and its source. This is the only place these numbers live.
 
 **Acceptance criteria:**
-- [ ] Building actions: solar, green roof, cool building, green walls. Combined: green roof + solar (one roof action). Area: street trees. Cool pavement and depave are absent.
-- [ ] Each entry has `id`, `label`, `appliesTo`, `costPerUnit {low, central, high, unit}`, `airCoefficient`, `surfaceChange`, `energy` (value, or "not quantified", or the solar inputs), `source` (citation with URL) and `note`.
-- [ ] Every value comes from Task 14 or is an explicitly labelled assumption (roof albedo change 0.3).
-- [ ] low ≤ central ≤ high throughout.
+- [x] Building actions: solar, green roof, cool building, green walls. Combined: green roof + solar (one roof action). Area: street trees. Cool pavement and depave are absent.
+- [x] Each entry has `id`, `label`, `appliesTo`, `costPerUnit {low, central, high, unit}`, `airCoefficient`, `surfaceChange`, `energy` (value, or "not quantified", or the solar inputs), `source` (citation with URL) and `note`.
+- [x] Every value comes from Task 14 or is an explicitly labelled assumption (roof albedo change 0.3).
+- [x] low ≤ central ≤ high throughout.
 
 **Verification:**
-- [ ] `npm test`: every action has a source; ranges are ordered; the combined action is green roof + solar; building and area sets are disjoint.
+- [x] `npm test`: every action has a source; ranges are ordered; the combined action is green roof + solar; building and area sets are disjoint.
+
+Note: `costPerUnit` is a list of cost lines so the combined action can carry both its parts' units ($/m² roof and $/W). `roofAction` and `parts` support the roof rule. `surfaceChange` for street trees is null (not quantified).
 
 **Dependencies:** Task 14
 **Files likely touched:** `web/lib/interventions.ts`, `web/lib/interventions.test.ts`, `web/lib/types.ts`

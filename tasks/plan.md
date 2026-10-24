@@ -38,7 +38,7 @@ Every number in the app is an estimate and is labelled as one.
 - [x] Task 18: Surface field in hexes.json v3
 
 ### Phase 4: Selection
-- [ ] Task 19: Intervention catalog
+- [x] Task 19: Intervention catalog
 - [ ] Task 20: Geometry helpers
 - [ ] Task 21: Building selection spike (Mapbox featureset)
 - [ ] Task 22: Building selection and highlight

@@ -1,6 +1,12 @@
-/** Cooling actions. Labels, coefficients and sources live in the catalog (Task 14). */
-export const BUILDING_INTERVENTIONS = ["green-roof", "cool-roof", "solar"] as const;
-export const AREA_INTERVENTIONS = ["trees", "cool-pavement", "depave"] as const;
+/** Cooling actions. Labels, coefficients and sources live in lib/interventions.ts. */
+export const BUILDING_INTERVENTIONS = [
+  "solar",
+  "green-roof",
+  "cool-building",
+  "green-walls",
+  "green-roof-solar",
+] as const;
+export const AREA_INTERVENTIONS = ["street-trees"] as const;
 export type BuildingIntervention = (typeof BUILDING_INTERVENTIONS)[number];
 export type AreaIntervention = (typeof AREA_INTERVENTIONS)[number];
 export type Intervention = BuildingIntervention | AreaIntervention;
