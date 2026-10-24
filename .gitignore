@@ -27,3 +27,6 @@ pipeline/cache/
 playwright-report/
 test-results/
 coverage/
+
+# local verification scripts
+*.tmp.mjs

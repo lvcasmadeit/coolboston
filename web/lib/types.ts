@@ -10,6 +10,14 @@ export const INTERVENTIONS = [
 ] as const;
 export type Intervention = (typeof INTERVENTIONS)[number];
 
+export const INTERVENTION_LABELS: Record<Intervention, string> = {
+  "green-roof": "Green roofs",
+  "cool-roof": "Cool roofs",
+  solar: "Rooftop solar",
+  trees: "Street trees",
+  "cool-pavement": "Cool pavement",
+};
+
 export type PlaybackSpeed = 1 | 2 | 4;
 
 export interface LayerState {
