@@ -25,12 +25,12 @@ Detailed tasks with acceptance criteria are in `todo.md`. `../PLAN.md` still des
 - [x] UI revamp and map look v2 (`../planui.md`): light theme, Standard basemap, res-10 slab, rainbow ramp
 
 ### Phase 2: Pivot cleanup
-- [ ] Task 11: Docs: rewrite PLAN.md for the new direction
-- [ ] Task 12: Store refactor: drop timeline state, add selection and actions
-- [ ] Task 13: Layout refactor: remove timeline UI and intervention dropdown
-- [ ] Task 13b: Drop 6am/7pm temperatures from the data
+- [x] Task 11: Docs: rewrite PLAN.md for the new direction
+- [x] Task 12: Store refactor: drop timeline state, add selection and actions
+- [x] Task 13: Layout refactor: remove timeline UI and intervention dropdown
+- [x] Task 13b: Drop 6am/7pm temperatures from the data
 
-### Checkpoint C: Clean base
+### Checkpoint C: Clean base (passed)
 
 ### Phase 3: Selection (highest risk)
 - [ ] Task 14: Intervention catalog and cooling coefficients

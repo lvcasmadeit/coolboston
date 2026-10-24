@@ -199,11 +199,11 @@ Tracked in `../planui.md`: light cream palette, Mapbox Standard (default theme, 
 **Description:** PLAN.md still describes the Landsat timeline and the adoption simulator. Make it describe the select → act → cool loop.
 
 **Acceptance criteria:**
-- [ ] Goal, features, data sources and architecture match `plan.md`; Landsat, timeline and per-hex scoring are removed or moved to a short "Dropped" section with the reason.
-- [ ] Mapbox/deck.gl findings (slots, 18 m slab, gamma-corrected opacity, zoom ≥ 15) are kept.
+- [x] Goal, features, data sources and architecture match `plan.md`; Landsat, timeline and per-hex scoring are removed or moved to a short "Dropped" section with the reason.
+- [x] Mapbox/deck.gl findings (slots, 18 m slab, gamma-corrected opacity, zoom ≥ 15) are kept.
 
 **Verification:**
-- [ ] `grep -i "timeline\|landsat\|playback" PLAN.md` only hits the "Dropped" section.
+- [x] `grep -i "timeline\|landsat\|playback" PLAN.md` only hits the "Dropped" section.
 
 **Dependencies:** None
 **Files likely touched:** `PLAN.md`
@@ -212,13 +212,13 @@ Tracked in `../planui.md`: light cream palette, Mapbox Standard (default theme, 
 **Description:** Replace year/playback state with the state the new loop needs.
 
 **Acceptance criteria:**
-- [ ] Removed: `year`, `isPlaying`, `speed`, `setYear`, `play`, `pause`, `setSpeed`, `intervention`, `setIntervention`, `selectedHexId`/`selectHex`; `MIN_YEAR`, `MAX_YEAR`, `PlaybackSpeed` from `types.ts`.
-- [ ] Added: `selection: { kind: "building", building } | { kind: "area", cells: string[] } | null`; `actions: Action[]`; `viewMode: "heat" | "change"`.
-- [ ] Actions: `selectBuilding`, `toggleAreaCell`, `setAreaCells`, `clearSelection`, `addAction`, `removeAction(id)`, `undo`, `resetActions`, `setViewMode`. Action ids are unique; `undo` removes the most recent action.
-- [ ] Layer state (`layers`, `toggleLayer`, `setLayerOpacity`) is unchanged.
+- [x] Removed: `year`, `isPlaying`, `speed`, `setYear`, `play`, `pause`, `setSpeed`, `intervention`, `setIntervention`, `selectedHexId`/`selectHex`; `MIN_YEAR`, `MAX_YEAR`, `PlaybackSpeed` from `types.ts`.
+- [x] Added: `selection: { kind: "building", building } | { kind: "area", cells: string[] } | null`; `actions: Action[]`; `viewMode: "heat" | "change"`.
+- [x] Actions: `selectBuilding`, `toggleAreaCell`, `setAreaCells`, `clearSelection`, `addAction`, `removeAction(id)`, `undo`, `resetActions`, `setViewMode`. Action ids are unique; `undo` removes the most recent action.
+- [x] Layer state (`layers`, `toggleLayer`, `setLayerOpacity`) is unchanged.
 
 **Verification:**
-- [ ] `npm test`: defaults; selecting a building replaces an area selection and vice versa; toggling a cell twice removes it; add/remove/undo/reset; old year tests deleted (not skipped).
+- [x] `npm test`: defaults; selecting a building replaces an area selection and vice versa; toggling a cell twice removes it; add/remove/undo/reset; old year tests deleted (not skipped).
 
 **Dependencies:** None
 **Files likely touched:** `web/lib/store.ts`, `web/lib/store.test.ts`, `web/lib/types.ts`
@@ -227,15 +227,15 @@ Tracked in `../planui.md`: light cream palette, Mapbox Standard (default theme, 
 **Description:** The frame should host the new loop: map, a right panel for selection and actions, and a bottom panel for impact.
 
 **Acceptance criteria:**
-- [ ] Top bar: app name and location only; intervention dropdown removed.
-- [ ] Right panel tabs: **Act** (selection + actions, placeholder), **Layers**, **Method**; Analysis and Simulate tabs removed.
-- [ ] Bottom panel: "Impact" placeholder (no "Timeline" or "Summer 2013–2025" text).
-- [ ] No component reads removed store fields.
-- [ ] `recharts` uninstalled (no charts in the new direction).
+- [x] Top bar: app name and location only; intervention dropdown removed.
+- [x] Right panel tabs: **Act** (selection + actions, placeholder), **Layers**, **Method**; Analysis and Simulate tabs removed.
+- [x] Bottom panel: "Impact" placeholder (no "Timeline" or "Summer 2013–2025" text).
+- [x] No component reads removed store fields.
+- [x] `recharts` uninstalled (no charts in the new direction).
 
 **Verification:**
-- [ ] `npm run typecheck`, `npm run lint`, `npm run build` pass.
-- [ ] Manual check: screenshots at 1280×720 and 1440×900, no overflow, tabs switch.
+- [x] `npm run typecheck`, `npm run lint`, `npm run build` pass.
+- [x] Manual check: screenshots at 1280×720 and 1440×900, no overflow, tabs switch.
 
 **Dependencies:** Task 12
 **Files likely touched:** `web/components/TopBar.tsx`, `web/components/RightPanel.tsx`, `web/components/BottomPanel.tsx`
@@ -244,18 +244,20 @@ Tracked in `../planui.md`: light cream palette, Mapbox Standard (default theme, 
 **Description:** The app is 3pm-only, so stop shipping the unused time-of-day values.
 
 **Acceptance criteria:**
-- [ ] `build_hexes.py` writes only `id` and `temp3pm`; `HEXES_SCHEMA_VERSION` bumped to 2 on both sides; `Hex` type and `parseHexes` updated; `heatwatch.py` loads only the 3pm field.
-- [ ] `hexes.json` regenerated.
+- [x] `build_hexes.py` writes only `id` and `temp3pm`; `HEXES_SCHEMA_VERSION` bumped to 2 on both sides; `Hex` type and `parseHexes` updated; `heatwatch.py` loads only the 3pm field.
+- [x] `hexes.json` regenerated.
 
 **Verification:**
-- [ ] `uv run pytest` and `npm test` pass (fixtures updated; loader rejects a v1 file with a clear error).
+- [x] `uv run pytest` and `npm test` pass (fixtures updated; loader rejects a v1 file with a clear error).
 
 **Dependencies:** None
 **Files likely touched:** `pipeline/src/coolboston/heatwatch.py`, `pipeline/src/coolboston/build_hexes.py`, `pipeline/tests/*`, `web/lib/types.ts`, `web/lib/data.ts`, `web/lib/data.test.ts`, `web/data/hexes.json`
 
+Note: Task 13 landed before Task 12 so every commit builds (the dropdown had to stop reading `intervention` before the store dropped it). Data v2 kept 8,044 cells / 7,908 with data / 87.75–94.48 °F; file 571 → 321 KiB.
+
 ### Checkpoint C: After Tasks 11-13b
-- [ ] All tests pass; build succeeds; map and heat slab unchanged
-- [ ] No timeline, year, time-of-day or simulator references left in `web/` (`grep -ri "year\|timeline\|playback\|6am\|7pm" web/components web/lib`)
+- [x] All tests pass; build succeeds; map and heat slab unchanged
+- [x] No timeline, year, time-of-day or simulator references left in `web/` (`grep -ri "year\|timeline\|playback\|6am\|7pm" web/components web/lib`)
 
 ---
 
