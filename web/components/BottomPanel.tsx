@@ -6,7 +6,7 @@ export function BottomPanel() {
     >
       <h2 className="text-sm font-medium">Impact</h2>
       <div className="rounded-md border border-dashed border-border p-3 text-sm text-muted-foreground">
-        Apply a cooling action to see its estimated effect (Task 26).
+        Charts are coming. Estimated effects for the selection are in the Act tab.
       </div>
     </section>
   );
