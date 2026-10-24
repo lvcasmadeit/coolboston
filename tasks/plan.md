@@ -42,7 +42,7 @@ Every number in the app is an estimate and is labelled as one.
 - [x] Task 20: Geometry helpers
 - [x] Task 21: Building selection spike (Mapbox featureset)
 - [x] Task 22: Building selection and highlight
-- [ ] Task 23: Area selection on hexes
+- [x] Task 23: Area selection on hexes
 
 ### Checkpoint D: After Tasks 14–23
 - [ ] Tests and build pass

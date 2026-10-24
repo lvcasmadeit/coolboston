@@ -35,6 +35,7 @@ describe("dashboard store", () => {
     expect(s.selection).toBeNull();
     expect(s.actions).toEqual([]);
     expect(s.viewMode).toBe("heat");
+    expect(s.tool).toBe("building");
     expect(s.layers).toEqual(LAYERS);
   });
 
@@ -104,6 +105,11 @@ describe("dashboard store", () => {
     store.getState().addAction({ intervention: "green-roof", target: { kind: "area", cells: [CELL_A] } });
     // @ts-expect-error trees need an area target
     store.getState().addAction({ intervention: "street-trees", target: { kind: "building", building: BUILDING } });
+  });
+
+  it("sets the selection tool", () => {
+    store.getState().setTool("area");
+    expect(store.getState().tool).toBe("area");
   });
 
   it("sets the view mode", () => {

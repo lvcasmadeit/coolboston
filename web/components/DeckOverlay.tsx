@@ -22,6 +22,11 @@ type MapInstance = NonNullable<ReturnType<typeof useMap>["current"]> extends { g
 // ("WebGL context already attached"), leaving no deck layers rendered in dev.
 const overlays = new WeakMap<MapInstance, MapboxOverlay>();
 
+/** The deck overlay attached to `map`, if any (for picking outside deck's own event handlers). */
+export function getDeckOverlay(map: MapInstance): MapboxOverlay | undefined {
+  return overlays.get(map);
+}
+
 /**
  * deck.gl rendered *inside* the Mapbox WebGL context (interleaved), so deck layers share the
  * depth buffer with the basemap's 3D buildings. Layers are placed by slot.

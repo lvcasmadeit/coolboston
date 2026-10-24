@@ -4,10 +4,13 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import type { PickingInfo } from "@deck.gl/core";
 import { useMemo } from "react";
 import Map, { NavigationControl, ScaleControl } from "react-map-gl/mapbox";
+import { AreaSelection } from "@/components/AreaSelection";
 import { BuildingSelection } from "@/components/BuildingSelection";
 import { DeckOverlay } from "@/components/DeckOverlay";
 import { Legend } from "@/components/Legend";
 import { createHeatLayer } from "@/components/layers/HeatLayer";
+import { createSelectionLayer } from "@/components/layers/SelectionLayer";
+import { ToolToggle } from "@/components/ToolToggle";
 import { useHexes } from "@/components/useHexes";
 import { formatTemp, valueRange } from "@/lib/heat";
 import { BASEMAP_CONFIG, BOSTON_VIEW, MAP_STYLE } from "@/lib/mapConfig";
@@ -41,9 +44,14 @@ export default function MapView({ token, children }: MapViewProps) {
 
   const hexes = data.status === "ready" ? data.hexes : null;
   const range = useMemo(() => (hexes ? valueRange(hexes.map((h) => h.temp3pm)) : null), [hexes]);
-  const layers = useMemo(
-    () => (hexes && range && heatVisible ? [createHeatLayer(hexes, range, heatOpacity)] : []),
+  const areaCells = useDashboard((s) => (s.selection?.kind === "area" ? s.selection.cells : null));
+  const heatLayer = useMemo(
+    () => (hexes && range && heatVisible ? createHeatLayer(hexes, range, heatOpacity) : null),
     [hexes, range, heatVisible, heatOpacity],
+  );
+  const layers = useMemo(
+    () => [heatLayer, areaCells && createSelectionLayer(areaCells)].filter((l) => !!l),
+    [heatLayer, areaCells],
   );
 
   return (
@@ -60,6 +68,8 @@ export default function MapView({ token, children }: MapViewProps) {
     >
       <DeckOverlay layers={layers} getTooltip={getTooltip} />
       <BuildingSelection />
+      {hexes && <AreaSelection hexes={hexes} />}
+      <ToolToggle />
       <NavigationControl position="top-left" visualizePitch />
       <ScaleControl position="bottom-right" unit="imperial" />
       {range && <Legend range={range} />}

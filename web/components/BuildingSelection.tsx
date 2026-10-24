@@ -35,6 +35,7 @@ export function BuildingSelection() {
         type: "click",
         target: BUILDINGS_TARGET,
         handler: (e) => {
+          if (dashboardStore.getState().tool !== "building") return false;
           const building = e.feature && toSelectedBuilding(e.feature);
           if (!building) return false;
           dashboardStore.getState().selectBuilding(building);

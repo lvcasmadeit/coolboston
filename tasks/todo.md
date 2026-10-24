@@ -189,17 +189,19 @@ Notes: implemented in `components/BuildingSelection.tsx` with `map.addInteractio
 **Dependencies:** Tasks 12, 21
 **Files likely touched:** `web/components/MapView.tsx`, `web/lib/buildings.ts`, `web/lib/buildings.test.ts`
 
-### Task 23: Area selection on hexes [MVP, M]
+### Task 23: Area selection on hexes [MVP, M] (done)
 **Description:** An area tool: click a hex to select it, shift-click to add or remove, shift-drag a box to add every hex whose centre is inside the box. Plain drag still pans.
 
 **Acceptance criteria:**
-- [ ] Click, shift-click and box selection work with the area tool on; plain drag pans.
-- [ ] Selected cells draw with a sage outline above the slab.
-- [ ] Selecting an area clears a building selection and vice versa; Escape clears.
+- [x] Click, shift-click and box selection work with the area tool on; plain drag pans.
+- [x] Selected cells draw with a sage outline above the slab.
+- [x] Selecting an area clears a building selection and vice versa; Escape clears.
 
 **Verification:**
-- [ ] `npm test`: box to cells (projection mocked) and toggle logic.
-- [ ] Manual check: box-select a few blocks in Chinatown.
+- [x] `npm test`: box to cells (projection mocked) and toggle logic.
+- [x] Manual check: box-select a few blocks in Chinatown.
+
+Notes: a Building / Area toggle floats over the map (store `tool`). In area mode, clicks pick the heat hex through deck (`pickObject`), so a pitched view selects the hex under the cursor rather than the ground point; Mapbox box-zoom is off while the tool is on. Browser check: click, shift-click add and remove, shift-drag box near Chinatown, plain drag pans and keeps the selection, building and area selections replace each other, Escape clears, tooltip still works, no console errors. Limitation: with the heat layer hidden, hexes cannot be clicked (box select still works).
 
 **Dependencies:** Task 12
 **Files likely touched:** `web/components/layers/SelectionLayer.ts`, `web/lib/areaSelect.ts`, `web/lib/areaSelect.test.ts`, `web/components/MapView.tsx`

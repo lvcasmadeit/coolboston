@@ -44,6 +44,9 @@ export type NewAction = Action extends infer A ? (A extends Action ? Omit<A, "id
 
 export type ViewMode = "heat" | "change";
 
+/** Map click mode: select buildings, or select hexes (area tool). */
+export type SelectTool = "building" | "area";
+
 export interface LayerState {
   visible: boolean;
   /** 0-1 */

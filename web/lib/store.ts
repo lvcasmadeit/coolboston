@@ -4,6 +4,7 @@ import type {
   LayerId,
   LayerState,
   NewAction,
+  SelectTool,
   SelectedBuilding,
   Selection,
   ViewMode,
@@ -14,6 +15,7 @@ export interface DashboardState {
   /** Applied actions, oldest first. */
   actions: Action[];
   viewMode: ViewMode;
+  tool: SelectTool;
   layers: Record<LayerId, LayerState>;
 
   selectBuilding: (building: SelectedBuilding) => void;
@@ -28,6 +30,7 @@ export interface DashboardState {
   undo: () => void;
   resetActions: () => void;
   setViewMode: (mode: ViewMode) => void;
+  setTool: (tool: SelectTool) => void;
   toggleLayer: (id: LayerId) => void;
   setLayerOpacity: (id: LayerId, opacity: number) => void;
 }
@@ -49,6 +52,7 @@ export function createDashboardStore(initialLayers: Record<LayerId, LayerState> 
     selection: null,
     actions: [],
     viewMode: "heat",
+    tool: "building",
     layers: structuredClone(initialLayers),
 
     selectBuilding: (building) => set({ selection: { kind: "building", building } }),
@@ -72,6 +76,7 @@ export function createDashboardStore(initialLayers: Record<LayerId, LayerState> 
     undo: () => set((s) => ({ actions: s.actions.slice(0, -1) })),
     resetActions: () => set({ actions: [] }),
     setViewMode: (viewMode) => set({ viewMode }),
+    setTool: (tool) => set({ tool }),
     toggleLayer: (id) =>
       set((s) =>
         s.layers[id]
