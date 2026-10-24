@@ -40,7 +40,7 @@ export const CHANGE_RAMP: readonly RGB[] = [
   [8, 48, 107], // #08306B
 ];
 
-/** Unaffected and n/a hexes in Change mode: faded grey. */
+/** Unaffected and n/a tiles in Change mode: faded grey. */
 export const FADED: RGB = [170, 165, 155];
 
 function rampColor(ramp: readonly RGB[], t: number, alpha: number): RGBA {

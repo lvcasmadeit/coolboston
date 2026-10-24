@@ -1,14 +1,14 @@
 /**
  * Cost-versus-effect points (Task 32). Pure. One point per action:
  *   x = capital cost (central, with the low–high range as an error bar), USD
- *   y = % heat-island reduction at the action's hex (building) or over its hexes (area), from
+ *   y = % heat-island reduction at the action's tile (building) or over its tiles (area), from
  *       that action alone. Null when not applicable (heat island ≤ 0.5 °F or no data).
  */
 import { formatEstimate, formatUsdRange } from "@/lib/format";
 import { capitalCost, type Baseline } from "@/lib/impact";
 import { CATALOG } from "@/lib/interventions";
 import { selectionActions, selectionMetrics } from "@/lib/metrics";
-import type { Action, Hex, Selection } from "@/lib/types";
+import type { Action, CellTemps, Selection } from "@/lib/types";
 
 export interface TradeoffPoint {
   id: string;
@@ -32,7 +32,7 @@ export const chartActions = (selection: Selection, actions: readonly Action[]) =
 
 export function tradeoffPoints(
   actions: readonly Action[],
-  byId: ReadonlyMap<string, Hex>,
+  byId: ReadonlyMap<string, CellTemps>,
   baseline: Baseline,
 ): TradeoffPoint[] {
   const out: TradeoffPoint[] = [];

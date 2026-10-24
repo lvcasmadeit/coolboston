@@ -2,7 +2,8 @@
  * Heat-island, energy and capital-cost metrics (tasks/plan.md). Pure. All values are estimates.
  * Ranges combine component-wise: low × low, central × central, high × high.
  */
-import { HEX_AREA_M2, footprintPerimeterM } from "@/lib/geo";
+import { footprintPerimeterM } from "@/lib/geo";
+import { TILE_AREA_M2 } from "@/lib/grid";
 import {
   CATALOG,
   GREEN_WALL_COVER_HEIGHT_M,
@@ -10,14 +11,14 @@ import {
   type Energy,
   type Range,
 } from "@/lib/interventions";
-import type { Action, ActionTarget, BuildingIntervention, Hex, SelectedBuilding } from "@/lib/types";
+import type { Action, ActionTarget, BuildingIntervention, CellTemps, SelectedBuilding } from "@/lib/types";
 
 // ---------- heat island ----------
 
 export interface Baseline {
-  /** Citywide mean 3pm air over hexes with data, °F. */
+  /** Citywide mean 3pm air over tiles with data, °F. */
   air: number;
-  /** Citywide mean surface temperature over hexes with data, °F. */
+  /** Citywide mean surface temperature over tiles with data, °F. */
   surface: number;
 }
 
@@ -33,15 +34,15 @@ const mean = (vs: (number | null)[]) => {
 };
 
 /** Computed once from the base data; never recomputed after actions. */
-export function computeBaseline(hexes: readonly Hex[]): Baseline {
-  return { air: mean(hexes.map((h) => h.temp3pm)), surface: mean(hexes.map((h) => h.surface)) };
+export function computeBaseline(tiles: readonly CellTemps[]): Baseline {
+  return { air: mean(tiles.map((h) => h.temp3pm)), surface: mean(tiles.map((h) => h.surface)) };
 }
 
 /** Heat island H = T − citywide mean, °F. */
 export const heatIslandF = (t: number | null, baselineMean: number): number | null =>
   t === null ? null : t - baselineMean;
 
-/** Hexes at or below this heat island (°F) get no percentage: it would be unstable or meaningless. */
+/** Tiles at or below this heat island (°F) get no percentage: it would be unstable or meaningless. */
 export const HEAT_ISLAND_MIN_F = 0.5;
 
 /** (H_before − H_after) ÷ H_before × 100; null (n/a) when H_before ≤ 0.5 °F or a value is missing. */
@@ -95,7 +96,7 @@ function quantity(line: CostLine, target: ActionTarget): Range | string {
       return a === null ? "building height unknown" : scale(range(1, 1, 1), a);
     }
     case "$/m² ground":
-      return target.kind === "area" ? scale(range(1, 1, 1), new Set(target.cells).size * HEX_AREA_M2) : "needs an area";
+      return target.kind === "area" ? scale(range(1, 1, 1), new Set(target.cells).size * TILE_AREA_M2) : "needs an area";
   }
 }
 

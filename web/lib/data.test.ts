@@ -1,38 +1,43 @@
 import { describe, expect, it } from "vitest";
-import { HEXES_URL, HexDataError, parseHexes } from "@/lib/data";
-import { HEXES_SCHEMA_VERSION } from "@/lib/types";
+import { CELLS_URL, CellDataError, parseCells } from "@/lib/data";
+import { CELLS_SCHEMA_VERSION } from "@/lib/types";
 
-describe("HEXES_URL", () => {
+describe("CELLS_URL", () => {
   it("carries the schema version so a schema bump bypasses cached responses", () => {
-    expect(HEXES_URL).toBe(`/api/hexes?v=${HEXES_SCHEMA_VERSION}`);
+    expect(CELLS_URL).toBe(`/api/cells?v=${CELLS_SCHEMA_VERSION}`);
   });
 });
 
-const hex = { id: "8a2a3066037ffff", temp3pm: 91.2, surface: 101.4 };
-const doc = (hexes: unknown[], extra: object = {}) => ({ version: 3, hexes, ...extra });
+const RING = [[-71.06, 42.36], [-71.059, 42.36], [-71.059, 42.361], [-71.06, 42.36]];
+const full = { id: "2363_9011", landAreaM2: 10_000, coords: null, temp3pm: 91.2, surface: 101.4 };
+const clipped = { id: "2364_9011", landAreaM2: 4_200.5, coords: [[RING]], temp3pm: null, surface: null };
+const doc = (cells: unknown[], extra: object = {}) => ({ version: 4, cellSizeM: 100, crs: "EPSG:26986", cells, ...extra });
 
-describe("parseHexes", () => {
-  it("accepts a valid document, including null temperatures", () => {
-    const nullHex = { ...hex, id: "8a2a306614fffff", temp3pm: null, surface: null };
-    expect(parseHexes(doc([hex, nullHex]))).toEqual(doc([hex, nullHex]));
+describe("parseCells", () => {
+  it("accepts a valid document: full tiles without coords, clipped tiles with them, null temperatures", () => {
+    expect(parseCells(doc([full, clipped]))).toEqual(doc([full, clipped]));
   });
 
   it.each([
     ["not an object", 42, /object/],
-    ["old v1 file", { version: 1, hexes: [] }, /unsupported version 1, expected 3/],
-    ["v2 file (no surface)", { version: 2, hexes: [{ id: hex.id, temp3pm: 91 }] }, /unsupported version 2, expected 3/],
-    ["hexes not an array", { version: 3, hexes: {} }, /hexes/],
-    ["missing surface", doc([{ id: hex.id, temp3pm: 91 }]), /hexes\[0\].*missing field \"surface\"/],
-    ["non-numeric surface", doc([{ ...hex, surface: "hot" }]), /hexes\[0\]\.surface/],
+    ["v3 hex file", { version: 3, hexes: [] }, /missing field "cellSizeM"/],
+    ["wrong version", doc([], { version: 3 }), /unsupported version 3, expected 4/],
+    ["wrong cell size", doc([], { cellSizeM: 30 }), /cellSizeM/],
+    ["wrong crs", doc([], { crs: "EPSG:4326" }), /crs/],
+    ["cells not an array", doc({} as unknown as unknown[]), /cells must be an array/],
     ["extra top-level field", doc([], { foo: 1 }), /unexpected field "foo"/],
-    ["missing hex field", doc([{ id: hex.id }]), /hexes\[0\].*missing field "temp3pm"/],
-    ["extra hex field", doc([{ ...hex, score: 3 }]), /hexes\[0\].*unexpected field "score"/],
-    ["dropped v1 field", doc([{ ...hex, temp6am: 74 }]), /hexes\[0\].*unexpected field "temp6am"/],
-    ["non-numeric temperature", doc([{ ...hex, temp3pm: "91" }]), /hexes\[0\]\.temp3pm/],
-    ["NaN temperature", doc([{ ...hex, temp3pm: Number.NaN }]), /hexes\[0\]\.temp3pm/],
-    ["empty id", doc([{ ...hex, id: "" }]), /hexes\[0\]\.id/],
+    ["missing cell field", doc([{ id: full.id, temp3pm: 1, surface: 1, landAreaM2: 1 }]), /cells\[0\].*missing field "coords"/],
+    ["extra cell field", doc([{ ...full, score: 3 }]), /cells\[0\].*unexpected field "score"/],
+    ["H3 id", doc([{ ...full, id: "8a2a3066037ffff" }]), /cells\[0\]\.id/],
+    ["zero land area", doc([{ ...full, landAreaM2: 0 }]), /landAreaM2/],
+    ["land area over a full tile", doc([{ ...full, landAreaM2: 10_001 }]), /landAreaM2/],
+    ["empty coords", doc([{ ...clipped, coords: [] }]), /coords/],
+    ["short ring", doc([{ ...clipped, coords: [[RING.slice(1)]] }]), /at least 4/],
+    ["open ring", doc([{ ...clipped, coords: [[[...RING.slice(0, 3), [-71.05, 42.36]]]] }]), /not closed/],
+    ["non-numeric surface", doc([{ ...full, surface: "hot" }]), /cells\[0\]\.surface/],
+    ["NaN temperature", doc([{ ...full, temp3pm: Number.NaN }]), /cells\[0\]\.temp3pm/],
   ])("rejects %s with a clear error", (_label, input, message) => {
-    expect(() => parseHexes(input)).toThrow(HexDataError);
-    expect(() => parseHexes(input)).toThrow(message);
+    expect(() => parseCells(input)).toThrow(CellDataError);
+    expect(() => parseCells(input)).toThrow(message);
   });
 });

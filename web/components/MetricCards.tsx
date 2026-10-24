@@ -18,7 +18,7 @@ const signedF = (v: number | null) => (v === null ? "No data" : `${v >= 0 ? "+" 
 
 /** Current conditions and, once actions apply, their estimated change. Every number is an estimate. */
 export function MetricCards({ m }: { m: SelectionMetrics }) {
-  const lvl = m.level === "building hex" ? "hex level" : "mean of selected hexes";
+  const lvl = m.level === "building tile" ? "tile level" : "mean of selected tiles";
   const c = m.change;
   const zero = (r: { high: number }) => r.high === 0;
   return (

@@ -1,5 +1,6 @@
-import { isValidCell } from "h3-js";
 import { describe, expect, it } from "vitest";
+import { tileIdAt } from "@/lib/grid";
+import { footprintCentroid } from "@/lib/geo";
 import { toSelectedBuilding } from "@/lib/buildings";
 
 // ~30 m × 30 m near Downtown Crossing
@@ -26,7 +27,7 @@ describe("toSelectedBuilding", () => {
     expect(b!.heightM).toBe(210.5);
     expect(b!.roofAreaM2).toBeGreaterThan(800);
     expect(b!.roofAreaM2).toBeLessThan(1000);
-    expect(isValidCell(b!.cell)).toBe(true);
+    expect(b!.cell).toBe(tileIdAt(footprintCentroid({ type: "Polygon", coordinates: [RING] })));
   });
 
   it.each([

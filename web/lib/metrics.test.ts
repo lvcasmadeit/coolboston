@@ -1,14 +1,13 @@
-import { gridDisk, latLngToCell } from "h3-js";
 import { describe, expect, it } from "vitest";
+import { TILE_AREA_M2, neighbourhood, tileIdAt } from "@/lib/grid";
 import { computeDeltas } from "@/lib/cooling";
-import { HEX_AREA_M2 } from "@/lib/geo";
 import { capitalCost, energyEstimate, heatIslandChangePct } from "@/lib/impact";
 import { selectionMetrics } from "@/lib/metrics";
-import type { Action, Hex, SelectedBuilding } from "@/lib/types";
+import type { Action, CellTemps, SelectedBuilding } from "@/lib/types";
 
-const CELL = latLngToCell(42.3555, -71.06, 10);
-const [, N1, N2] = gridDisk(CELL, 1);
-const hexes: Hex[] = [
+const CELL = tileIdAt([-71.06, 42.3555]);
+const [N1, N2] = neighbourhood(CELL, 1).filter((c) => c !== CELL);
+const hexes: CellTemps[] = [
   { id: CELL, temp3pm: 93, surface: 105 },
   { id: N1, temp3pm: 92, surface: 100 },
   { id: N2, temp3pm: null, surface: 98 },
@@ -27,7 +26,7 @@ const v = (r: { kind: string; value?: { central: number } }) => r.value!.central
 describe("selectionMetrics", () => {
   it("current conditions for a building are its hex values; no change without actions", () => {
     const m = selectionMetrics({ kind: "building", building: B(1) }, [], byId, baseline);
-    expect(m.level).toBe("building hex");
+    expect(m.level).toBe("building tile");
     expect(m.before).toEqual({ air: 93, surface: 105, heatIslandF: 2 });
     expect(m.change).toBeNull();
   });
@@ -37,7 +36,7 @@ describe("selectionMetrics", () => {
     const m = selectionMetrics({ kind: "building", building: B(1) }, [a], byId, baseline);
     const d = computeDeltas([a]).get(CELL)!;
     expect(m.change!.airDeltaF).toBeCloseTo(d.air, 9);
-    expect(m.change!.airDeltaF).toBeCloseTo((-5 * 1500) / HEX_AREA_M2, 9);
+    expect(m.change!.airDeltaF).toBeCloseTo((-5 * 1500) / TILE_AREA_M2, 9);
     expect(m.change!.surfaceDeltaF).toBeCloseTo(d.surface, 9);
     expect(m.change!.heatIslandPct).toBeCloseTo(heatIslandChangePct(2, 2 + d.air)!, 9);
     expect(m.change!.totals.capital.central).toBeCloseTo(v(capitalCost(a) as never), 6);

@@ -65,7 +65,7 @@ export function TradeoffChart({ points }: { points: TradeoffPoint[] }) {
             </ResponsiveContainer>
           </div>
           <p className="text-[10px] text-muted-foreground">
-            Bars: capital cost low–high. Each point is one action on its own hex(es).
+            Bars: capital cost low–high. Each point is one action on its own tile(es).
             {na > 0 && ` ${na} action${na === 1 ? "" : "s"} not shown: heat island ≤ 0.5 °F (n/a).`}
           </p>
         </>

@@ -1,21 +1,20 @@
 "use client";
 
-import { cellToLatLng } from "h3-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMap } from "react-map-gl/mapbox";
 import { getDeckOverlay } from "@/components/DeckOverlay";
+import { HEAT_LAYER_ID, type TilePart } from "@/components/layers/HeatLayer";
 import { addCells, cellsInBox, clickCell, isBox, type CellCentre, type Point } from "@/lib/areaSelect";
 import { dashboardStore, useDashboard } from "@/lib/store";
-import type { Hex } from "@/lib/types";
-
-const HEAT_LAYER_ID = "heat-hexes";
+import { cellCentre } from "@/lib/grid";
+import type { Cell } from "@/lib/types";
 
 /**
- * Area tool (active when `tool === "area"`): click a hex to select it, shift-click to add or remove,
- * shift-drag a box to add every hex whose centre is inside it. Plain drag still pans.
+ * Area tool (active when `tool === "area"`): click a tile to select it, shift-click to add or remove,
+ * shift-drag a box to add every tile whose centre is inside it. Plain drag still pans.
  * Mapbox's own shift-drag box zoom is turned off while the tool is on.
  */
-export function AreaSelection({ hexes }: { hexes: readonly Hex[] }) {
+export function AreaSelection({ cells }: { cells: readonly Cell[] }) {
   const { current: mapRef } = useMap();
   const tool = useDashboard((s) => s.tool);
   const [box, setBox] = useState<{ a: Point; b: Point } | null>(null);
@@ -23,11 +22,8 @@ export function AreaSelection({ hexes }: { hexes: readonly Hex[] }) {
 
   const centres = useMemo<CellCentre[]>(
     () =>
-      hexes.map((h) => {
-        const [lat, lng] = cellToLatLng(h.id);
-        return { id: h.id, centre: [lng, lat] };
-      }),
-    [hexes],
+      cells.map((c) => ({ id: c.id, centre: cellCentre(c) })),
+    [cells],
   );
 
   useEffect(() => {
@@ -71,8 +67,8 @@ export function AreaSelection({ hexes }: { hexes: readonly Hex[] }) {
         return;
       }
       const picked = getDeckOverlay(map)?.pickObject({ x: end.x, y: end.y, layerIds: [HEAT_LAYER_ID] });
-      const hex = picked?.object as Hex | undefined;
-      if (hex) st.setAreaCells(clickCell(current, hex.id, start.shift));
+      const part = picked?.object as TilePart | undefined;
+      if (part) st.setAreaCells(clickCell(current, part.cell.id, start.shift));
     };
 
     map.boxZoom.disable();

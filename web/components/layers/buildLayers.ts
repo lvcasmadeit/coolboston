@@ -3,10 +3,11 @@ import { createRoofLayer } from "@/components/layers/RoofLayer";
 import { createSelectionLayer } from "@/components/layers/SelectionLayer";
 import type { HeatView } from "@/lib/heatView";
 import { layerSetting } from "@/lib/layers";
-import type { Action, Hex, LayerId, LayerState } from "@/lib/types";
+import type { Action, Cell, LayerId, LayerState } from "@/lib/types";
 
 export interface DeckLayerInputs {
-  hexes: Hex[] | null;
+  cells: Cell[] | null;
+  byId: ReadonlyMap<string, Cell> | null;
   /** Heat view without opacity; opacity comes from the store's layer state. */
   view: Omit<HeatView, "opacity"> | null;
   maxPct: number;
@@ -19,9 +20,10 @@ export interface DeckLayerInputs {
 export function buildDeckLayers(i: DeckLayerInputs) {
   const heat = layerSetting(i.layers, "heat");
   const roofs = layerSetting(i.layers, "roofs");
+  const selected = i.areaCells && i.byId ? i.areaCells.flatMap((id) => i.byId!.get(id) ?? []) : null;
   return [
-    i.hexes && i.view && heat.visible ? createHeatLayer(i.hexes, { ...i.view, opacity: heat.opacity }, i.maxPct) : null,
+    i.cells && i.view && heat.visible ? createHeatLayer(i.cells, { ...i.view, opacity: heat.opacity }, i.maxPct) : null,
     roofs.visible && i.actions.some((a) => a.target.kind === "building") ? createRoofLayer(i.actions, roofs.opacity) : null,
-    i.areaCells ? createSelectionLayer(i.areaCells) : null,
+    selected ? createSelectionLayer(selected) : null,
   ].filter((l) => l !== null);
 }

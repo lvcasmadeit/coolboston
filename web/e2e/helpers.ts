@@ -27,7 +27,7 @@ export class App {
     await this.page.goto("/");
     await this.page.waitForFunction(() => {
       const map = (window as W).__coolboston?.map;
-      return map?.loaded() && map.areTilesLoaded() && map.__deck?.props.layers?.some((l: any) => l.id === "heat-hexes");
+      return map?.loaded() && map.areTilesLoaded() && map.__deck?.props.layers?.some((l: any) => l.id === "heat-tiles");
     }, null, { timeout: 60_000 });
     await this.page.waitForTimeout(1000); // let the first interleaved frame settle
   }
@@ -97,11 +97,11 @@ export class App {
     return this.page.evaluate(() => (window as W).__coolboston!.map.__deck.props.layers.map((l: any) => l.id) as string[]);
   }
 
-  /** Fill colour the heat layer gives `cell` (or the first hex with air data). */
-  hexColor(cell?: string) {
+  /** Fill colour the heat layer gives tile `cell` (or the first tile with air data). */
+  tileColor(cell?: string) {
     return this.page.evaluate((cell) => {
-      const L = (window as W).__coolboston!.map.__deck.props.layers.find((l: any) => l.id === "heat-hexes");
-      const d = L.props.data.find((h: any) => (cell ? h.id === cell : h.temp3pm !== null));
+      const L = (window as W).__coolboston!.map.__deck.props.layers.find((l: any) => l.id === "heat-tiles");
+      const d = L.props.data.find((p: any) => (cell ? p.cell.id === cell : p.cell.temp3pm !== null));
       return L.props.getFillColor(d) as number[];
     }, cell);
   }

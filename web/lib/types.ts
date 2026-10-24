@@ -23,7 +23,7 @@ export interface SelectedBuilding {
   /** null when the tile has no height for this building. */
   heightM: number | null;
   roofAreaM2: number;
-  /** H3 res-10 cell containing the footprint centroid. */
+  /** Tile id ("{i}_{j}", lib/grid.ts) containing the footprint centroid; may be outside the data grid. */
   cell: string;
 }
 
@@ -47,7 +47,7 @@ export type ViewMode = "heat" | "change";
 /** Base temperature shown on the map. */
 export type Metric = "air" | "surface";
 
-/** Map click mode: select buildings, or select hexes (area tool). */
+/** Map click mode: select buildings, or select tiles (area tool). */
 export type SelectTool = "building" | "area";
 
 export interface LayerState {
@@ -59,21 +59,35 @@ export interface LayerState {
 export type LayerId = string;
 
 /**
- * Contract for web/data/hexes.json, written by pipeline/src/coolboston/build_hexes.py.
- * Bump HEXES_SCHEMA_VERSION on both sides together when fields change.
+ * Contract for web/data/cells.json, written by pipeline/src/coolboston/build_cells.py.
+ * Bump CELLS_SCHEMA_VERSION on both sides together when fields change.
  */
-export const HEXES_SCHEMA_VERSION = 3;
+export const CELLS_SCHEMA_VERSION = 4;
 
-export interface Hex {
-  /** H3 resolution-10 cell index. */
+/** GeoJSON MultiPolygon coordinates, [lng, lat]. */
+export type MultiPolygonCoords = number[][][][];
+
+/** The temperatures of one grid cell: all the impact model needs. */
+export interface CellTemps {
+  /** Tile id "{i}_{j}" (lib/grid.ts). */
   id: string;
-  /** 2019 Heat Watch mean 3pm air temperature, °F. null = no traverse data. */
+  /** 2019 Heat Watch mean 3pm air temperature, °F, area-weighted over the tile. null = no traverse data. */
   temp3pm: number | null;
   /** Landsat summer 2019 median surface temperature, °F, MID-MORNING (~11 a.m. EDT). null = no clear pixel. */
   surface: number | null;
 }
 
-export interface HexesFile {
-  version: typeof HEXES_SCHEMA_VERSION;
-  hexes: Hex[];
+/** One 100 m tile, clipped to Boston's land. */
+export interface Cell extends CellTemps {
+  /** Land area after clipping, m² (10,000 for a full tile). */
+  landAreaM2: number;
+  /** Clipped geometry; null for a full 100 m square, rebuilt from the id (lib/grid.ts cellPolygons). */
+  coords: MultiPolygonCoords | null;
+}
+
+export interface CellsFile {
+  version: typeof CELLS_SCHEMA_VERSION;
+  cellSizeM: 100;
+  crs: "EPSG:26986";
+  cells: Cell[];
 }

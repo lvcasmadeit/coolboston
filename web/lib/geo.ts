@@ -1,11 +1,5 @@
-/** Geometry helpers for building footprints and the H3 res-10 grid. */
-import { getHexagonAreaAvg, latLngToCell } from "h3-js";
+/** Geometry helpers for building footprints (the tile grid lives in lib/grid.ts). */
 import type { Footprint } from "@/lib/types";
-
-export const H3_RESOLUTION = 10;
-
-/** Average res-10 hexagon area from h3 (~15,047 m²). Boston cells run ~3% larger than average. */
-export const HEX_AREA_M2 = getHexagonAreaAvg(H3_RESOLUTION, "m2");
 
 // WGS84 semi-major axis; same constant and spherical-excess method as @turf/area.
 const EARTH_RADIUS_M = 6378137;
@@ -84,10 +78,4 @@ export function footprintCentroid(f: Footprint): [number, number] {
     return [x, y];
   }
   return [cx / (3 * a), cy / (3 * a)];
-}
-
-/** H3 res-10 cell containing the footprint centroid. */
-export function buildingCell(f: Footprint): string {
-  const [lng, lat] = footprintCentroid(f);
-  return latLngToCell(lat, lng, H3_RESOLUTION);
 }

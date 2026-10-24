@@ -65,7 +65,7 @@ Notes: The composite is cached as `pipeline/cache/surface_2019.tif` (float32, de
 
 **Estimated scope:** Medium
 
-### Task 41: `cells.json` v4 and the web on tiles [L, mostly mechanical]
+### Task 41: `cells.json` v4 and the web on tiles [L, mostly mechanical] (done)
 
 **Description:** This task changes the pipeline/web contract, so both sides land in one commit.
 - **Pipeline:** `build_cells.py` replaces `build_hexes.py`. It joins Heat Watch air (area-weighted onto tile land polygons) and the surface cache, and writes `web/data/cells.json` v4.
@@ -81,12 +81,25 @@ Notes: The composite is cached as `pipeline/cache/surface_2019.tif` (float32, de
 - **Cleanup:** `hexes.json` and `/api/hexes` are deleted, and hex is renamed to tile in the test hook and e2e helpers.
 
 **Acceptance criteria:**
-- [ ] `cells.json` v4 validates under `parseCells`, holds about 12k tiles within 3 MB, and has at least 98% air and 99% surface coverage (counts recorded in Notes).
-- [ ] The app shows tiles in Air/Surface and Heat/Change. Building select, area select, actions, cards and charts work as before.
-- [ ] All 9 e2e specs pass after the rename, with no console errors.
+- [ ] `cells.json` v4 validates under `parseCells`, holds about 12k tiles within 3 MB, and has at least 98% air and 99% surface coverage (counts recorded in Notes). **Air is 97.6%, below the 98% target**; everything else is met. See Notes.
+- [x] The app shows tiles in Air/Surface and Heat/Change. Building select, area select, actions, cards and charts work as before.
+- [x] All 9 e2e specs pass after the rename, with no console errors.
 
 **Verification:**
-- [ ] `uv run pytest -q`; standard; full `cd web && npm run e2e`
+- [x] `uv run pytest -q`; standard; full `cd web && npm run e2e`
+
+Notes:
+- **Counts:**
+  - `cells.json` has 13,562 tiles in 2.78 MB.
+  - Air: 13,237 (97.6%). That's below the 98% target because Heat Watch has no data outside its traverse routes; the hexes were at 98.3%. Left unticked for you to accept or change.
+  - Surface: 13,547 (99.89%). Both: 13,222.
+- **Full tiles (11,151)** ship `coords: null`, and the web rebuilds them from the id (`lib/grid.ts`, a dependency-free Lambert Conformal Conic projection matching pyproj to <1 cm). That's what fits the 3 MB budget; it was 4.06 MB with every ring.
+- **Building cells:** a building's `cell` is `tileIdAt(centroid)`. `primaryTile`, `tiles` and the land-area share rule come in Task 43, so the interim cooling share uses the full tile area (10,000 m²).
+- **Renderer:** heat is a deck `PolygonLayer` per tile part, with id `heat-tiles`.
+- **Renames:** `Hex` became `CellTemps` (and `Cell` for the full record), `useHexes` became `useCells`, `hexColor` became `tileColor`. UI text says "tile".
+- **Checks:**
+  - 182 unit tests, typecheck, lint and build pass. The flaky cooling perf test now warms up `applyDeltas` too, with its threshold unchanged.
+  - E2E: 9 specs, run against a test-hook production build on :3100, because the running `next dev` cached the renamed route and returns 500 until restarted. The Layers-tab spec failed once in the full run and passed on re-run.
 
 **Dependencies:** Task 40
 

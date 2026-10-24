@@ -3,8 +3,7 @@
 Run: uv run python -m coolboston.run_landsat
 Values are °F, mid-morning (about 11:15 a.m. EDT, see landsat.py).
   surface_<year>.tif         the composite on the 30 m grid; reused on later runs (no network)
-  surface_tiles_<year>.json  per 100 m tile (SPEC-square-grid)
-  surface_<year>.json        per H3 cell, read by build_hexes.py until Task 41 retires it
+  surface_tiles_<year>.json  per 100 m tile (SPEC-square-grid), read by build_cells.py
 """
 
 import json
@@ -20,10 +19,10 @@ from rasterio.warp import Resampling, reproject, transform_bounds
 from rasterio.windows import from_bounds
 
 from coolboston.composite import nan_median, usable
-from coolboston.grid import boston_cells, boston_tiles
+from coolboston.grid import boston_tiles
 from coolboston.landsat import BOSTON_BBOX, Scene, search_scenes
 from coolboston.lst import celsius_to_f, masked_celsius
-from coolboston.zonal import pixel_cells, tile_surface_mean, zonal_mean
+from coolboston.zonal import tile_surface_mean
 
 CACHE_DIR = Path(__file__).resolve().parents[2] / "cache"
 # Common 30 m grid in UTM 19N, Landsat's native projection and pixel size over Boston.
@@ -33,10 +32,6 @@ PIXEL_M = 30.0
 # Remote COG reads: avoid directory listings on every open.
 os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")
 os.environ.setdefault("GDAL_HTTP_MAX_RETRY", "3")
-
-
-def cache_path(year: int) -> Path:
-    return CACHE_DIR / f"surface_{year}.json"
 
 
 def tiles_cache_path(year: int) -> Path:
@@ -129,16 +124,12 @@ def _write(path: Path, year: int, scenes: int, out: dict) -> None:
 
 def run(year: int = 2019) -> Path:
     composite_f, scenes = load_composite(year)
-    transform, shape = target_grid()
+    transform, _ = target_grid()
     print(f"{scenes} usable scenes")
 
     tiles = boston_tiles()
     per_tile = tile_surface_mean(composite_f, transform, GRID_CRS, tiles)
     _write(tiles_cache_path(year), year, scenes, _rounded(per_tile))
-
-    cells = boston_cells()
-    per_cell = zonal_mean(composite_f, pixel_cells(transform, shape, GRID_CRS), cells)
-    _write(cache_path(year), year, scenes, _rounded(per_cell))
     return tiles_cache_path(year)
 
 

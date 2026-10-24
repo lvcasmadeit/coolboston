@@ -1,4 +1,4 @@
-/** Area tool logic: hex click, shift-click toggle, shift-drag box. Pure; the map supplies projection. */
+/** Area tool logic: tile click, shift-click toggle, shift-drag box. Pure; the map supplies projection. */
 
 export interface Point {
   x: number;

@@ -1,6 +1,6 @@
-import { latLngToCell } from "h3-js";
 import { describe, expect, it } from "vitest";
-import { HEX_AREA_M2, footprintPerimeterM } from "@/lib/geo";
+import { TILE_AREA_M2, tileIdAt } from "@/lib/grid";
+import { footprintPerimeterM } from "@/lib/geo";
 import {
   HEAT_ISLAND_MIN_F,
   capitalCost,
@@ -14,9 +14,9 @@ import {
   type Estimate,
 } from "@/lib/impact";
 import { CATALOG } from "@/lib/interventions";
-import type { Action, BuildingIntervention, Hex, SelectedBuilding } from "@/lib/types";
+import type { Action, BuildingIntervention, CellTemps, SelectedBuilding } from "@/lib/types";
 
-const CELL = latLngToCell(42.3555, -71.06, 10);
+const CELL = tileIdAt([-71.06, 42.3555]);
 // ~30 m × 30 m footprint
 const RING = [[-71.0602, 42.3554], [-71.05984, 42.3554], [-71.05984, 42.35567], [-71.0602, 42.35567], [-71.0602, 42.3554]];
 const B = (roofAreaM2: number, heightM: number | null = 20): SelectedBuilding => ({
@@ -33,7 +33,7 @@ const v = (e: Estimate) => {
 };
 
 describe("baseline and heat island", () => {
-  const hexes: Hex[] = [
+  const hexes: CellTemps[] = [
     { id: "a", temp3pm: 90, surface: 100 },
     { id: "b", temp3pm: 92, surface: null },
     { id: "c", temp3pm: null, surface: 110 },
@@ -91,7 +91,7 @@ describe("capital cost", () => {
 
   it("street trees are selected ground area × $/m²", () => {
     const a: Action = { id: "t", intervention: "street-trees", target: { kind: "area", cells: [CELL, CELL] } };
-    expect(v(capitalCost(a)).central).toBeCloseTo(HEX_AREA_M2 * CATALOG["street-trees"].costPerUnit[0].central, 6);
+    expect(v(capitalCost(a)).central).toBeCloseTo(TILE_AREA_M2 * CATALOG["street-trees"].costPerUnit[0].central, 6);
   });
 
   it("every range stays ordered", () => {

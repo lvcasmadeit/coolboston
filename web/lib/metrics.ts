@@ -1,13 +1,13 @@
 /**
  * Metric cards for the current selection (Task 30). Pure; reads lib/cooling and lib/impact.
- * Temperatures and heat island are hex level: the building's hex, or the mean over an area's
- * hexes with data. Energy and cost cover the actions on this selection only.
+ * Temperatures and heat island are tile level: the building's tile, or the mean over an area's
+ * tiles with data. Energy and cost cover the actions on this selection only.
  */
 import { actionsOnBuilding } from "@/lib/availableActions";
 import { computeDeltas } from "@/lib/cooling";
 import { heatIslandChangePct, totals, actionMetrics, type Baseline, type Totals } from "@/lib/impact";
 import { CATALOG } from "@/lib/interventions";
-import type { Action, Hex, Selection } from "@/lib/types";
+import type { Action, CellTemps, Selection } from "@/lib/types";
 
 export interface Conditions {
   /** 3pm air, °F */
@@ -31,7 +31,7 @@ export interface Change {
 }
 
 export interface SelectionMetrics {
-  level: "building hex" | "area mean";
+  level: "building tile" | "area mean";
   before: Conditions;
   after: Conditions;
   /** null when no action applies to this selection. */
@@ -43,7 +43,7 @@ const meanOf = (vs: (number | null)[]) => {
   return ok.length ? ok.reduce((a, v) => a + v, 0) / ok.length : null;
 };
 
-/** Actions applied to this selection: on the building, or on an area sharing a hex. */
+/** Actions applied to this selection: on the building, or on an area sharing a tile. */
 export function selectionActions(selection: NonNullable<Selection>, actions: readonly Action[]): Action[] {
   if (selection.kind === "building") return actionsOnBuilding(actions, selection.building.id);
   const cells = new Set(selection.cells);
@@ -53,16 +53,16 @@ export function selectionActions(selection: NonNullable<Selection>, actions: rea
 export function selectionMetrics(
   selection: NonNullable<Selection>,
   actions: readonly Action[],
-  byId: ReadonlyMap<string, Hex>,
+  byId: ReadonlyMap<string, CellTemps>,
   baseline: Baseline,
 ): SelectionMetrics {
   const cells = selection.kind === "building" ? [selection.building.cell] : selection.cells;
-  const hexes = cells.map((c) => byId.get(c)).filter((h): h is Hex => !!h);
-  // Every action counts towards a hex's temperature, including ones on other buildings in it.
+  const tiles = cells.map((c) => byId.get(c)).filter((h): h is CellTemps => !!h);
+  // Every action counts towards a tile's temperature, including ones on other buildings in it.
   const deltas = computeDeltas(actions);
   const cond = (after: boolean): Conditions => {
-    const air = meanOf(hexes.map((h) => (h.temp3pm === null ? null : h.temp3pm + (after ? (deltas.get(h.id)?.air ?? 0) : 0))));
-    const surface = meanOf(hexes.map((h) => (h.surface === null ? null : h.surface + (after ? (deltas.get(h.id)?.surface ?? 0) : 0))));
+    const air = meanOf(tiles.map((h) => (h.temp3pm === null ? null : h.temp3pm + (after ? (deltas.get(h.id)?.air ?? 0) : 0))));
+    const surface = meanOf(tiles.map((h) => (h.surface === null ? null : h.surface + (after ? (deltas.get(h.id)?.surface ?? 0) : 0))));
     return { air, surface, heatIslandF: air === null ? null : air - baseline.air };
   };
   const before = cond(false);
@@ -81,5 +81,5 @@ export function selectionMetrics(
       roofSurfaceF: selection.kind === "building" && roof ? (CATALOG[roof.intervention].surfaceChange.deltaFPerShare || null) : null,
     };
   }
-  return { level: selection.kind === "building" ? "building hex" : "area mean", before, after, change };
+  return { level: selection.kind === "building" ? "building tile" : "area mean", before, after, change };
 }

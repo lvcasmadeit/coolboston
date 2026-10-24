@@ -4,9 +4,9 @@ import { computeDeltas, type Deltas } from "@/lib/cooling";
 import { quantileRange } from "@/lib/heat";
 import { afterValue, changePct, fillColor, maxChangePct, type HeatView } from "@/lib/heatView";
 import { computeBaseline } from "@/lib/impact";
-import type { Hex } from "@/lib/types";
+import type { CellTemps } from "@/lib/types";
 
-const hexes: Hex[] = [
+const hexes: CellTemps[] = [
   { id: "hot", temp3pm: 94, surface: 110 },
   { id: "mild", temp3pm: 92, surface: 100 },
   { id: "cool", temp3pm: 88, surface: 80 },

@@ -20,7 +20,8 @@ import { afterValue, baseValue, changePct, maxChangePct, type HeatView } from "@
 import { BASEMAP_CONFIG, BOSTON_VIEW, MAP_STYLE } from "@/lib/mapConfig";
 import { useDashboard } from "@/lib/store";
 import { installTestHook } from "@/lib/testHook";
-import type { Hex, Metric } from "@/lib/types";
+import type { Metric } from "@/lib/types";
+import type { TilePart } from "@/components/layers/HeatLayer";
 
 // Deck's default tooltip is dark; style it with the light tokens.
 const TOOLTIP_STYLE = {
@@ -35,10 +36,11 @@ const TOOLTIP_STYLE = {
 
 const METRIC_LABEL: Record<Metric, string> = { air: "3pm air temp", surface: "Surface temp (mid-morning)" };
 
-/** Tooltip for the current view: base value, plus after value and % change when the hex is treated. */
+/** Tooltip for the current view: base value, plus after value and % change when the tile is treated. */
 function makeTooltip(view: Omit<HeatView, "opacity"> | null) {
-  return ({ object }: PickingInfo<Hex>) => {
-    if (!object || !view) return null;
+  return ({ object: part }: PickingInfo<TilePart>) => {
+    if (!part || !view) return null;
+    const object = part.cell;
     const base = baseValue(object, view.metric);
     const after = afterValue(object, view.metric, view.deltas);
     let text = `${METRIC_LABEL[view.metric]}: ${formatTemp(base)}`;
@@ -66,7 +68,8 @@ export default function MapView({ token, children }: MapViewProps) {
 
   // Fixed base model (lookup, baseline, colour ranges), shared with the panels.
   const base = data.status === "ready" ? data.model : null;
-  const hexes = base?.hexes ?? null;
+  const cells = base?.cells ?? null;
+  const byId = base?.byId ?? null;
   const deltas = useMemo(() => computeDeltas(actions), [actions]);
   const view = useMemo<Omit<HeatView, "opacity"> | null>(
     () => base && { metric, mode, deltas, baseline: base.baseline, ranges: base.ranges },
@@ -79,8 +82,8 @@ export default function MapView({ token, children }: MapViewProps) {
   const getTooltip = useMemo(() => makeTooltip(view), [view]);
   const areaCells = useDashboard((s) => (s.selection?.kind === "area" ? s.selection.cells : null));
   const layers = useMemo(
-    () => buildDeckLayers({ hexes, view, maxPct, actions, areaCells, layers: layerState }),
-    [hexes, view, maxPct, actions, areaCells, layerState],
+    () => buildDeckLayers({ cells, byId, view, maxPct, actions, areaCells, layers: layerState }),
+    [cells, byId, view, maxPct, actions, areaCells, layerState],
   );
 
   return (
@@ -100,7 +103,7 @@ export default function MapView({ token, children }: MapViewProps) {
       <MapFocus />
       <BasemapBuildings />
       <TestHookMap />
-      {hexes && <AreaSelection hexes={hexes} />}
+      {cells && <AreaSelection cells={cells} />}
       <ToolToggle />
       <NavigationControl position="top-left" visualizePitch />
       <ScaleControl position="bottom-right" unit="imperial" />

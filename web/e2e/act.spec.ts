@@ -1,18 +1,18 @@
 import { expect, test } from "./helpers";
 
-test("core loop: green roof cools the hex, shows metrics, enforces one roof action, and restores on reset", async ({ app }) => {
+test("core loop: green roof cools the tile, shows metrics, enforces one roof action, and restores on reset", async ({ app }) => {
   const b = await app.findBuilding(6, 25);
   await app.clickMap(b.x, b.y);
   const sel = (await app.state()).selection;
   if (sel?.kind !== "building") throw new Error("expected a building selection");
-  const before = await app.hexColor(sel.building.cell);
+  const before = await app.tileColor(sel.building.cell);
 
   const panel = app.panel;
   await expect(panel.getByRole("region", { name: "Current conditions" })).toContainText("Air, 3pm");
   await panel.getByRole("button", { name: /^Green roof\b/ }).first().click();
 
   expect((await app.state()).actions).toEqual(["green-roof"]);
-  expect(await app.hexColor(sel.building.cell)).not.toEqual(before);
+  expect(await app.tileColor(sel.building.cell)).not.toEqual(before);
   const change = panel.getByRole("region", { name: "Estimated change" });
   await expect(change).toContainText("Air");
   await expect(change).toContainText("Roof surface");
@@ -30,7 +30,7 @@ test("core loop: green roof cools the hex, shows metrics, enforces one roof acti
   await expect(list).toContainText("Applied (1)");
   await list.getByRole("button", { name: "Reset" }).click();
   expect((await app.state()).actions).toEqual([]);
-  expect(await app.hexColor(sel.building.cell)).toEqual(before);
+  expect(await app.tileColor(sel.building.cell)).toEqual(before);
   expect(await app.deckLayers()).not.toContain("roof-markers");
 });
 

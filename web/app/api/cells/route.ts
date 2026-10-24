@@ -1,9 +1,9 @@
-import raw from "@/data/hexes.json";
-import { parseHexes } from "@/lib/data";
+import raw from "@/data/cells.json";
+import { parseCells } from "@/lib/data";
 
 // Static import: the file is validated and the response prerendered at build time, so a
-// malformed hexes.json fails `next build` instead of a user's request.
-const body = JSON.stringify(parseHexes(raw));
+// malformed cells.json fails `next build` instead of a user's request.
+const body = JSON.stringify(parseCells(raw));
 
 export function GET() {
   return new Response(body, {

@@ -7,7 +7,7 @@ import { useMap } from "react-map-gl/mapbox";
 /**
  * Per-layer props understood by MapboxOverlay in interleaved mode. deck.gl supports these at
  * runtime but doesn't export the type, so pass it as a layer's extra-props generic:
- * `new H3HexagonLayer<Datum, InterleavedLayerProps>({ slot: "middle", ... })`.
+ * `new PolygonLayer<Datum, InterleavedLayerProps>({ slot: "middle", ... })`.
  */
 export type InterleavedLayerProps = {
   /** Mapbox Standard slot. Layers in the same slot keep their style order, bottom < middle < top. */

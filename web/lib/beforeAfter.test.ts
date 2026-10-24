@@ -1,11 +1,11 @@
-import { latLngToCell } from "h3-js";
 import { describe, expect, it } from "vitest";
+import { tileIdAt } from "@/lib/grid";
 import { beforeAfterRows } from "@/lib/beforeAfter";
 import { selectionMetrics } from "@/lib/metrics";
-import type { Action, Hex, SelectedBuilding } from "@/lib/types";
+import type { Action, CellTemps, SelectedBuilding } from "@/lib/types";
 
-const CELL = latLngToCell(42.3555, -71.06, 10);
-const byId = new Map<string, Hex>([[CELL, { id: CELL, temp3pm: 93, surface: 105 }]]);
+const CELL = tileIdAt([-71.06, 42.3555]);
+const byId = new Map<string, CellTemps>([[CELL, { id: CELL, temp3pm: 93, surface: 105 }]]);
 const baseline = { air: 91, surface: 95 };
 const B: SelectedBuilding = { id: 1, footprint: { type: "Polygon", coordinates: [] }, heightM: 20, roofAreaM2: 1500, cell: CELL };
 const sel = { kind: "building" as const, building: B };
@@ -28,7 +28,7 @@ describe("beforeAfterRows", () => {
   });
 
   it("drops a metric with no data", () => {
-    const noSurface = new Map<string, Hex>([[CELL, { id: CELL, temp3pm: 93, surface: null }]]);
+    const noSurface = new Map<string, CellTemps>([[CELL, { id: CELL, temp3pm: 93, surface: null }]]);
     expect(beforeAfterRows(selectionMetrics(sel, [green], noSurface, baseline)).map((r) => r.key)).toEqual(["air", "heatIsland"]);
   });
 });

@@ -30,11 +30,11 @@ test("Layers tab: toggles and opacity sliders reach the map", async ({ app, page
   const slider = app.panel.getByRole("slider", { name: "Heat slab opacity" });
   await slider.focus();
   for (let i = 0; i < 4; i++) await page.keyboard.press("ArrowLeft"); // 50% -> 30% in 5% steps
-  await expect.poll(async () => (await app.hexColor())[3]).toBe(77);
+  await expect.poll(async () => (await app.tileColor())[3]).toBe(77);
   expect((await app.state()).layers.heat.opacity).toBeCloseTo(0.3, 6);
 
   await app.panel.getByRole("checkbox", { name: /Treated roofs/ }).click();
-  await expect.poll(() => app.deckLayers()).toEqual(["heat-hexes"]);
+  await expect.poll(() => app.deckLayers()).toEqual(["heat-tiles"]);
   await app.panel.getByRole("checkbox", { name: /Heat slab/ }).click();
   await expect.poll(() => app.deckLayers()).toEqual([]);
   await expect(slider).toBeDisabled();
@@ -53,5 +53,5 @@ test("Layers tab: toggles and opacity sliders reach the map", async ({ app, page
 
   await app.panel.getByRole("checkbox", { name: /Heat slab/ }).click();
   await app.panel.getByRole("checkbox", { name: /Treated roofs/ }).click();
-  await expect.poll(() => app.deckLayers()).toEqual(["heat-hexes", "roof-markers"]);
+  await expect.poll(() => app.deckLayers()).toEqual(["heat-tiles", "roof-markers"]);
 });

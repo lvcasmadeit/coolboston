@@ -53,7 +53,7 @@ Parallelizable work: Task 45 alongside Tasks 42–44, since it is pure and only 
 ### Phase 10: Square grid (module `square-grid`)
 - [x] Task 39: Square grid in State Plane, clipped to Boston
 - [x] Task 40: Surface temperature on tiles, composite raster cached
-- [ ] Task 41: `cells.json` v4 and the web on tiles
+- [x] Task 41: `cells.json` v4 and the web on tiles
 
 ### Checkpoint H: Tiles end to end
 - [ ] `make check`, `make build`, all e2e pass on tiles

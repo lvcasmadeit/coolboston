@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from coolboston.grid import RAW_DIR
-from coolboston.join import area_weighted_mean
+from coolboston.join import area_weighted_mean, area_weighted_mean_onto
 
 HEATWATCH_URL = (
     "https://services.arcgis.com/sFnw0xNflSi8J0uh/arcgis/rest/services/Heat_Metrics/"
@@ -44,3 +44,8 @@ def load_heatwatch(path: Path) -> gpd.GeoDataFrame:
 
 def heatwatch_for_cells(cells: list[str]) -> pd.DataFrame:
     return area_weighted_mean(cells, load_heatwatch(fetch_heatwatch()), list(TEMP_COLUMNS))
+
+
+def heatwatch_for_tiles(tiles: gpd.GeoDataFrame) -> pd.DataFrame:
+    """Area-weighted Heat Watch means over each tile's land polygon (no interpolation)."""
+    return area_weighted_mean_onto(tiles.set_index("id")[["geometry"]], load_heatwatch(fetch_heatwatch()), list(TEMP_COLUMNS))

@@ -1,12 +1,12 @@
-import { latLngToCell } from "h3-js";
 import { describe, expect, it } from "vitest";
+import { tileIdAt } from "@/lib/grid";
 import { capitalCost } from "@/lib/impact";
 import { selectionMetrics } from "@/lib/metrics";
 import { chartActions, tradeoffPoints } from "@/lib/tradeoff";
-import type { Action, Hex, SelectedBuilding } from "@/lib/types";
+import type { Action, CellTemps, SelectedBuilding } from "@/lib/types";
 
-const CELL = latLngToCell(42.3555, -71.06, 10);
-const byId = new Map<string, Hex>([[CELL, { id: CELL, temp3pm: 93, surface: 105 }]]);
+const CELL = tileIdAt([-71.06, 42.3555]);
+const byId = new Map<string, CellTemps>([[CELL, { id: CELL, temp3pm: 93, surface: 105 }]]);
 const baseline = { air: 91, surface: 95 };
 const B = (id: number, heightM: number | null = 20): SelectedBuilding => ({
   id,

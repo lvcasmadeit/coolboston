@@ -6,26 +6,26 @@ import { useHeatModel } from "@/components/useHeatModel";
 import { availableActions, type Offer } from "@/lib/availableActions";
 import { computeDeltas } from "@/lib/cooling";
 import { formatAcres, formatArea, formatDeltaF, formatEstimate, formatUsdRange } from "@/lib/format";
-import { HEX_AREA_M2 } from "@/lib/geo";
+import { TILE_AREA_M2 } from "@/lib/grid";
 import { formatTemp } from "@/lib/heat";
 import { capitalCost } from "@/lib/impact";
 import { selectionMetrics } from "@/lib/metrics";
 import { useDashboard } from "@/lib/store";
-import type { Action, ActionTarget, Hex, NewAction, Selection } from "@/lib/types";
+import type { Action, ActionTarget, CellTemps, NewAction, Selection } from "@/lib/types";
 
 const targetOf = (s: NonNullable<Selection>): ActionTarget =>
   s.kind === "building" ? { kind: "building", building: s.building } : { kind: "area", cells: s.cells };
 
 const draft = (offer: Offer, target: ActionTarget) => ({ id: "preview", intervention: offer.spec.id, target }) as Action;
 
-/** Air ΔT the action would cause in its (first) hex, °F; 0 for actions with no cooling claim. */
+/** Air ΔT the action would cause in its (first) tile, °F; 0 for actions with no cooling claim. */
 function previewAirF(a: Action): number {
   const d = computeDeltas([a]);
   const first = d.values().next();
   return first.done ? 0 : first.value.air;
 }
 
-function Details({ selection, byId }: { selection: NonNullable<Selection>; byId: ReadonlyMap<string, Hex> | null }) {
+function Details({ selection, byId }: { selection: NonNullable<Selection>; byId: ReadonlyMap<string, CellTemps> | null }) {
   if (selection.kind === "building") {
     const b = selection.building;
     return (
@@ -34,7 +34,7 @@ function Details({ selection, byId }: { selection: NonNullable<Selection>; byId:
         <dd>{formatArea(b.roofAreaM2)}</dd>
         <dt className="text-muted-foreground">Height</dt>
         <dd>{b.heightM === null ? "unknown" : `${b.heightM.toFixed(0)} m`}</dd>
-        <dt className="text-muted-foreground">Hex air, 3pm</dt>
+        <dt className="text-muted-foreground">CellTemps air, 3pm</dt>
         <dd>{byId ? formatTemp(byId.get(b.cell)?.temp3pm ?? null) : "…"}</dd>
       </dl>
     );
@@ -42,10 +42,10 @@ function Details({ selection, byId }: { selection: NonNullable<Selection>; byId:
   const n = selection.cells.length;
   return (
     <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-      <dt className="text-muted-foreground">Hexes</dt>
+      <dt className="text-muted-foreground">Tiles</dt>
       <dd>{n}</dd>
       <dt className="text-muted-foreground">Area</dt>
-      <dd>{formatAcres(n * HEX_AREA_M2)}</dd>
+      <dd>{formatAcres(n * TILE_AREA_M2)}</dd>
     </dl>
   );
 }
@@ -56,10 +56,10 @@ function ActionButton({ offer, target, onApply }: { offer: Offer; target: Action
   const cost = formatEstimate(capitalCost(a), formatUsdRange);
   const effect =
     offer.spec.id === "street-trees"
-      ? `+0.10 canopy: ${formatDeltaF(air)} air per hex`
+      ? `+0.10 canopy: ${formatDeltaF(air)} air per tile`
       : air === 0
         ? "No cooling claimed"
-        : `${formatDeltaF(air)} air at hex`;
+        : `${formatDeltaF(air)} air at tile`;
   const reasonId = `reason-${offer.spec.id}`;
   return (
     <li>
@@ -97,8 +97,8 @@ export function ActPanel() {
     return (
       <div className="space-y-4">
         <div className="space-y-2 text-sm text-muted-foreground">
-          <p>Click a building to select it, or switch to the Area tool and click hexes.</p>
-          <p className="text-xs">Area tool: shift-click adds or removes a hex; shift-drag selects a box. Escape clears.</p>
+          <p>Click a building to select it, or switch to the Area tool and click tiles.</p>
+          <p className="text-xs">Area tool: shift-click adds or removes a tile; shift-drag selects a box. Escape clears.</p>
         </div>
         <ActionList />
       </div>
@@ -123,7 +123,7 @@ export function ActPanel() {
             <ActionButton key={o.spec.id} offer={o} target={target} onApply={addAction} />
           ))}
         </ul>
-        <p className="text-[11px] text-muted-foreground">Costs are capital estimates (low–high). Air effects are hex averages.</p>
+        <p className="text-[11px] text-muted-foreground">Costs are capital estimates (low–high). Air effects are tile averages.</p>
       </section>
       <ActionList />
     </div>

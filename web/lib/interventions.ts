@@ -23,7 +23,7 @@ export interface CostLine extends Range {
   unit: CostUnit;
 }
 
-/** Hex-level effect at full share (s = 1); scaled by the treated share in the impact model. */
+/** CellTemps-level effect at full share (s = 1); scaled by the treated share in the impact model. */
 export interface Effect {
   /** °F per unit share. 0 = no effect. null = not quantified. */
   deltaFPerShare: number | null;
@@ -154,7 +154,7 @@ const TREE_COST: CostLine = {
 
 const GREEN_ROOF_AIR: Effect = {
   deltaFPerShare: -5,
-  basis: "Up to -5 °F citywide (EPA 2019); used as an upper-bound proxy at hex scale.",
+  basis: "Up to -5 °F citywide (EPA 2019); used as an upper-bound proxy at tile scale.",
 };
 const GREEN_ROOF_SURFACE: Effect = {
   deltaFPerShare: -56,

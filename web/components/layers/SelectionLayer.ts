@@ -1,31 +1,33 @@
 import { PolygonLayer } from "@deck.gl/layers";
-import { cellToBoundary } from "h3-js";
 import type { InterleavedLayerProps } from "@/components/DeckOverlay";
 import { SLAB_HEIGHT_M } from "@/components/layers/HeatLayer";
+import { cellPolygons } from "@/lib/grid";
+import type { Cell } from "@/lib/types";
 
 /** Sage accent (#4F7A5A). */
 const SAGE: [number, number, number] = [79, 122, 90];
 /** Just above the heat slab's top face so the outline is not hidden by it. */
 const OUTLINE_Z_M = SLAB_HEIGHT_M + 0.5;
 
-interface Cell {
+interface Outline {
   id: string;
-  ring: [number, number, number][];
+  rings: [number, number, number][][];
 }
 
-const toCell = (id: string): Cell => ({
-  id,
-  // cellToBoundary(…, true) gives [lng, lat]; close the ring and lift it to the slab top.
-  ring: [...cellToBoundary(id, true), cellToBoundary(id, true)[0]].map(([lng, lat]) => [lng, lat, OUTLINE_Z_M]),
-});
+/** One outline per tile polygon, lifted to the slab top. */
+const toOutlines = (cell: Cell): Outline[] =>
+  cellPolygons(cell).map((rings) => ({
+    id: cell.id,
+    rings: rings.map((ring) => ring.map(([lng, lat]) => [lng, lat, OUTLINE_Z_M] as [number, number, number])),
+  }));
 
-/** Selected area cells: sage outline with a light sage fill, drawn on top of the slab. */
-export function createSelectionLayer(cells: readonly string[]) {
-  return new PolygonLayer<Cell, InterleavedLayerProps>({
+/** Selected area tiles: sage outline with a light sage fill, drawn on top of the slab. */
+export function createSelectionLayer(cells: readonly Cell[]) {
+  return new PolygonLayer<Outline, InterleavedLayerProps>({
     id: "area-selection",
     slot: "middle",
-    data: cells.map(toCell),
-    getPolygon: (d) => d.ring,
+    data: cells.flatMap(toOutlines),
+    getPolygon: (d) => d.rings,
     filled: true,
     stroked: true,
     extruded: false,

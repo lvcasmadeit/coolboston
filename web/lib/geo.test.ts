@@ -1,6 +1,5 @@
-import { getResolution, isValidCell, latLngToCell } from "h3-js";
 import { describe, expect, it } from "vitest";
-import { HEX_AREA_M2, buildingCell, footprintAreaM2, footprintCentroid, footprintPerimeterM } from "@/lib/geo";
+import { footprintAreaM2, footprintCentroid, footprintPerimeterM } from "@/lib/geo";
 import type { Footprint } from "@/lib/types";
 
 // ~100 m × 100 m square centred near Downtown Crossing.
@@ -51,14 +50,7 @@ describe("footprintPerimeterM", () => {
   });
 });
 
-describe("buildingCell", () => {
-  it("returns the valid res-10 cell of the centroid", () => {
-    const cell = buildingCell(SQUARE);
-    expect(isValidCell(cell)).toBe(true);
-    expect(getResolution(cell)).toBe(10);
-    expect(cell).toBe(latLngToCell(LAT, LNG, 10));
-  });
-
+describe("footprintCentroid", () => {
   it("centroid of an L shape is area-weighted, not a vertex average", () => {
     const L: Footprint = {
       type: "Polygon",
@@ -68,12 +60,5 @@ describe("buildingCell", () => {
     // Two rectangles: 2×1 at (1, 0.5) and 1×2 at (0.5, 2) -> (0.75, 1.25)
     expect(x).toBeCloseTo(0.75, 9);
     expect(y).toBeCloseTo(1.25, 9);
-  });
-});
-
-describe("HEX_AREA_M2", () => {
-  it("is the h3 res-10 average (about 15,050 m²)", () => {
-    expect(HEX_AREA_M2).toBeGreaterThan(15_000);
-    expect(HEX_AREA_M2).toBeLessThan(15_100);
   });
 });

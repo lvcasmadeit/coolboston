@@ -40,7 +40,7 @@ test("before-and-after chart: empty states, bars move with actions", async ({ ap
   await expect(chart.getByLabel(/^Heat island: /)).toBeVisible();
   await expect(chart.locator(".recharts-bar-rectangle")).not.toHaveCount(0);
 
-  // A second action on the same hex (green walls has no cooling, so remove and switch roof)
+  // A second action on the same tile (green walls has no cooling, so remove and switch roof)
   await app.panel.getByRole("region", { name: "Applied actions" }).getByRole("button", { name: "Undo" }).click();
   await expect(chart).toContainText("Apply an action to this selection");
   await actions.getByRole("button", { name: /^Green roof\b/ }).first().click();
