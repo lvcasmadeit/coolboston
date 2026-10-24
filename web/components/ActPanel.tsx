@@ -1,15 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
 import { ActionList } from "@/components/ActionList";
 import { MetricCards } from "@/components/MetricCards";
-import { useHexes } from "@/components/useHexes";
+import { useHeatModel } from "@/components/useHeatModel";
 import { availableActions, type Offer } from "@/lib/availableActions";
 import { computeDeltas } from "@/lib/cooling";
 import { formatAcres, formatArea, formatDeltaF, formatEstimate, formatUsdRange } from "@/lib/format";
 import { HEX_AREA_M2 } from "@/lib/geo";
 import { formatTemp } from "@/lib/heat";
-import { capitalCost, computeBaseline } from "@/lib/impact";
+import { capitalCost } from "@/lib/impact";
 import { selectionMetrics } from "@/lib/metrics";
 import { useDashboard } from "@/lib/store";
 import type { Action, ActionTarget, Hex, NewAction, Selection } from "@/lib/types";
@@ -90,12 +89,9 @@ export function ActPanel() {
   const selection = useDashboard((s) => s.selection);
   const actions = useDashboard((s) => s.actions);
   const addAction = useDashboard((s) => s.addAction);
-  const data = useHexes();
-  const byId = useMemo(
-    () => (data.status === "ready" ? new Map(data.hexes.map((h) => [h.id, h])) : null),
-    [data],
-  );
-  const baseline = useMemo(() => (data.status === "ready" ? computeBaseline(data.hexes) : null), [data]);
+  const data = useHeatModel();
+  const byId = data.status === "ready" ? data.model.byId : null;
+  const baseline = data.status === "ready" ? data.model.baseline : null;
 
   if (!selection) {
     return (

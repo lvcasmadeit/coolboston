@@ -13,11 +13,10 @@ import { MapFocus } from "@/components/MapFocus";
 import { TestHookMap } from "@/components/TestHookMap";
 import { buildDeckLayers } from "@/components/layers/buildLayers";
 import { ToolToggle } from "@/components/ToolToggle";
-import { useHexes } from "@/components/useHexes";
+import { useHeatModel } from "@/components/useHeatModel";
 import { computeDeltas } from "@/lib/cooling";
-import { formatTemp, quantileRange, valueRange, type Range } from "@/lib/heat";
+import { formatTemp } from "@/lib/heat";
 import { afterValue, baseValue, changePct, maxChangePct, type HeatView } from "@/lib/heatView";
-import { computeBaseline } from "@/lib/impact";
 import { BASEMAP_CONFIG, BOSTON_VIEW, MAP_STYLE } from "@/lib/mapConfig";
 import { useDashboard } from "@/lib/store";
 import { installTestHook } from "@/lib/testHook";
@@ -57,7 +56,7 @@ interface MapViewProps {
 }
 
 export default function MapView({ token, children }: MapViewProps) {
-  const data = useHexes();
+  const data = useHeatModel();
   const layerState = useDashboard((s) => s.layers);
   const actions = useDashboard((s) => s.actions);
   const metric = useDashboard((s) => s.metric);
@@ -65,19 +64,9 @@ export default function MapView({ token, children }: MapViewProps) {
 
   useEffect(installTestHook, []);
 
-  const hexes = data.status === "ready" ? data.hexes : null;
-  // Fixed baseline: computed once from the base data, never from after-action values.
-  const base = useMemo(() => {
-    if (!hexes) return null;
-    const air = valueRange(hexes.map((h) => h.temp3pm));
-    const surface = quantileRange(hexes.map((h) => h.surface));
-    if (!air || !surface) return null;
-    return {
-      ranges: { air, surface } satisfies Record<Metric, Range>,
-      baseline: computeBaseline(hexes),
-      byId: new globalThis.Map(hexes.map((h) => [h.id, h])),
-    };
-  }, [hexes]);
+  // Fixed base model (lookup, baseline, colour ranges), shared with the panels.
+  const base = data.status === "ready" ? data.model : null;
+  const hexes = base?.hexes ?? null;
   const deltas = useMemo(() => computeDeltas(actions), [actions]);
   const view = useMemo<Omit<HeatView, "opacity"> | null>(
     () => base && { metric, mode, deltas, baseline: base.baseline, ranges: base.ranges },
